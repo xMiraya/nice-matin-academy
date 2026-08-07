@@ -1,0 +1,364 @@
+"use client";
+
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { AlertTriangle, Loader2, Mic, MicOff, PhoneOff, Video, VideoOff } from "lucide-react";
+import { Button, ButtonLink } from "@/src/components/Button";
+import { CharacterAvatar } from "@/src/components/CharacterAvatar";
+import { Logo } from "@/src/components/Logo";
+import { OBJECTIVES } from "@/src/data/competencies";
+import type {
+  TavusApiErrorResponse,
+  TavusConversationClientResponse,
+  TavusErrorCode,
+} from "@/src/types/tavus";
+import { cx, formatTimer } from "@/src/lib/format";
+import {
+  storeLastCallSession,
+  storeLastConversationId,
+  useSelectedObjectiveIds,
+} from "@/src/lib/session-storage";
+
+type CallStatus = "idle" | "starting" | "active" | "error";
+
+/**
+ * Salle d'appel connectée à Tavus. Aucune conversation n'est créée au
+ * chargement de la page : elle démarre uniquement au clic du commercial, pour
+ * ne jamais consommer de minutes après un simple rafraîchissement.
+ */
+export function CallRoom() {
+  const router = useRouter();
+
+  const [status, setStatus] = useState<CallStatus>("idle");
+  const [conversation, setConversation] = useState<TavusConversationClientResponse | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [errorCode, setErrorCode] = useState<TavusErrorCode | null>(null);
+  const [isEnding, setIsEnding] = useState(false);
+  const [endWarning, setEndWarning] = useState<string | null>(null);
+  const [seconds, setSeconds] = useState(0);
+  const [cameraOn, setCameraOn] = useState(true);
+  const [micOn, setMicOn] = useState(true);
+  const objectiveIds = useSelectedObjectiveIds();
+
+  // Empêche les doubles clics / créations multiples de conversation.
+  const isStartingRef = useRef(false);
+  const isEndingRef = useRef(false);
+  // Évite les mises à jour d'état après la navigation vers /commercial/analyse.
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    // Remis à `true` à chaque montage : le Mode strict de React démonte puis
+    // remonte les composants une fois en développement, sans quoi cette
+    // référence resterait bloquée à `false` après le premier cycle.
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (status !== "active") return;
+    const interval = window.setInterval(() => setSeconds((value) => value + 1), 1000);
+    return () => window.clearInterval(interval);
+  }, [status]);
+
+  /**
+   * Tentative de clôture propre si l'utilisateur quitte la page avec un appel
+   * encore actif.
+   *
+   * `sendBeacon` est volontairement choisi : la requête part en arrière-plan
+   * sans jamais retarder ni bloquer la fermeture de l'onglet. Le navigateur ne
+   * garantit pas son acheminement — c'est un filet, pas la voie principale,
+   * qui reste le bouton « Terminer l'appel ».
+   */
+  useEffect(() => {
+    if (status !== "active" || !conversation) return;
+
+    const conversationId = conversation.conversation_id;
+
+    const closeQuietly = () => {
+      if (isEndingRef.current) return;
+      navigator.sendBeacon?.(`/api/tavus/conversations/${conversationId}/end`);
+    };
+
+    window.addEventListener("pagehide", closeQuietly);
+    return () => window.removeEventListener("pagehide", closeQuietly);
+  }, [status, conversation]);
+
+  const objectiveLabel = useMemo(() => {
+    if (objectiveIds.length === 0) return null;
+    if (objectiveIds.length === OBJECTIVES.length) return "Entretien commercial complet";
+    return OBJECTIVES.filter((objective) => objectiveIds.includes(objective.id))
+      .map((objective) => objective.label)
+      .join(" · ");
+  }, [objectiveIds]);
+
+  const startCall = useCallback(async () => {
+    if (isStartingRef.current) return;
+    isStartingRef.current = true;
+    setStatus("starting");
+    setErrorMessage(null);
+    setErrorCode(null);
+
+    try {
+      const response = await fetch("/api/tavus/conversations", { method: "POST" });
+      const payload = (await response.json()) as
+        | TavusConversationClientResponse
+        | TavusApiErrorResponse;
+
+      if (!isMountedRef.current) return;
+
+      if (!response.ok || !("conversation_id" in payload)) {
+        setErrorMessage(
+          "error" in payload
+            ? payload.error
+            : "Impossible de démarrer l'appel avec Julie pour le moment.",
+        );
+        setErrorCode("error" in payload && payload.code ? payload.code : null);
+        setStatus("error");
+        return;
+      }
+
+      // Mémorisé dès la création : si l'appel se termine depuis l'iframe Tavus
+      // ou si la page est rafraîchie, l'analyse reste rattachable à cet appel.
+      storeLastConversationId(payload.conversation_id);
+
+      setConversation(payload);
+      setSeconds(0);
+      setStatus("active");
+    } catch {
+      if (isMountedRef.current) {
+        setErrorMessage("Impossible de démarrer l'appel avec Julie pour le moment.");
+        setErrorCode(null);
+        setStatus("error");
+      }
+    } finally {
+      isStartingRef.current = false;
+    }
+  }, []);
+
+  const endCall = useCallback(async () => {
+    if (isEndingRef.current) return;
+    isEndingRef.current = true;
+    setIsEnding(true);
+
+    const activeConversationId = conversation?.conversation_id;
+
+    if (activeConversationId) {
+      // La session est enregistrée AVANT l'appel réseau : même si Tavus répond
+      // lentement ou échoue, l'analyse reste rattachable à cette conversation.
+      storeLastConversationId(activeConversationId);
+      storeLastCallSession({
+        conversationId: activeConversationId,
+        endedAt: new Date().toISOString(),
+        durationSeconds: seconds,
+        selectedObjectiveIds: objectiveIds,
+      });
+
+      let closeFailed = false;
+      try {
+        const response = await fetch(
+          `/api/tavus/conversations/${activeConversationId}/end`,
+          { method: "POST", signal: AbortSignal.timeout(10_000) },
+        );
+        closeFailed = !response.ok;
+      } catch {
+        closeFailed = true;
+      }
+
+      // Échec récupérable : l'entretien est conservé, l'analyse reste possible.
+      // On laisse la main à l'utilisateur plutôt que de rediriger en silence.
+      if (closeFailed && isMountedRef.current) {
+        setEndWarning(
+          "La clôture de l'appel côté Tavus n'a pas abouti. Votre entretien est bien enregistré : vous pouvez poursuivre vers l'analyse.",
+        );
+        setIsEnding(false);
+        isEndingRef.current = false;
+        return;
+      }
+    }
+
+    setConversation(null);
+    setStatus("idle");
+    router.push("/commercial/analyse");
+  }, [conversation, objectiveIds, router, seconds]);
+
+  return (
+    <div className="flex min-h-screen flex-col bg-ink text-white">
+      {/* Bandeau */}
+      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 px-4 py-3 sm:px-6">
+        <Logo size="sm" tone="dark" />
+        <div className="flex items-center gap-3">
+          <span className="flex items-center gap-2 rounded-sm bg-white/10 px-3 py-1.5">
+            <span
+              className={cx(
+                "h-2 w-2 rounded-full bg-brand",
+                status === "active" && "animate-pulse",
+              )}
+              aria-hidden
+            />
+            <span className="text-xs font-semibold uppercase tracking-[0.1em]">Simulation</span>
+          </span>
+          <span
+            className="font-mono text-sm font-semibold tabular-nums"
+            aria-label={`Durée de l'appel : ${formatTimer(seconds)}`}
+          >
+            {formatTimer(seconds)}
+          </span>
+        </div>
+      </header>
+
+      <main className="flex flex-1 flex-col px-4 py-5 sm:px-6">
+        {/* Rappel discret de l'objectif */}
+        {objectiveLabel ? (
+          <p className="mb-4 text-sm text-white/55">
+            Objectif de la session : <span className="font-medium text-white/85">{objectiveLabel}</span>
+          </p>
+        ) : null}
+
+        <div className="relative flex-1 overflow-hidden rounded-md border border-white/10 bg-[#0f0f11]">
+          {status === "active" && conversation ? (
+            <iframe
+              key={conversation.conversation_id}
+              src={conversation.conversation_url}
+              title="Appel en visioconférence avec Julie Dupont"
+              allow="camera; microphone; fullscreen; display-capture; autoplay"
+              allowFullScreen
+              className="h-full min-h-[300px] w-full border-0"
+            />
+          ) : (
+            <div className="flex h-full min-h-[300px] w-full items-center justify-center">
+              <div className="flex flex-col items-center px-6 text-center">
+                {status === "error" ? (
+                  <>
+                    <span className="flex h-16 w-16 items-center justify-center rounded-full border border-danger/30 bg-danger/10 text-danger">
+                      <AlertTriangle size={26} aria-hidden />
+                    </span>
+                    {/* Un compte sans crédits ne se résout pas par un nouvel essai :
+                        le problème est nommé explicitement, sans bouton « Réessayer ». */}
+                    {errorCode === "TAVUS_CREDITS_EXHAUSTED" ? (
+                      <>
+                        <p className="mt-5 text-lg font-semibold">Crédits Tavus épuisés</p>
+                        <p className="mt-1 max-w-md text-sm text-white/60">
+                          Les crédits conversationnels Tavus sont épuisés. Rechargez le compte
+                          Tavus avant de lancer une nouvelle simulation.
+                        </p>
+                        <ButtonLink href="/commercial/simulations" className="mt-5">
+                          Retour aux simulations
+                        </ButtonLink>
+                      </>
+                    ) : errorCode === "TAVUS_CONFIGURATION_ERROR" ||
+                      errorCode === "TAVUS_UNAUTHORIZED" ? (
+                      <>
+                        <p className="mt-5 text-lg font-semibold">Service Tavus indisponible</p>
+                        <p className="mt-1 max-w-md text-sm text-white/60">
+                          {errorMessage}
+                        </p>
+                        <ButtonLink href="/commercial/simulations" className="mt-5">
+                          Retour aux simulations
+                        </ButtonLink>
+                      </>
+                    ) : (
+                      <>
+                        <p className="mt-5 text-lg font-semibold">
+                          L&apos;appel n&apos;a pas pu démarrer
+                        </p>
+                        <p className="mt-1 max-w-sm text-sm text-white/60">
+                          {errorMessage ?? "Une erreur est survenue. Vous pouvez réessayer."}
+                        </p>
+                        <Button onClick={startCall} className="mt-5">
+                          Réessayer
+                        </Button>
+                      </>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <span className="h-32 w-32 overflow-hidden rounded-full border border-white/10 sm:h-40 sm:w-40">
+                      <CharacterAvatar tone="dark" />
+                    </span>
+                    <p className="mt-5 text-lg font-semibold">Julie Dupont</p>
+                    <p className="mt-1 text-sm text-white/50">Cliente virtuelle — prête à démarrer</p>
+                    <Button
+                      onClick={startCall}
+                      disabled={status === "starting"}
+                      className="mt-5"
+                    >
+                      {status === "starting" ? (
+                        <>
+                          <Loader2 size={17} className="animate-spin" aria-hidden />
+                          Connexion à Julie en cours…
+                        </>
+                      ) : (
+                        "Démarrer l'appel avec Julie"
+                      )}
+                    </Button>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Vignette du commercial */}
+          <div className="absolute bottom-4 right-4 w-32 overflow-hidden rounded-md border border-white/15 bg-black/60 sm:w-44">
+            <div className="flex aspect-video items-center justify-center">
+              {cameraOn ? (
+                <span className="text-[11px] text-white/50">Votre caméra</span>
+              ) : (
+                <VideoOff size={18} className="text-white/40" aria-hidden />
+              )}
+            </div>
+            <p className="border-t border-white/10 px-2 py-1 text-[11px] text-white/60">
+              Alexandre Jégo
+            </p>
+          </div>
+        </div>
+
+        {/* Clôture Tavus en échec : l'entretien reste exploitable */}
+        {endWarning ? (
+          <div className="mt-5 flex flex-wrap items-center gap-3 rounded-md border border-warning/40 bg-warning/10 px-4 py-3">
+            <AlertTriangle size={17} className="shrink-0 text-warning" aria-hidden />
+            <p className="min-w-0 flex-1 text-sm leading-relaxed text-white/80">{endWarning}</p>
+            <ButtonLink href="/commercial/analyse" variant="secondary">
+              Poursuivre vers l&apos;analyse
+            </ButtonLink>
+          </div>
+        ) : null}
+
+        {/* Commandes */}
+        <div className="mt-5 flex flex-wrap items-center justify-center gap-3 pb-6">
+          <button
+            type="button"
+            onClick={() => setMicOn((value) => !value)}
+            aria-pressed={micOn}
+            className={cx(
+              "flex items-center gap-2 rounded-sm px-4 py-2.5 text-sm font-medium transition-colors",
+              micOn ? "bg-white/10 text-white hover:bg-white/15" : "bg-white/5 text-white/50",
+            )}
+          >
+            {micOn ? <Mic size={17} aria-hidden /> : <MicOff size={17} aria-hidden />}
+            {micOn ? "Microphone actif" : "Microphone coupé"}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setCameraOn((value) => !value)}
+            aria-pressed={cameraOn}
+            className={cx(
+              "flex items-center gap-2 rounded-sm px-4 py-2.5 text-sm font-medium transition-colors",
+              cameraOn ? "bg-white/10 text-white hover:bg-white/15" : "bg-white/5 text-white/50",
+            )}
+          >
+            {cameraOn ? <Video size={17} aria-hidden /> : <VideoOff size={17} aria-hidden />}
+            {cameraOn ? "Caméra active" : "Caméra coupée"}
+          </button>
+
+          <Button onClick={endCall} disabled={isEnding} variant="danger">
+            <PhoneOff size={17} aria-hidden />
+            {isEnding ? "Clôture en cours…" : "Terminer l'appel"}
+          </Button>
+        </div>
+      </main>
+    </div>
+  );
+}

@@ -1,0 +1,68 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand: #f4476b;
+  --color-brand-dark: #d32f52;
+  --color-brand-soft: #fff0f4;
+  --color-ink: #171717;
+  --color-graphite: #3f3f46;
+  --color-mist: #f4f4f5;
+  --color-line: #e4e4e7;
+  --color-positive: #22a06b;
+  --color-warning: #f59e0b;
+  --color-danger: #dc3545;
+  --color-info: #377dff;
+
+  --font-sans: var(--font-geist-sans), system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: #ffffff;
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    overflow-x: hidden;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  ::selection {
+    background-color: var(--color-brand-soft);
+    color: var(--color-ink);
+  }
+}
+
+@utility nm-card {
+  border-radius: 0.5rem;
+  border: 1px solid var(--color-line);
+  background-color: #ffffff;
+}
+
+@utility nm-label {
+  font-size: 11px;
+  line-height: 1.2;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: color-mix(in oklab, var(--color-graphite) 75%, white);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
