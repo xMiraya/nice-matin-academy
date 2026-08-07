@@ -46,3 +46,6 @@ next-env.d.ts
 # Page HTML sauvegardée par erreur dans public/ (non liée au projet).
 public/images/Création Avatar Formation.html
 public/images/Création Avatar Formation_files/
+
+.vercel
+.env*
