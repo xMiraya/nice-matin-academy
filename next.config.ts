@@ -8,14 +8,20 @@ const projectRoot = path.dirname(fileURLToPath(import.meta.url));
 
 /**
  * Domaines strictement nécessaires à la visioconférence Tavus.
- * La salle d'appel est servie par Daily, l'API par Tavus.
+ *
+ * En mode « call object », `@daily-co/daily-js` charge une machine d'appel
+ * masquée depuis `c.daily.co` : `frame-src` reste donc requis, même sans
+ * interface Daily Prebuilt. Les médias transitent par l'infrastructure Daily
+ * (`*.daily.co`, `*.pluot.blue`) en HTTPS et WebSocket.
  */
-const TAVUS_FRAME_ORIGINS = ["https://*.daily.co", "https://tavus.daily.co"];
+const TAVUS_FRAME_ORIGINS = ["https://*.daily.co"];
 const TAVUS_CONNECT_ORIGINS = [
   "https://*.daily.co",
   "https://*.tavus.io",
   "https://tavusapi.com",
+  "https://*.pluot.blue",
   "wss://*.daily.co",
+  "wss://*.pluot.blue",
 ];
 
 /**
@@ -37,6 +43,8 @@ const securityHeaders = [
       "img-src 'self' data: blob:",
       "font-src 'self' data:",
       "media-src 'self' blob:",
+      // Daily instancie ses décodeurs média dans des workers issus de blobs.
+      "worker-src 'self' blob:",
       `frame-src 'self' ${TAVUS_FRAME_ORIGINS.join(" ")}`,
       `connect-src 'self' ${TAVUS_CONNECT_ORIGINS.join(" ")}`,
       "base-uri 'self'",
@@ -48,9 +56,12 @@ const securityHeaders = [
   {
     key: "Permissions-Policy",
     value: [
-      'camera=(self "https://tavus.daily.co")',
-      'microphone=(self "https://tavus.daily.co")',
-      'display-capture=(self "https://tavus.daily.co")',
+      // La capture caméra/micro a lieu dans la machine d'appel Daily (`c.daily.co`),
+      // pas dans notre document : la délégation doit la nommer explicitement.
+      'camera=(self "https://c.daily.co" "https://tavus.daily.co")',
+      'microphone=(self "https://c.daily.co" "https://tavus.daily.co")',
+      'display-capture=(self "https://c.daily.co" "https://tavus.daily.co")',
+      'fullscreen=(self "https://c.daily.co")',
       "geolocation=()",
       "payment=()",
     ].join(", "),

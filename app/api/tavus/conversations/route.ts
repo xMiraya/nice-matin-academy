@@ -3,6 +3,7 @@ import type {
   TavusApiErrorResponse,
   TavusConversationApiResponse,
   TavusConversationClientResponse,
+  TavusConversationProperties,
   TavusConversationRequestBody,
   TavusErrorCode,
 } from "@/src/types/tavus";
@@ -29,7 +30,21 @@ const CONVERSATIONAL_CONTEXT = [
   "Réagissez comme une vraie cliente : posez des questions sur le contenu, le prix et la durée d'engagement.",
   "Restez naturelle et exigeante, sans hostilité gratuite.",
   "Si le ton devient irrespectueux ou la démarche incohérente, vous pouvez mettre fin à l'échange poliment.",
+  // Doublon assumé avec `properties.language` : la consigne côté prompt évite
+  // les bascules d'une phrase à l'autre que le seul réglage moteur laisse passer.
+  "La langue obligatoire de cette conversation est le français. Julie comprend et répond exclusivement en français naturel pendant toute la simulation.",
 ].join(" ");
+
+/**
+ * Garde-fous de facturation. Tavus clôt la conversation lui-même : aucun
+ * polling ni fonction serveur longue n'est nécessaire côté Nice-Matin Academy.
+ */
+const CONVERSATION_PROPERTIES: TavusConversationProperties = {
+  language: "french",
+  max_call_duration: 900,
+  participant_left_timeout: 60,
+  participant_absent_timeout: 120,
+};
 
 /** Messages affichés à l'utilisateur, associés à chaque code applicatif. */
 const ERROR_MESSAGES: Record<TavusErrorCode, string> = {
@@ -95,6 +110,7 @@ export async function POST() {
     policy: "eu",
     require_auth: false,
     max_participants: 2,
+    properties: CONVERSATION_PROPERTIES,
   };
 
   let tavusResponse: Response;

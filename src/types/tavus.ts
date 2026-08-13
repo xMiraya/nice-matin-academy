@@ -6,6 +6,23 @@
 
 export type TavusPolicy = "eu";
 
+/**
+ * Propriétés de conversation Tavus.
+ *
+ * `language` est volontairement figé à `"french"` : `"multilingual"` laisserait
+ * Julie basculer en anglais au moindre mot ambigu. Ce réglage garantit la
+ * langue, pas le timbre ni l'accent de la voix (voir `src/lib/tavus/voice.ts`).
+ */
+export interface TavusConversationProperties {
+  language: "french";
+  /** Durée maximale de l'appel, en secondes. Coupe la facturation Tavus. */
+  max_call_duration: number;
+  /** Délai avant clôture après le départ du commercial, en secondes. */
+  participant_left_timeout: number;
+  /** Délai avant clôture si personne ne rejoint jamais, en secondes. */
+  participant_absent_timeout: number;
+}
+
 /** Corps envoyé côté serveur à `POST https://tavusapi.com/v2/conversations`. */
 export interface TavusConversationRequestBody {
   face_id: string;
@@ -17,6 +34,7 @@ export interface TavusConversationRequestBody {
   policy: TavusPolicy;
   require_auth: boolean;
   max_participants: number;
+  properties: TavusConversationProperties;
 }
 
 /** Réponse brute attendue de l'API Tavus lors de la création d'une conversation. */

@@ -7,6 +7,7 @@ import { Button, ButtonLink } from "@/src/components/Button";
 import { CharacterAvatar } from "@/src/components/CharacterAvatar";
 import { Logo } from "@/src/components/Logo";
 import { OBJECTIVES } from "@/src/data/competencies";
+import { TavusVideoStage } from "@/app/commercial/appel/TavusVideoStage";
 import type {
   TavusApiErrorResponse,
   TavusConversationClientResponse,
@@ -19,7 +20,7 @@ import {
   useSelectedObjectiveIds,
 } from "@/src/lib/session-storage";
 
-type CallStatus = "idle" | "starting" | "active" | "error";
+type CallStatus = "idle" | "starting" | "connecting" | "active" | "error";
 
 /**
  * Salle d'appel connectée à Tavus. Aucune conversation n'est créée au
@@ -56,6 +57,8 @@ export function CallRoom() {
     };
   }, []);
 
+  // Le chronomètre ne démarre qu'une fois la salle réellement rejointe :
+  // le temps de création de la conversation n'est pas du temps d'entretien.
   useEffect(() => {
     if (status !== "active") return;
     const interval = window.setInterval(() => setSeconds((value) => value + 1), 1000);
@@ -72,7 +75,7 @@ export function CallRoom() {
    * qui reste le bouton « Terminer l'appel ».
    */
   useEffect(() => {
-    if (status !== "active" || !conversation) return;
+    if (!conversation) return;
 
     const conversationId = conversation.conversation_id;
 
@@ -125,7 +128,9 @@ export function CallRoom() {
 
       setConversation(payload);
       setSeconds(0);
-      setStatus("active");
+      // « connecting » et non « active » : le chronomètre attend l'événement
+      // `joined-meeting` renvoyé par Daily.
+      setStatus("connecting");
     } catch {
       if (isMountedRef.current) {
         setErrorMessage("Impossible de démarrer l'appel avec Julie pour le moment.");
@@ -135,6 +140,26 @@ export function CallRoom() {
     } finally {
       isStartingRef.current = false;
     }
+  }, []);
+
+  /** Le commercial a rejoint la salle : l'entretien — et le chronomètre — commencent. */
+  const handleStageJoined = useCallback(() => {
+    if (!isMountedRef.current) return;
+    setStatus("active");
+  }, []);
+
+  /** La salle s'est fermée d'elle-même (fin côté Tavus, durée maximale atteinte). */
+  const handleStageLeft = useCallback(() => {
+    if (!isMountedRef.current) return;
+    setStatus((current) => (current === "error" ? current : "connecting"));
+  }, []);
+
+  const handleStageError = useCallback((message: string) => {
+    if (!isMountedRef.current) return;
+    setConversation(null);
+    setErrorMessage(message);
+    setErrorCode(null);
+    setStatus("error");
   }, []);
 
   const endCall = useCallback(async () => {
@@ -216,18 +241,19 @@ export function CallRoom() {
           </p>
         ) : null}
 
-        <div className="relative flex-1 overflow-hidden rounded-md border border-white/10 bg-[#0f0f11]">
-          {status === "active" && conversation ? (
-            <iframe
+        <div className="mx-auto w-full max-w-5xl">
+          {conversation ? (
+            <TavusVideoStage
               key={conversation.conversation_id}
-              src={conversation.conversation_url}
-              title="Appel en visioconférence avec Julie Dupont"
-              allow="camera; microphone; fullscreen; display-capture; autoplay"
-              allowFullScreen
-              className="h-full min-h-[300px] w-full border-0"
+              roomUrl={conversation.conversation_url}
+              micOn={micOn}
+              cameraOn={cameraOn}
+              onJoined={handleStageJoined}
+              onLeft={handleStageLeft}
+              onError={handleStageError}
             />
           ) : (
-            <div className="flex h-full min-h-[300px] w-full items-center justify-center">
+            <div className="flex aspect-video w-full items-center justify-center overflow-hidden rounded-md border border-white/10 bg-[#0f0f11]">
               <div className="flex flex-col items-center px-6 text-center">
                 {status === "error" ? (
                   <>
@@ -298,20 +324,6 @@ export function CallRoom() {
               </div>
             </div>
           )}
-
-          {/* Vignette du commercial */}
-          <div className="absolute bottom-4 right-4 w-32 overflow-hidden rounded-md border border-white/15 bg-black/60 sm:w-44">
-            <div className="flex aspect-video items-center justify-center">
-              {cameraOn ? (
-                <span className="text-[11px] text-white/50">Votre caméra</span>
-              ) : (
-                <VideoOff size={18} className="text-white/40" aria-hidden />
-              )}
-            </div>
-            <p className="border-t border-white/10 px-2 py-1 text-[11px] text-white/60">
-              Alexandre Jégo
-            </p>
-          </div>
         </div>
 
         {/* Clôture Tavus en échec : l'entretien reste exploitable */}
