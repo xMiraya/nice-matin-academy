@@ -37,6 +37,9 @@ export function CallRoom() {
   const [isEnding, setIsEnding] = useState(false);
   const [endWarning, setEndWarning] = useState<string | null>(null);
   const [seconds, setSeconds] = useState(0);
+  // Julie réellement présente dans la salle, piste vidéo comprise. Distinct de
+  // `status === "active"`, qui signifie seulement que le commercial a rejoint.
+  const [isJulieReady, setIsJulieReady] = useState(false);
   const [cameraOn, setCameraOn] = useState(true);
   const [micOn, setMicOn] = useState(true);
   const objectiveIds = useSelectedObjectiveIds();
@@ -57,13 +60,14 @@ export function CallRoom() {
     };
   }, []);
 
-  // Le chronomètre ne démarre qu'une fois la salle réellement rejointe :
-  // le temps de création de la conversation n'est pas du temps d'entretien.
+  // Le chronomètre ne démarre qu'une fois Julie effectivement présente : ni la
+  // création de la conversation, ni la connexion média ne sont du temps
+  // d'entretien.
   useEffect(() => {
-    if (status !== "active") return;
+    if (status !== "active" || !isJulieReady) return;
     const interval = window.setInterval(() => setSeconds((value) => value + 1), 1000);
     return () => window.clearInterval(interval);
-  }, [status]);
+  }, [status, isJulieReady]);
 
   /**
    * Tentative de clôture propre si l'utilisateur quitte la page avec un appel
@@ -96,12 +100,24 @@ export function CallRoom() {
       .join(" · ");
   }, [objectiveIds]);
 
+  /**
+   * État lisible de la mise en relation. Trois étapes seulement, pour que le
+   * commercial sache toujours ce qu'il attend pendant la préparation Tavus.
+   */
+  const stageLabel = useMemo(() => {
+    if (status === "starting") return "Préparation de Julie…";
+    if (status === "connecting") return "Connexion audio et vidéo…";
+    if (status === "active") return isJulieReady ? "Julie est prête" : "Préparation de Julie…";
+    return null;
+  }, [status, isJulieReady]);
+
   const startCall = useCallback(async () => {
     if (isStartingRef.current) return;
     isStartingRef.current = true;
     setStatus("starting");
     setErrorMessage(null);
     setErrorCode(null);
+    setIsJulieReady(false);
 
     try {
       const response = await fetch("/api/tavus/conversations", { method: "POST" });
@@ -142,20 +158,29 @@ export function CallRoom() {
     }
   }, []);
 
-  /** Le commercial a rejoint la salle : l'entretien — et le chronomètre — commencent. */
+  /** Le commercial a rejoint la salle. Julie peut ne pas être encore arrivée. */
   const handleStageJoined = useCallback(() => {
     if (!isMountedRef.current) return;
     setStatus("active");
   }, []);
 
+  /** Julie est présente et visible : c'est ici que l'entretien démarre vraiment. */
+  const handleJulieReady = useCallback(() => {
+    if (!isMountedRef.current) return;
+    setIsJulieReady(true);
+    setSeconds(0);
+  }, []);
+
   /** La salle s'est fermée d'elle-même (fin côté Tavus, durée maximale atteinte). */
   const handleStageLeft = useCallback(() => {
     if (!isMountedRef.current) return;
+    setIsJulieReady(false);
     setStatus((current) => (current === "error" ? current : "connecting"));
   }, []);
 
   const handleStageError = useCallback((message: string) => {
     if (!isMountedRef.current) return;
+    setIsJulieReady(false);
     setConversation(null);
     setErrorMessage(message);
     setErrorCode(null);
@@ -203,6 +228,7 @@ export function CallRoom() {
       }
     }
 
+    setIsJulieReady(false);
     setConversation(null);
     setStatus("idle");
     router.push("/commercial/analyse");
@@ -218,11 +244,13 @@ export function CallRoom() {
             <span
               className={cx(
                 "h-2 w-2 rounded-full bg-brand",
-                status === "active" && "animate-pulse",
+                status === "active" && isJulieReady && "animate-pulse",
               )}
               aria-hidden
             />
-            <span className="text-xs font-semibold uppercase tracking-[0.1em]">Simulation</span>
+            <span className="text-xs font-semibold uppercase tracking-[0.1em]">
+              {stageLabel ?? "Simulation"}
+            </span>
           </span>
           <span
             className="font-mono text-sm font-semibold tabular-nums"
@@ -249,6 +277,7 @@ export function CallRoom() {
               micOn={micOn}
               cameraOn={cameraOn}
               onJoined={handleStageJoined}
+              onJulieReady={handleJulieReady}
               onLeft={handleStageLeft}
               onError={handleStageError}
             />

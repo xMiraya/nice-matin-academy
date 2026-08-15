@@ -1,10 +1,22 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import Daily, { type DailyCall, type DailyParticipant } from "@daily-co/daily-js";
-import { Loader2, Maximize2, Minimize2, VideoOff } from "lucide-react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
+import Daily, {
+  type DailyCall,
+  type DailyEventObjectAppMessage,
+  type DailyEventObjectNetworkQualityEvent,
+  type DailyParticipant,
+} from "@daily-co/daily-js";
+import { Loader2, Maximize2, Minimize2, VideoOff, Wifi, WifiOff } from "lucide-react";
 import { CharacterAvatar } from "@/src/components/CharacterAvatar";
 import { cx } from "@/src/lib/format";
+import {
+  createLatencyRecorder,
+  readTavusEventName,
+  type LatencyRecorder,
+  type TurnLatencySample,
+  IS_LATENCY_INSTRUMENTATION_ENABLED,
+} from "@/src/lib/tavus/latency-metrics";
 
 /**
  * Scène vidéo de l'appel avec Julie.
@@ -26,6 +38,11 @@ interface TavusVideoStageProps {
   cameraOn: boolean;
   /** Déclenché une seule fois, au moment où le commercial a rejoint la salle. */
   onJoined: () => void;
+  /**
+   * Déclenché quand Julie est réellement présente **et** que sa vidéo est
+   * exploitable. C'est ce moment — et lui seul — qui démarre le chronomètre.
+   */
+  onJulieReady: () => void;
   /** Déclenché si la salle se ferme d'elle-même (fin Tavus, expiration, kick). */
   onLeft: () => void;
   onError: (message: string) => void;
@@ -63,11 +80,12 @@ function useMediaTrack<T extends HTMLMediaElement>(track: MediaStreamTrack | nul
   return ref;
 }
 
-export function TavusVideoStage({
+function TavusVideoStageComponent({
   roomUrl,
   micOn,
   cameraOn,
   onJoined,
+  onJulieReady,
   onLeft,
   onError,
 }: TavusVideoStageProps) {
@@ -77,6 +95,11 @@ export function TavusVideoStage({
   const [remoteAudio, setRemoteAudio] = useState<MediaStreamTrack | null>(null);
   const [localVideo, setLocalVideo] = useState<MediaStreamTrack | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [networkThreshold, setNetworkThreshold] = useState<"good" | "low" | "very-low" | null>(
+    null,
+  );
+  // Affiché uniquement hors production : dernier tour mesuré.
+  const [lastLatency, setLastLatency] = useState<TurnLatencySample | null>(null);
 
   const stageRef = useRef<HTMLDivElement>(null);
   const remoteVideoRef = useMediaTrack<HTMLVideoElement>(remoteVideo);
@@ -85,14 +108,20 @@ export function TavusVideoStage({
 
   // Les callbacks sont lus via ref : l'effet de connexion ne doit dépendre que
   // de `roomUrl`, sous peine de quitter puis rejoindre la salle à chaque rendu.
-  const handlersRef = useRef({ onJoined, onLeft, onError });
+  const handlersRef = useRef({ onJoined, onJulieReady, onLeft, onError });
   useEffect(() => {
-    handlersRef.current = { onJoined, onLeft, onError };
-  }, [onJoined, onLeft, onError]);
+    handlersRef.current = { onJoined, onJulieReady, onLeft, onError };
+  }, [onJoined, onJulieReady, onLeft, onError]);
 
   useEffect(() => {
     let call: DailyCall | null = null;
     let disposed = false;
+    let julieAnnounced = false;
+    // En production, l'enregistreur est un objet inerte : aucun horodatage,
+    // aucun log, aucune allocation par événement.
+    const latency: LatencyRecorder = createLatencyRecorder((sample) => {
+      if (!disposed) setLastLatency(sample);
+    });
 
     /** Recalcule les pistes affichées à partir de l'état complet des participants. */
     const syncTracks = () => {
@@ -101,12 +130,22 @@ export function TavusVideoStage({
       const local = participants.local;
       const remote = Object.values(participants).find((participant) => !participant.local);
 
+      const remoteVideoTrack = readTrack(remote, "video");
+
       setLocalVideo(readTrack(local, "video"));
-      setRemoteVideo(readTrack(remote, "video"));
+      setRemoteVideo(remoteVideoTrack);
       setRemoteAudio(readTrack(remote, "audio"));
       setConnection((current) =>
         current === "ended" || current === "error" ? current : remote ? "live" : "waiting",
       );
+
+      // Julie n'est « prête » que présente ET avec une piste vidéo exploitable :
+      // c'est ce signal qui démarre le chronomètre côté CallRoom, une seule fois.
+      if (!julieAnnounced && remote && remoteVideoTrack) {
+        julieAnnounced = true;
+        latency.recordLifecycle("julie-ready");
+        handlersRef.current.onJulieReady();
+      }
     };
 
     const fail = (message: string) => {
@@ -139,12 +178,29 @@ export function TavusVideoStage({
       call
         .on("joined-meeting", () => {
           if (disposed) return;
+          latency.recordLifecycle("joined-meeting");
           handlersRef.current.onJoined();
           syncTracks();
         })
-        .on("participant-joined", syncTracks)
+        .on("participant-joined", (event) => {
+          if (event && !event.participant.local) latency.recordLifecycle("participant-joined");
+          syncTracks();
+        })
         .on("participant-updated", syncTracks)
         .on("participant-left", syncTracks)
+        // Messages applicatifs Tavus : seuls le nom d'événement et le rôle du
+        // locuteur sont lus. Le contenu (`properties.speech`, transcript…) n'est
+        // jamais consulté ni journalisé.
+        .on("app-message", (event?: DailyEventObjectAppMessage) => {
+          if (disposed || !event) return;
+          const parsed = readTavusEventName(event.data);
+          if (parsed) latency.recordTavusEvent(parsed.eventType, parsed.role);
+        })
+        // Indicateur réseau discret, sans test bloquant de trente secondes.
+        .on("network-quality-change", (event?: DailyEventObjectNetworkQualityEvent) => {
+          if (disposed || !event) return;
+          setNetworkThreshold(event.threshold);
+        })
         .on("left-meeting", () => {
           if (disposed) return;
           setConnection("ended");
@@ -237,15 +293,34 @@ export function TavusVideoStage({
               <Loader2 size={15} className="animate-spin" aria-hidden />
             )}
             {connection === "connecting"
-              ? "Connexion à la salle vidéo…"
+              ? "Connexion audio et vidéo…"
               : connection === "waiting"
-                ? "Julie rejoint l'appel…"
+                ? "Préparation de Julie…"
                 : connection === "ended"
                   ? "L'appel est terminé."
                   : connection === "error"
                     ? "Connexion interrompue."
-                    : "Julie arrive…"}
+                    : "Préparation de Julie…"}
           </p>
+        </div>
+      ) : null}
+
+      {/* Indicateur réseau discret : affiché seulement quand la qualité se dégrade. */}
+      {networkThreshold && networkThreshold !== "good" ? (
+        <div className="absolute left-3 top-3 flex items-center gap-2 rounded-sm bg-black/60 px-2.5 py-1.5 text-xs text-white/80 sm:left-4 sm:top-4">
+          {networkThreshold === "very-low" ? (
+            <WifiOff size={14} className="text-danger" aria-hidden />
+          ) : (
+            <Wifi size={14} className="text-warning" aria-hidden />
+          )}
+          {networkThreshold === "very-low" ? "Réseau très instable" : "Réseau instable"}
+        </div>
+      ) : null}
+
+      {/* Mesure de latence — développement uniquement, jamais en production. */}
+      {IS_LATENCY_INSTRUMENTATION_ENABLED && lastLatency ? (
+        <div className="absolute left-3 bottom-3 rounded-sm bg-black/60 px-2.5 py-1.5 font-mono text-[11px] text-white/70 sm:left-4 sm:bottom-4">
+          tour {lastLatency.turn} · réponse {lastLatency.totalMs} ms
         </div>
       ) : null}
 
@@ -285,3 +360,10 @@ export function TavusVideoStage({
     </div>
   );
 }
+
+/**
+ * Mémoïsé : le chronomètre de `CallRoom` provoque un rendu par seconde. Sans
+ * cette barrière, toute la scène vidéo serait re-rendue soixante fois par
+ * minute pendant l'entretien, sans qu'aucune de ses props n'ait changé.
+ */
+export const TavusVideoStage = memo(TavusVideoStageComponent);
