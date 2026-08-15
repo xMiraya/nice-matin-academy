@@ -12,6 +12,40 @@ Noms de propriétés vérifiés dans la documentation Tavus CVI (pages
 purement REST (`app/api/tavus/conversations/route.ts`), il n'existe donc aucun
 type local à confronter — la documentation en ligne fait foi.
 
+## 0. État constaté du PAL (lecture seule, 15 août 2026)
+
+PAL **NM Prospect P001**, lu via `GET /v2/personas/{pal_id}`. Aucune
+conversation créée, aucune facturation, aucune clé affichée. **Aucune écriture**
+n'a été faite.
+
+| Réglage | Valeur constatée | Cible | Verdict |
+|---|---|---|---|
+| `pipeline_mode` | `full` | `full` | ✅ conforme |
+| `layers.perception.perception_model` | `raven-1` | `raven-1` | ✅ conforme |
+| `layers.conversational_flow.turn_detection_model` | `sparrow-1` | `sparrow-1` | ✅ conforme |
+| `layers.conversational_flow.turn_taking_patience` | `medium` | `low` | ⚠️ **à changer** |
+| `…conversational_flow.replica_interruptibility` | `medium` | `medium` | ✅ conforme |
+| `layers.conversational_flow.voice_isolation` | `near` | `near` | ✅ conforme |
+| `layers.llm.speculative_inference` | `true` | `true` | ✅ conforme |
+| `layers.llm.model` | `tavus-gpt-5.6-terra` | — | modèle hébergé Tavus, non modifié |
+| `layers.tts.tts_emotion_control` | `true` | `true` | ✅ conforme |
+| `layers.tts.tts_engine` | `tavus-auto` | voix native FR | ⚠️ **à changer** (§2) |
+| `layers.tts.external_voice_id` | *(vide)* | identifiant voix FR | ⚠️ **à changer** (§2) |
+| `system_prompt` | ≈ 4 330 tokens | < 5 000, au plus bas | ⚠️ frôle la limite |
+
+**Conclusion de l'audit : sept réglages sur neuf sont déjà corrects.** La
+latence et le manque d'émotion ne viennent donc pas d'une configuration
+manquante mais de quatre points précis :
+
+1. `turn_taking_patience: medium` → `low` : la seule marge de latence restante
+   côté flux conversationnel.
+2. Voix `tavus-auto` sans `external_voice_id` : c'est la cause la plus probable
+   du rendu vocal artificiel. `tts_emotion_control: true` ne peut pas produire
+   de prosodie expressive sur une voix générique non native.
+3. Prompt à 4 330 tokens : proche du seuil de dégradation documenté.
+4. Qualité de la réplique (`default_replica_id`) : à vérifier dans le tableau
+   de bord, l'API ne renvoie pas la génération Phoenix ni le niveau Pro.
+
 ## 1. Réglages à vérifier manuellement
 
 Structure attendue du PAL (extrait, valeurs cibles) :
@@ -54,14 +88,16 @@ Structure attendue du PAL (extrait, valeurs cibles) :
 
 ### Écarts de nommage à connaître
 
-- **`pal_interruptibility`** est le nom courant. `replica_interruptibility` est
-  un **alias déprécié** : la consigne initiale mentionnait cette forme, c'est
-  bien `pal_interruptibility` qu'il faut écrire.
+- **Interruptibilité** : la documentation actuelle nomme la propriété
+  `pal_interruptibility` et présente `replica_interruptibility` comme un alias
+  déprécié — mais **le PAL en production renvoie encore la forme
+  `replica_interruptibility`**. Les deux sont donc acceptées ; ne pas écrire les
+  deux à la fois dans un même `PATCH`.
 - Les événements de parole ont eux aussi migré : `properties.role` vaut `"pal"`,
   avec un doublon hérité `"replica"`. L'instrumentation accepte les deux.
-- `tts_emotion_control` et `speculative_inference` valent déjà `true` par
-  défaut : **vérifier qu'ils n'ont pas été désactivés** plutôt que supposer
-  qu'ils manquent.
+- `tts_emotion_control` et `speculative_inference` valent `true` par défaut, et
+  la lecture du PAL confirme qu'ils sont bien actifs : **rien à faire sur ces
+  deux points**.
 
 ## 2. Voix
 
@@ -128,7 +164,7 @@ page d'accueil de l'appel, avant toute création de conversation Tavus.
   prompt raccourci (voir §6).
 - Naturel vocal : voix native française + `tts_emotion_control`.
 - Naturel comportemental : règles émotionnelles et longueur de réponse dans le
-  prompt (`docs/PAL_JULIE_PROMPT_OPTIMISE.md`) — 1 à 3 phrases, moins de
+  prompt condensé (`docs/PAL_JULIE_PROMPT_OPTIMISE.md`) — 1 à 3 phrases, moins de
   40 mots, une seule question à la fois. Un prospect qui répond court paraît
   déjà nettement plus humain qu'un prospect qui récite.
 - Perception : `raven-1` permet à Julie de réagir à l'attitude du commercial.
@@ -139,15 +175,23 @@ page d'accueil de l'appel, avant toute création de conversation Tavus.
 
 Tavus documente une dégradation des performances **et** de l'intelligence
 au-delà de **5 000 tokens** de prompt (≈ 20 000 caractères). Un prompt long
-augmente le temps jusqu'au premier token à chaque tour : c'est un levier de
-latence direct. La version consolidée est dans
-`docs/PAL_JULIE_PROMPT_OPTIMISE.md`.
+augmente le temps jusqu'au premier token à chaque tour.
+
+Le prompt actuel mesure **17 314 caractères, 2 685 mots, ≈ 4 330 tokens** : sous
+la limite, mais tout près. La version condensée
+(`docs/PAL_JULIE_PROMPT_OPTIMISE.md`) descend à **≈ 3 795 tokens** sans retirer
+un seul fait. Le gain est réel mais modéré : le prompt n'est pas le levier
+principal ici, contrairement à la voix et à `turn_taking_patience`.
 
 ## 7. Ordre de vérification recommandé
 
-1. `speculative_inference: true` et `tts_emotion_control: true` (gratuits, immédiats).
-2. `turn_detection_model: sparrow-1` puis `turn_taking_patience: low`.
-3. Remplacement du prompt maître par la version consolidée.
+Révisé après lecture du PAL (§0) : les réglages déjà conformes sont retirés de
+la liste.
+
+1. `turn_taking_patience` : `medium` → `low`. Seul réglage de latence restant.
+2. Voix native française (`tts_engine` + `external_voice_id`). Levier principal
+   sur le rendu artificiel.
+3. Remplacement du prompt maître par la version condensée.
 4. Mesure de `totalMs` sur cinq à dix tours en développement, avant et après.
 5. Voix native française.
 6. Réplique Phoenix-4 Pro, en dernier — c'est le seul point à coût matériel.
