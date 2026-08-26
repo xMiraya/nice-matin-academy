@@ -143,7 +143,7 @@ export function ManagerReportScreen({ reportId }: { reportId: string }) {
 
           <div className="mt-5 grid grid-cols-1 gap-3 border-t border-line pt-5 sm:grid-cols-3">
             {report.nextActions.map((action, index) => (
-              <div key={`${action.title}-${index}`} className="rounded-md border border-line p-4">
+              <div key={`${action.title}-${index}`} className="rounded-md bg-mist/70 p-4">
                 <p className="text-sm font-semibold leading-snug text-ink">{action.title}</p>
                 <p className="mt-1.5 text-sm leading-relaxed text-graphite">{action.instruction}</p>
               </div>

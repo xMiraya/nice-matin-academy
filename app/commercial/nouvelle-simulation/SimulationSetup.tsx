@@ -267,7 +267,7 @@ export function SimulationSetup() {
                 type="checkbox"
                 checked={cameraChecked}
                 onChange={(event) => setCameraChecked(event.target.checked)}
-                className="h-4 w-4 accent-[#f4476b]"
+                className="h-4 w-4 accent-[#001a64]"
               />
               <Video size={16} className="text-graphite" aria-hidden />
               <span className="text-sm text-ink">Ma caméra fonctionne</span>
@@ -277,7 +277,7 @@ export function SimulationSetup() {
                 type="checkbox"
                 checked={micChecked}
                 onChange={(event) => setMicChecked(event.target.checked)}
-                className="h-4 w-4 accent-[#f4476b]"
+                className="h-4 w-4 accent-[#001a64]"
               />
               <Mic size={16} className="text-graphite" aria-hidden />
               <span className="text-sm text-ink">Mon microphone fonctionne</span>

@@ -21,7 +21,7 @@ export default function CommerciauxPage() {
         description="Niveau, régularité et priorité pédagogique de chaque commercial. Seule la fiche d'Alexandre Jégo est détaillée dans cette maquette."
       />
 
-      <div className="space-y-6">
+      <div className="space-y-5">
         <Panel title="Équipe" description={`${data.repsCount} commerciaux suivis.`}>
           <TeamMemberList members={data.members} />
         </Panel>

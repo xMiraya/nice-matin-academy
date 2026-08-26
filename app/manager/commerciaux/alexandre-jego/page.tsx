@@ -5,7 +5,7 @@ import { DEMO_MANAGER_DASHBOARD } from "@/src/data/demo-manager";
 import { DEMO_SESSION_JULIE } from "@/src/data/demo-session-julie";
 import { getCompetencyLabel } from "@/src/data/competencies";
 import { PageHeader } from "@/src/components/PageHeader";
-import { Panel } from "@/src/components/Panel";
+import { Panel, SectionTitle } from "@/src/components/Panel";
 import { MetricCard } from "@/src/components/MetricCard";
 import { Badge, DemoBadge, TechnicalTestBadge } from "@/src/components/StatusBadge";
 import { RealReportsPanel } from "@/src/components/coach/RealReportsPanel";
@@ -78,12 +78,14 @@ export default function FicheAlexandreJegoPage() {
         <RealReportsPanel title="Analyses réelles de ce commercial" />
       </div>
 
-      <div className="mb-4 flex flex-wrap items-center gap-3 border-t border-line pt-8">
-        <h2 className="text-lg font-semibold tracking-tight text-ink">Suivi individuel</h2>
-        <DemoBadge>Données de démonstration</DemoBadge>
-      </div>
+      <SectionTitle
+        description="Chiffres d'illustration, en attendant les analyses réelles de ce commercial."
+        action={<DemoBadge>Données de démonstration</DemoBadge>}
+      >
+        Suivi individuel
+      </SectionTitle>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard
           label="Score moyen"
           value={data.averageScore}
@@ -103,6 +105,7 @@ export default function FicheAlexandreJegoPage() {
           unit="/ 100"
           icon={<Award size={18} aria-hidden />}
           hint={getCompetencyLabel(strong[0].competencyId)}
+          tone="positif"
         />
         <MetricCard
           label="Priorité d'accompagnement"
@@ -110,11 +113,11 @@ export default function FicheAlexandreJegoPage() {
           unit="/ 100"
           icon={<Target size={18} aria-hidden />}
           hint={getCompetencyLabel(fragile[0].competencyId)}
-          accent
+          tone="vigilance"
         />
       </div>
 
-      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-5">
+      <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-5">
         <Panel
           title="Profil de compétences"
           description="Comparaison avec la moyenne d'équipe."
@@ -132,7 +135,7 @@ export default function FicheAlexandreJegoPage() {
         </Panel>
       </div>
 
-      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-2">
         <Panel title="Compétences solides" description="Points d'appui à valoriser en entretien.">
           <div className="space-y-4">
             {strong.map((score) => (
@@ -158,11 +161,11 @@ export default function FicheAlexandreJegoPage() {
         </Panel>
       </div>
 
-      <div className="mt-6">
+      <div className="mt-5">
         <CoachPriorityCard priority={data.nextFocus} accent />
       </div>
 
-      <div className="mt-6 space-y-6">
+      <div className="mt-5 space-y-5">
         <Panel title="Historique des simulations" description="Entraînements pris en compte dans les statistiques.">
           <SessionTable sessions={DEMO_COMMERCIAL_SESSIONS} />
         </Panel>

@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, TriangleAlert } from "lucide-react";
 import type { PedagogicalAlert, TeamMember } from "@/src/types";
 import { getCompetencyLabel } from "@/src/data/competencies";
-import { cx, formatDelta, formatShortDate, scoreToneClasses } from "@/src/lib/format";
+import { cx, formatDelta, formatShortDate, scoreColor, scoreToneClasses } from "@/src/lib/format";
+import { Avatar } from "@/src/components/Avatar";
 import { Badge } from "@/src/components/StatusBadge";
 
 /** Compétence la plus fragile d'un commercial, utilisée comme axe d'accompagnement. */
@@ -16,16 +17,14 @@ function weakest(member: TeamMember) {
  */
 export function TeamMemberList({ members }: { members: TeamMember[] }) {
   return (
-    <ul className="divide-y divide-line">
+    <ul className="space-y-1.5">
       {members.map((member) => {
         const focus = weakest(member);
         const name = `${member.profile.firstName} ${member.profile.lastName}`;
         const content = (
           <>
             <div className="flex min-w-0 items-center gap-3">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-sm bg-ink text-xs font-semibold text-white">
-                {member.profile.initials}
-              </span>
+              <Avatar initials={member.profile.initials} size="md" />
               <span className="min-w-0">
                 <span className="block truncate text-sm font-semibold text-ink">{name}</span>
                 <span className="block truncate text-xs text-graphite">
@@ -38,15 +37,28 @@ export function TeamMemberList({ members }: { members: TeamMember[] }) {
             </div>
 
             <div className="flex shrink-0 items-center gap-3 sm:gap-5">
-              <span className="hidden text-right md:block">
-                <span className="nm-label block">Priorité</span>
-                <span className="mt-0.5 block text-xs text-graphite">
+              <span className="hidden w-40 md:block">
+                <span className="nm-label block">À travailler</span>
+                <span className="mt-1 block truncate text-xs font-medium text-graphite">
                   {getCompetencyLabel(focus.competencyId)}
                 </span>
+                <span
+                  className="mt-1.5 block h-1 w-full overflow-hidden rounded-full bg-line"
+                  aria-hidden
+                >
+                  <span
+                    className="block h-full rounded-full"
+                    style={{
+                      width: `${focus.score}%`,
+                      backgroundColor: scoreColor(focus.score),
+                    }}
+                  />
+                </span>
               </span>
+
               <span
                 className={cx(
-                  "min-w-14 rounded-sm px-2 py-1.5 text-center text-sm font-semibold tabular-nums",
+                  "min-w-12 rounded-full px-2.5 py-1.5 text-center text-sm font-semibold tabular-nums",
                   scoreToneClasses(member.averageScore),
                 )}
               >
@@ -54,19 +66,19 @@ export function TeamMemberList({ members }: { members: TeamMember[] }) {
               </span>
               <span
                 className={cx(
-                  "min-w-12 text-right text-sm font-semibold tabular-nums",
+                  "min-w-11 text-right text-sm font-semibold tabular-nums",
                   member.progress > 0
                     ? "text-positive"
                     : member.progress < 0
                       ? "text-danger"
-                      : "text-graphite",
+                      : "text-muted",
                 )}
                 title="Progression sur trente jours"
               >
                 {formatDelta(member.progress)}
               </span>
               {member.href ? (
-                <ChevronRight size={16} className="text-graphite" aria-hidden />
+                <ChevronRight size={16} className="text-muted" aria-hidden />
               ) : (
                 <span className="w-4" aria-hidden />
               )}
@@ -79,12 +91,14 @@ export function TeamMemberList({ members }: { members: TeamMember[] }) {
             {member.href ? (
               <Link
                 href={member.href}
-                className="flex items-center justify-between gap-4 py-3.5 transition-colors hover:bg-mist/60"
+                className="flex items-center justify-between gap-4 rounded-md px-3 py-3 transition-colors hover:bg-brand-soft"
               >
                 {content}
               </Link>
             ) : (
-              <div className="flex items-center justify-between gap-4 py-3.5">{content}</div>
+              <div className="flex items-center justify-between gap-4 rounded-md px-3 py-3 transition-colors hover:bg-mist">
+                {content}
+              </div>
             )}
           </li>
         );
@@ -105,18 +119,110 @@ const ALERT_LABEL = {
   information: "Information",
 } as const;
 
+const ALERT_ACCENT = {
+  priorite: "border-l-danger-bright",
+  vigilance: "border-l-warning-bright",
+  information: "border-l-info",
+} as const;
+
 /** Alertes pédagogiques, formulées comme des propositions d'accompagnement. */
 export function PedagogicalAlerts({ alerts }: { alerts: PedagogicalAlert[] }) {
+  if (alerts.length === 0) {
+    return (
+      <p className="text-sm leading-relaxed text-graphite">
+        Aucun point d&apos;attention cette semaine : l&apos;équipe est régulière et progresse.
+      </p>
+    );
+  }
+
   return (
-    <ul className="space-y-4">
+    <ul className="space-y-3">
       {alerts.map((alert) => (
-        <li key={alert.id} className="rounded-md border border-line p-4">
+        <li
+          key={alert.id}
+          className={cx(
+            "rounded-md border-l-[3px] bg-mist/70 p-4 transition-colors hover:bg-mist",
+            ALERT_ACCENT[alert.level],
+          )}
+        >
           <div className="flex flex-wrap items-center gap-2">
-            <Badge tone={ALERT_TONE[alert.level]}>{ALERT_LABEL[alert.level]}</Badge>
-            {alert.repName ? <span className="text-xs text-graphite">{alert.repName}</span> : null}
+            <Badge tone={ALERT_TONE[alert.level]} dot>
+              {ALERT_LABEL[alert.level]}
+            </Badge>
+            {alert.repName ? (
+              <span className="text-xs font-medium text-graphite">{alert.repName}</span>
+            ) : null}
           </div>
           <p className="mt-2.5 text-sm font-semibold leading-snug text-ink">{alert.title}</p>
           <p className="mt-1.5 text-sm leading-relaxed text-graphite">{alert.detail}</p>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/**
+ * Encart compact « à relancer » : commerciaux sans simulation récente.
+ *
+ * La fenêtre est calée sur la dernière activité connue de l'équipe plutôt que
+ * sur l'horloge du serveur : le rendu reste déterministe et la lecture garde
+ * son sens même sur un jeu de données figé.
+ */
+export function InactiveMembers({
+  members,
+  sinceDays = 14,
+}: {
+  members: TeamMember[];
+  sinceDays?: number;
+}) {
+  const timestamps = members
+    .map((member) =>
+      member.lastSessionDate ? Date.parse(`${member.lastSessionDate}T12:00:00`) : Number.NaN,
+    )
+    .filter((value) => !Number.isNaN(value));
+
+  if (timestamps.length === 0) {
+    return (
+      <p className="text-sm leading-relaxed text-graphite">
+        Aucune simulation n&apos;a encore été enregistrée pour cette équipe.
+      </p>
+    );
+  }
+
+  const reference = Math.max(...timestamps);
+  const threshold = reference - sinceDays * 24 * 60 * 60 * 1000;
+  const inactive = members.filter((member) => {
+    if (!member.lastSessionDate) return true;
+    return Date.parse(`${member.lastSessionDate}T12:00:00`) < threshold;
+  });
+
+  if (inactive.length === 0) {
+    return (
+      <p className="text-sm leading-relaxed text-graphite">
+        Tous les commerciaux se sont entraînés dans les {sinceDays} jours précédant la dernière
+        activité de l&apos;équipe.
+      </p>
+    );
+  }
+
+  return (
+    <ul className="space-y-2">
+      {inactive.map((member) => (
+        <li
+          key={member.profile.id}
+          className="flex items-center gap-3 rounded-md bg-warning-soft px-3 py-2.5"
+        >
+          <TriangleAlert size={15} className="shrink-0 text-warning" aria-hidden />
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-sm font-semibold text-ink">
+              {member.profile.firstName} {member.profile.lastName}
+            </span>
+            <span className="block text-xs text-graphite">
+              {member.lastSessionDate
+                ? `Dernière simulation le ${formatShortDate(member.lastSessionDate)}`
+                : "Aucune simulation enregistrée"}
+            </span>
+          </span>
         </li>
       ))}
     </ul>

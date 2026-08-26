@@ -38,7 +38,7 @@ export default function ManagerCompetencesPage() {
         description="Moyennes calculées sur l'ensemble des commerciaux, hors appels de validation technique."
       />
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-5">
         <Panel title="Profil moyen de l'équipe" className="lg:col-span-2">
           <CompetencyRadar scores={teamScores} seriesLabel="Moyenne d'équipe" />
         </Panel>
@@ -60,7 +60,7 @@ export default function ManagerCompetencesPage() {
         </Panel>
       </div>
 
-      <div className="mt-6">
+      <div className="mt-5">
         <Panel
           title="Priorités pédagogiques"
           description="Compétences dont la moyenne d'équipe reste sous 60."
@@ -71,7 +71,7 @@ export default function ManagerCompetencesPage() {
               consolidation.
             </p>
           ) : (
-            <ul className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <ul className="grid grid-cols-1 gap-5 sm:grid-cols-3">
               {toStrengthen.map((score) => {
                 const competency = getCompetency(score.competencyId);
                 return (
@@ -89,7 +89,7 @@ export default function ManagerCompetencesPage() {
         </Panel>
       </div>
 
-      <div className="mt-6">
+      <div className="mt-5">
         <Panel title="Commerciaux × compétences">
           <SkillsHeatmap members={members} />
         </Panel>

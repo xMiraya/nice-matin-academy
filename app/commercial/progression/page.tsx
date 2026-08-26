@@ -27,7 +27,7 @@ export default function ProgressionPage() {
         description="Comment vos compétences évoluent d'une simulation à l'autre."
       />
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
         <MetricCard
           label="Score moyen"
           value={data.averageScore}
@@ -50,7 +50,7 @@ export default function ProgressionPage() {
         />
       </div>
 
-      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-2">
         <Panel title="Courbe des scores" description="Six dernières simulations enregistrées.">
           <ProgressChart data={data.scoreHistory} height={300} />
         </Panel>
@@ -60,7 +60,7 @@ export default function ProgressionPage() {
         </Panel>
       </div>
 
-      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-5">
+      <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-5">
         <Panel
           title="Variation par compétence"
           description="Écart en points par rapport à la simulation précédente."

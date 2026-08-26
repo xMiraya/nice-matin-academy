@@ -65,7 +65,7 @@ const KEY_MOMENT_META: Record<
   { label: string; dot: string; text: string; icon: typeof CheckCircle2 }
 > = {
   positive: { label: "Point fort", dot: "bg-positive", text: "text-positive", icon: CheckCircle2 },
-  warning: { label: "Vigilance", dot: "bg-warning", text: "text-[#8a5900]", icon: CircleAlert },
+  warning: { label: "Vigilance", dot: "bg-warning", text: "text-warning", icon: CircleAlert },
   objection: { label: "Objection", dot: "bg-info", text: "text-info", icon: MessageSquareQuote },
   turning_point: { label: "Bascule", dot: "bg-graphite", text: "text-graphite", icon: Milestone },
   conclusion: { label: "Conclusion", dot: "bg-brand", text: "text-brand-dark", icon: Flag },
@@ -376,7 +376,7 @@ export function CoachMissedOpportunitiesPanel({
     >
       <ul className="space-y-3">
         {opportunities.map((item, index) => (
-          <li key={`${item.title}-${index}`} className="flex gap-3 rounded-md border border-line p-4">
+          <li key={`${item.title}-${index}`} className="flex gap-3 rounded-md bg-mist/70 p-4">
             <span className="mt-0.5 shrink-0 text-warning">
               <CircleAlert size={16} aria-hidden />
             </span>
@@ -467,8 +467,8 @@ export function CoachDisclaimer({ variant }: { variant: "commercial" | "manager"
 /** Bandeau d'avertissement générique. */
 export function CoachNotice({ children }: { children: ReactNode }) {
   return (
-    <div className="flex gap-3 rounded-md border border-warning/40 bg-warning/8 p-4">
-      <AlertTriangle size={17} className="mt-0.5 shrink-0 text-[#8a5900]" aria-hidden />
+    <div className="flex gap-3 rounded-md border border-warning-bright/40 bg-warning-soft p-4">
+      <AlertTriangle size={17} className="mt-0.5 shrink-0 text-warning" aria-hidden />
       <p className="text-sm leading-relaxed text-graphite">{children}</p>
     </div>
   );

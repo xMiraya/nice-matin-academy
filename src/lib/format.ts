@@ -64,16 +64,24 @@ export const DIFFICULTY_LABELS: Record<SessionDifficulty, string> = {
 
 /** Couleur de score cohérente sur toute l'application. */
 export function scoreColor(score: number): string {
-  if (score >= 70) return "#22a06b";
-  if (score >= 55) return "#377dff";
-  if (score >= 40) return "#f59e0b";
-  return "#dc3545";
+  if (score >= 70) return "#10b981";
+  if (score >= 55) return "#0a4aab";
+  if (score >= 40) return "#e0940b";
+  return "#e30613";
 }
 
 /** Classes Tailwind associées à un niveau de score. */
 export function scoreToneClasses(score: number): string {
-  if (score >= 70) return "bg-positive/10 text-positive";
-  if (score >= 55) return "bg-info/10 text-info";
-  if (score >= 40) return "bg-warning/15 text-[#9a6206]";
-  return "bg-danger/10 text-danger";
+  if (score >= 70) return "bg-positive-soft text-positive";
+  if (score >= 55) return "bg-info-soft text-info";
+  if (score >= 40) return "bg-warning-soft text-warning";
+  return "bg-danger-soft text-danger";
+}
+
+/** Libellé qualitatif d'un score, pour accompagner le chiffre brut. */
+export function scoreLabel(score: number): string {
+  if (score >= 70) return "Solide";
+  if (score >= 55) return "En progression";
+  if (score >= 40) return "En construction";
+  return "À travailler";
 }

@@ -269,7 +269,7 @@ export function AnalysisProgress() {
   }, []);
 
   return (
-    <div className="rounded-md border border-line bg-white p-6 sm:p-8">
+    <div className="nm-card p-6 sm:p-8">
       <div className="flex items-start gap-4">
         <CoachMascot size="md" variant="analysis" animated className="mt-0.5" />
         <div>

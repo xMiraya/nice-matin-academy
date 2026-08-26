@@ -1,10 +1,18 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Frank_Ruhl_Libre, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+/** Typographie d'interface de la charte Nice-Matin. */
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
+});
+
+/** Typographie éditoriale des titres, également utilisée par nicematin.com. */
+const frankRuhlLibre = Frank_Ruhl_Libre({
+  variable: "--font-frank-ruhl",
+  subsets: ["latin"],
+  weight: ["500", "700", "800"],
 });
 
 const geistMono = Geist_Mono({
@@ -25,7 +33,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="fr"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${inter.variable} ${frankRuhlLibre.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>
     </html>

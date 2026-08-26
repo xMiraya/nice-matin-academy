@@ -1,0 +1,12 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <title>Nice-Matin Academy</title>
+  <!--
+    Monogramme officiel Nice-Matin : le « m » du logotype publié par
+    nicematin.com, isolé du tracé complet et posé sur le bleu marine #001a64
+    de la charte.
+  -->
+  <rect width="64" height="64" fill="#001a64" />
+  <g transform="translate(9 18.5) scale(2.5) translate(-47.7456 -4.3520)" fill="#ffffff">
+    <path d="M47.7456 4.5991H51.6627V6.12214C52.3844 5.19596 53.4151 4.35199 54.9818 4.35199C56.4662 4.35199 57.6002 5.01062 58.1982 6.16299C59.1669 5.05198 60.3009 4.35199 61.9301 4.35199C64.3009 4.35199 65.7438 5.83367 65.7438 8.42687V15.7322H61.8267V9.68237C61.8267 8.46772 61.2288 7.83001 60.3009 7.83001C59.3736 7.83001 58.6928 8.46772 58.6928 9.68237V15.7322H54.7757V9.68237C54.7757 8.46772 54.1778 7.83001 53.2499 7.83001C52.3225 7.83001 51.6627 8.46772 51.6627 9.68237V15.7322H47.7456V4.5991Z" />
+  </g>
+</svg>

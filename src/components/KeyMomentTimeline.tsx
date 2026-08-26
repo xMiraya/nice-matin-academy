@@ -7,7 +7,7 @@ const TONE: Record<
   { dot: string; text: string; icon: typeof CircleAlert; label: string }
 > = {
   positif: { dot: "bg-positive", text: "text-positive", icon: CheckCircle2, label: "Point fort" },
-  vigilance: { dot: "bg-warning", text: "text-[#8a5900]", icon: CircleAlert, label: "Vigilance" },
+  vigilance: { dot: "bg-warning", text: "text-warning", icon: CircleAlert, label: "Vigilance" },
   critique: { dot: "bg-danger", text: "text-danger", icon: AlertTriangle, label: "Critique" },
   neutre: { dot: "bg-graphite", text: "text-graphite", icon: Dot, label: "Repère" },
 };

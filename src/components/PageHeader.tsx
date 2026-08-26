@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
+import { cx } from "@/src/lib/format";
 
 interface PageHeaderProps {
   eyebrow?: string;
@@ -9,9 +10,10 @@ interface PageHeaderProps {
   actions?: ReactNode;
   meta?: ReactNode;
   back?: { href: string; label: string };
+  className?: string;
 }
 
-/** En-tête de page : fil de retour, titre fort, actions à droite. */
+/** En-tête de page : fil de retour, titre éditorial, actions à droite. */
 export function PageHeader({
   eyebrow,
   title,
@@ -19,30 +21,40 @@ export function PageHeader({
   actions,
   meta,
   back,
+  className,
 }: PageHeaderProps) {
   return (
-    <div className="mb-7">
+    <div className={cx("mb-6", className)}>
       {back ? (
         <Link
           href={back.href}
-          className="mb-4 inline-flex items-center gap-1 text-sm font-medium text-graphite transition-colors hover:text-ink"
+          className="mb-4 inline-flex items-center gap-1.5 rounded-full border border-line bg-white py-1.5 pl-2 pr-3.5 text-[13px] font-medium text-graphite shadow-card transition-colors hover:text-brand"
         >
-          <ChevronLeft size={16} aria-hidden />
+          <ChevronLeft size={15} aria-hidden />
           {back.label}
         </Link>
       ) : null}
 
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
-          {eyebrow ? <p className="nm-label mb-2">{eyebrow}</p> : null}
-          <h1 className="text-2xl font-semibold tracking-tight text-ink sm:text-3xl">{title}</h1>
+          {eyebrow ? <p className="nm-label mb-2.5">{eyebrow}</p> : null}
+          <h1 className="nm-display text-[1.75rem] leading-[1.15] text-ink sm:text-[2.125rem]">
+            {title}
+          </h1>
           {description ? (
-            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-graphite sm:text-base">
+            <p className="mt-2.5 max-w-2xl text-sm leading-relaxed text-graphite sm:text-[15px]">
               {description}
             </p>
           ) : null}
         </div>
-        {actions ? <div className="flex shrink-0 flex-wrap gap-3">{actions}</div> : null}
+        {/*
+          Pas de `shrink-0` : sur mobile, deux actions côte à côte dépassent la
+          largeur d'écran. Le bloc prend toute la ligne et les boutons passent
+          l'un sous l'autre.
+        */}
+        {actions ? (
+          <div className="flex w-full flex-wrap gap-2.5 sm:w-auto sm:justify-end">{actions}</div>
+        ) : null}
       </div>
 
       {meta ? <div className="mt-4 flex flex-wrap items-center gap-2">{meta}</div> : null}
