@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, BarChart3, MessageSquare, Video } from "lucide-react";
-import { Logo } from "@/src/components/Logo";
+import { Logo, NiceMatinMark } from "@/src/components/Logo";
 import { ButtonLink } from "@/src/components/Button";
 import { DemoBadge } from "@/src/components/StatusBadge";
 
@@ -15,7 +15,8 @@ const HIGHLIGHTS = [
   {
     icon: Video,
     title: "S'entraîner en conditions réelles",
-    detail: "Une visioconférence avec Julie Dupont, cliente virtuelle qui réagit comme une vraie personne.",
+    detail:
+      "Une visioconférence avec Julie Dupont, cliente virtuelle qui réagit comme une vraie personne.",
   },
   {
     icon: MessageSquare,
@@ -31,35 +32,46 @@ const HIGHLIGHTS = [
 
 export default function ConnexionPage() {
   return (
-    <div className="flex min-h-screen flex-col lg:flex-row">
+    <div className="flex min-h-screen flex-col bg-canvas lg:flex-row">
       {/* Colonne éditoriale */}
-      <section className="flex flex-col justify-between bg-ink px-6 py-10 text-white sm:px-10 lg:w-[46%] lg:px-14 lg:py-14">
-        <Logo size="lg" tone="dark" />
+      <section className="nm-navy relative flex flex-col justify-between overflow-hidden px-6 py-10 sm:px-10 lg:w-[48%] lg:px-14 lg:py-14">
+        <span
+          aria-hidden
+          className="pointer-events-none absolute -right-24 top-10 h-80 w-80 rounded-full bg-brand-sky/12 blur-3xl"
+        />
+        <span
+          aria-hidden
+          className="pointer-events-none absolute -bottom-32 -left-16 h-96 w-96 rounded-full bg-brand-accent/25 blur-3xl"
+        />
 
-        <div className="my-12 lg:my-0">
-          <h1 className="text-3xl font-semibold leading-[1.15] tracking-tight sm:text-4xl lg:text-[2.75rem]">
+        <div className="relative">
+          <Logo size="lg" tone="dark" />
+        </div>
+
+        <div className="relative my-12 lg:my-0">
+          <h1 className="nm-display text-4xl leading-[1.1] text-white sm:text-5xl lg:text-[3.25rem]">
             S&apos;entraîner.
             <br />
             Comprendre.
             <br />
-            <span className="text-brand">Progresser.</span>
+            <span className="text-brand-sky">Progresser.</span>
           </h1>
-          <p className="mt-6 max-w-md text-base leading-relaxed text-white/70">
+          <p className="mt-6 max-w-md text-base leading-relaxed text-white/65">
             La plateforme d&apos;entraînement des équipes commerciales Nice-Matin. Chaque simulation
             se termine par une analyse détaillée : compétences, moments clés, priorités.
           </p>
 
-          <ul className="mt-10 space-y-6 border-t border-white/15 pt-8">
+          <ul className="mt-10 space-y-5 border-t border-white/12 pt-8">
             {HIGHLIGHTS.map((item) => {
               const Icon = item.icon;
               return (
                 <li key={item.title} className="flex gap-4">
-                  <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-sm bg-white/10 text-brand">
+                  <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-sm border border-white/12 bg-white/10 text-brand-sky">
                     <Icon size={18} aria-hidden />
                   </span>
                   <span>
-                    <span className="block text-sm font-semibold">{item.title}</span>
-                    <span className="mt-1 block text-sm leading-relaxed text-white/60">
+                    <span className="block text-sm font-semibold text-white">{item.title}</span>
+                    <span className="mt-1 block text-sm leading-relaxed text-white/55">
                       {item.detail}
                     </span>
                   </span>
@@ -69,7 +81,7 @@ export default function ConnexionPage() {
           </ul>
         </div>
 
-        <p className="text-xs leading-relaxed text-white/45">
+        <p className="relative text-xs leading-relaxed text-white/60">
           Prototype interne — données de démonstration. Aucun service externe n&apos;est connecté à
           ce stade.
         </p>
@@ -77,17 +89,18 @@ export default function ConnexionPage() {
 
       {/* Colonne formulaire */}
       <section className="flex flex-1 items-center justify-center px-6 py-12 sm:px-10">
-        <div className="w-full max-w-md">
-          <DemoBadge>Maquette — sans authentification</DemoBadge>
+        <div className="nm-card w-full max-w-md p-7 sm:p-9">
+          <div className="flex items-center justify-between gap-3">
+            <NiceMatinMark className="h-11 w-11" />
+            <DemoBadge>Maquette — sans authentification</DemoBadge>
+          </div>
 
-          <h2 className="mt-6 text-2xl font-semibold tracking-tight text-ink">
-            Accéder à votre espace
-          </h2>
+          <h2 className="nm-display mt-6 text-2xl text-ink">Accéder à votre espace</h2>
           <p className="mt-2 text-sm leading-relaxed text-graphite">
             Utilisez les accès de démonstration ci-dessous pour parcourir la plateforme.
           </p>
 
-          <form className="mt-8 space-y-4" aria-describedby="form-notice">
+          <form className="mt-7 space-y-4" aria-describedby="form-notice">
             <div>
               <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-ink">
                 Adresse électronique
@@ -98,7 +111,7 @@ export default function ConnexionPage() {
                 type="email"
                 autoComplete="email"
                 placeholder="prenom.nom@nicematin.fr"
-                className="w-full rounded-sm border border-line bg-white px-3.5 py-2.5 text-sm text-ink placeholder:text-zinc-400"
+                className="w-full rounded-sm border border-line bg-mist/60 px-3.5 py-2.5 text-sm text-ink transition-colors placeholder:text-muted focus:border-brand-accent focus:bg-white"
               />
             </div>
 
@@ -112,14 +125,14 @@ export default function ConnexionPage() {
                 type="password"
                 autoComplete="current-password"
                 placeholder="••••••••"
-                className="w-full rounded-sm border border-line bg-white px-3.5 py-2.5 text-sm text-ink placeholder:text-zinc-400"
+                className="w-full rounded-sm border border-line bg-mist/60 px-3.5 py-2.5 text-sm text-ink transition-colors placeholder:text-muted focus:border-brand-accent focus:bg-white"
               />
             </div>
 
             <button
               type="button"
               disabled
-              className="w-full cursor-not-allowed rounded-sm bg-mist px-4 py-2.5 text-sm font-semibold text-graphite"
+              className="w-full cursor-not-allowed rounded-sm bg-mist px-4 py-2.5 text-sm font-semibold text-muted"
             >
               Se connecter
             </button>
@@ -129,7 +142,7 @@ export default function ConnexionPage() {
             </p>
           </form>
 
-          <div className="my-8 flex items-center gap-4">
+          <div className="my-7 flex items-center gap-4">
             <span className="h-px flex-1 bg-line" aria-hidden />
             <span className="nm-label">Accès de démonstration</span>
             <span className="h-px flex-1 bg-line" aria-hidden />
@@ -146,9 +159,9 @@ export default function ConnexionPage() {
             </ButtonLink>
           </div>
 
-          <p className="mt-8 text-center text-xs text-graphite">
+          <p className="mt-7 text-center text-xs text-graphite">
             Besoin d&apos;aide ?{" "}
-            <Link href="/connexion" className="font-medium text-brand hover:text-brand-dark">
+            <Link href="/connexion" className="font-semibold text-brand hover:text-brand-accent">
               Contacter l&apos;équipe formation
             </Link>
           </p>

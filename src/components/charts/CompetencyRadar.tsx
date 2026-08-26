@@ -11,6 +11,7 @@ import {
 } from "recharts";
 import type { CompetencyScore } from "@/src/types";
 import { COMPETENCIES } from "@/src/data/competencies";
+import { CHART_TOOLTIP, NM } from "@/src/lib/theme";
 
 interface CompetencyRadarProps {
   scores: CompetencyScore[];
@@ -41,39 +42,36 @@ export function CompetencyRadar({
     <div style={{ height }} className="w-full">
       <ResponsiveContainer width="100%" height="100%">
         <RadarChart data={data} outerRadius="68%">
-          <PolarGrid stroke="#e4e4e7" />
+          <PolarGrid stroke={NM.line} />
           <PolarAngleAxis
             dataKey="competence"
-            tick={{ fill: "#3f3f46", fontSize: 11 }}
+            tick={{ fill: NM.graphite, fontSize: 11, fontWeight: 500 }}
             tickLine={false}
           />
-          <PolarRadiusAxis domain={[0, 100]} tick={{ fill: "#a1a1aa", fontSize: 10 }} axisLine={false} />
+          <PolarRadiusAxis domain={[0, 100]} tick={{ fill: NM.muted, fontSize: 10 }} axisLine={false} />
           {comparison ? (
             <Radar
               name={comparison.label}
               dataKey="comparaison"
-              stroke="#a1a1aa"
-              fill="#a1a1aa"
-              fillOpacity={0.12}
+              stroke={NM.muted}
+              fill={NM.muted}
+              fillOpacity={0.1}
+              strokeDasharray="4 3"
               isAnimationActive={false}
             />
           ) : null}
           <Radar
             name={seriesLabel}
             dataKey="valeur"
-            stroke="#f4476b"
-            fill="#f4476b"
-            fillOpacity={0.22}
+            stroke={NM.blue}
+            strokeWidth={2}
+            fill={NM.blue}
+            fillOpacity={0.16}
             isAnimationActive={false}
           />
           <Tooltip
-            cursor={{ stroke: "#e4e4e7" }}
-            contentStyle={{
-              borderRadius: 6,
-              border: "1px solid #e4e4e7",
-              fontSize: 12,
-              boxShadow: "none",
-            }}
+            cursor={{ stroke: NM.line }}
+            contentStyle={CHART_TOOLTIP}
             formatter={(value: unknown, name: unknown) =>
               [`${value} / 100`, String(name)] as [string, string]
             }

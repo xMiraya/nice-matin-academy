@@ -3,6 +3,7 @@ import { ChevronRight } from "lucide-react";
 import type { SessionSummary } from "@/src/types";
 import { StatusBadge } from "@/src/components/StatusBadge";
 import { EmptyState } from "@/src/components/EmptyState";
+import { Avatar } from "@/src/components/Avatar";
 import {
   DIFFICULTY_LABELS,
   cx,
@@ -19,14 +20,24 @@ interface SessionTableProps {
   emptyDescription?: string;
 }
 
+/** Initiales d'un nom complet, pour la pastille d'identité. */
+function initialsOf(name: string): string {
+  return name
+    .split(/[\s-]+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("");
+}
+
 function ScoreCell({ session }: { session: SessionSummary }) {
   if (session.score === null) {
-    return <span className="text-sm text-graphite">—</span>;
+    return <span className="text-sm text-muted">—</span>;
   }
   return (
     <span
       className={cx(
-        "inline-flex min-w-11 justify-center rounded-sm px-2 py-1 text-sm font-semibold tabular-nums",
+        "inline-flex min-w-11 justify-center rounded-full px-2.5 py-1 text-sm font-semibold tabular-nums",
         scoreToneClasses(session.score),
       )}
     >
@@ -35,7 +46,9 @@ function ScoreCell({ session }: { session: SessionSummary }) {
   );
 }
 
-/** Tableau élégant des simulations, avec repli en cartes sur mobile. */
+const HEAD_CLASS = "pb-3 pr-4 text-[11px] font-semibold uppercase tracking-[0.1em] text-muted";
+
+/** Tableau des simulations, avec repli en cartes sur mobile. */
 export function SessionTable({
   sessions,
   showRep = false,
@@ -49,50 +62,62 @@ export function SessionTable({
   return (
     <>
       {/* Tableau — tablette et ordinateur */}
-      <div className="hidden overflow-x-auto md:block">
-        <table className="w-full min-w-[680px] text-left text-sm">
+      <div className="-mx-2 hidden overflow-x-auto px-2 md:block">
+        <table className="w-full min-w-[700px] border-separate border-spacing-y-1 text-left text-sm">
           <thead>
-            <tr className="border-b border-line">
-              <th scope="col" className="py-2 pr-4 font-semibold text-graphite">
+            <tr>
+              <th scope="col" className={cx(HEAD_CLASS, "pl-3")}>
                 Simulation
               </th>
               {showRep ? (
-                <th scope="col" className="py-2 pr-4 font-semibold text-graphite">
+                <th scope="col" className={HEAD_CLASS}>
                   Commercial
                 </th>
               ) : null}
-              <th scope="col" className="py-2 pr-4 font-semibold text-graphite">
+              <th scope="col" className={HEAD_CLASS}>
                 Date
               </th>
-              <th scope="col" className="py-2 pr-4 font-semibold text-graphite">
+              <th scope="col" className={HEAD_CLASS}>
                 Niveau
               </th>
-              <th scope="col" className="py-2 pr-4 font-semibold text-graphite">
+              <th scope="col" className={HEAD_CLASS}>
                 Durée
               </th>
-              <th scope="col" className="py-2 pr-4 font-semibold text-graphite">
+              <th scope="col" className={HEAD_CLASS}>
                 Score
               </th>
-              <th scope="col" className="py-2 pr-4 font-semibold text-graphite">
+              <th scope="col" className={HEAD_CLASS}>
                 Statut
               </th>
-              <th scope="col" className="py-2 font-semibold text-graphite">
+              <th scope="col" className={cx(HEAD_CLASS, "pr-3")}>
                 <span className="sr-only">Compte rendu</span>
               </th>
             </tr>
           </thead>
           <tbody>
             {sessions.map((session) => (
-              <tr key={session.id} className="border-b border-line/70 last:border-0">
-                <td className="py-3 pr-4">
-                  <span className="block font-medium text-ink">{session.title}</span>
+              <tr
+                key={session.id}
+                className="bg-mist/60 transition-colors hover:bg-brand-soft"
+              >
+                <td className="rounded-l-md py-3 pl-3 pr-4">
+                  <span className="block font-semibold text-ink">{session.title}</span>
                   <span className="mt-0.5 block text-xs text-graphite">
                     {session.objectiveLabel}
                     {session.technicalTest ? " — test technique, hors statistiques" : ""}
                   </span>
                 </td>
                 {showRep ? (
-                  <td className="py-3 pr-4 text-graphite">{session.repName ?? "—"}</td>
+                  <td className="py-3 pr-4">
+                    {session.repName ? (
+                      <span className="flex items-center gap-2">
+                        <Avatar initials={initialsOf(session.repName)} size="xs" />
+                        <span className="text-graphite">{session.repName}</span>
+                      </span>
+                    ) : (
+                      <span className="text-muted">—</span>
+                    )}
+                  </td>
                 ) : null}
                 <td className="py-3 pr-4 tabular-nums text-graphite">
                   {formatShortDate(session.date)}
@@ -107,17 +132,17 @@ export function SessionTable({
                 <td className="py-3 pr-4">
                   <StatusBadge status={session.status} />
                 </td>
-                <td className="py-3 text-right">
+                <td className="rounded-r-md py-3 pr-3 text-right">
                   {session.href ? (
                     <Link
                       href={session.href}
-                      className="inline-flex items-center gap-1 text-sm font-semibold text-brand hover:text-brand-dark"
+                      className="inline-flex items-center gap-1 whitespace-nowrap text-sm font-semibold text-brand hover:text-brand-accent"
                     >
                       Compte rendu
                       <ChevronRight size={15} aria-hidden />
                     </Link>
                   ) : (
-                    <span className="text-xs text-graphite">Démonstration</span>
+                    <span className="text-xs text-muted">Démonstration</span>
                   )}
                 </td>
               </tr>
@@ -127,12 +152,12 @@ export function SessionTable({
       </div>
 
       {/* Cartes — mobile */}
-      <ul className="space-y-3 md:hidden">
+      <ul className="space-y-2.5 md:hidden">
         {sessions.map((session) => (
-          <li key={session.id} className="rounded-md border border-line p-4">
+          <li key={session.id} className="rounded-md bg-mist/70 p-4">
             <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="font-medium leading-snug text-ink">{session.title}</p>
+              <div className="min-w-0">
+                <p className="font-semibold leading-snug text-ink">{session.title}</p>
                 <p className="mt-1 text-xs text-graphite">
                   {session.objectiveLabel} · {DIFFICULTY_LABELS[session.difficulty]}
                 </p>

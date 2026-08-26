@@ -29,7 +29,7 @@ export default function ManagerRapportsPage() {
         actions={<DemoBadge>Export bientôt disponible</DemoBadge>}
       />
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard label="Commerciaux suivis" value={data.repsCount} />
         <MetricCard label="Simulations" value={data.sessionsCount} />
         <MetricCard label="Participation" value={data.participationRate} unit="%" />
@@ -41,7 +41,7 @@ export default function ManagerRapportsPage() {
         />
       </div>
 
-      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-2">
         <Panel title="Évolution hebdomadaire">
           <WeeklyEvolutionChart data={data.weeklyEvolution} />
         </Panel>
@@ -50,7 +50,7 @@ export default function ManagerRapportsPage() {
         </Panel>
       </div>
 
-      <div className="mt-6">
+      <div className="mt-5">
         <EmptyState
           icon={<FileBarChart size={20} aria-hidden />}
           title="Rapports exportables en préparation"

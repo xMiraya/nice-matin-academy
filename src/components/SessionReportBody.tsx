@@ -81,9 +81,9 @@ export function SessionReportBody({
     <div className="space-y-6">
       {/* Avertissement sur la nature de l'appel */}
       {report.technicalTest ? (
-        <div className="rounded-md border border-warning/40 bg-warning/8 p-5">
+        <div className="rounded-md border border-warning-bright/40 bg-warning-soft p-5">
           <div className="flex gap-3">
-            <Info size={18} className="mt-0.5 shrink-0 text-[#8a5900]" aria-hidden />
+            <Info size={18} className="mt-0.5 shrink-0 text-warning" aria-hidden />
             <div>
               <p className="text-sm font-semibold text-ink">
                 Appel de validation technique, volontairement agressif

@@ -26,12 +26,12 @@ export function AppShell({ role, profile, children }: AppShellProps) {
   }
 
   return (
-    <div className="flex min-h-screen bg-mist/40">
+    <div className="flex min-h-screen bg-canvas">
       <AppSidebar role={role} profile={profile} />
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar role={role} profile={profile} />
-        <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
-          <div className="mx-auto w-full max-w-[1180px]">{children}</div>
+        <main className="flex-1 px-4 pb-10 pt-6 sm:px-6 lg:px-8 lg:pb-14">
+          <div className="mx-auto w-full max-w-[1340px]">{children}</div>
         </main>
         <MobileNavigation role={role} />
       </div>

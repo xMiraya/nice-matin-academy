@@ -21,21 +21,62 @@ export interface NavItem {
   soon?: boolean;
 }
 
-export const NAVIGATION: Record<WorkspaceRole, NavItem[]> = {
+export interface NavGroup {
+  /** Intitulé de la famille de rubriques, affiché en micro-libellé. */
+  label: string;
+  items: NavItem[];
+}
+
+/**
+ * Navigation regroupée par intention.
+ *
+ * Le commercial sépare ce qu'il fait (s'entraîner) de ce qu'il consulte
+ * (progresser). Le manager sépare le pilotage quotidien du suivi individuel.
+ */
+export const NAVIGATION_GROUPS: Record<WorkspaceRole, NavGroup[]> = {
   commercial: [
-    { href: "/commercial", label: "Vue d'ensemble", icon: LayoutDashboard },
-    { href: "/commercial/nouvelle-simulation", label: "Nouvelle simulation", icon: Video },
-    { href: "/commercial/simulations", label: "Mes simulations", icon: ClipboardList },
-    { href: "/commercial/progression", label: "Progression", icon: TrendingUp },
-    { href: "/commercial/ressources", label: "Ressources", icon: BookOpen },
+    {
+      label: "S'entraîner",
+      items: [
+        { href: "/commercial", label: "Vue d'ensemble", icon: LayoutDashboard },
+        { href: "/commercial/nouvelle-simulation", label: "Nouvelle simulation", icon: Video },
+        { href: "/commercial/simulations", label: "Mes simulations", icon: ClipboardList },
+      ],
+    },
+    {
+      label: "Progresser",
+      items: [
+        { href: "/commercial/progression", label: "Progression", icon: TrendingUp },
+        { href: "/commercial/ressources", label: "Ressources", icon: BookOpen },
+      ],
+    },
   ],
   manager: [
-    { href: "/manager", label: "Vue équipe", icon: LayoutDashboard },
-    { href: "/manager/commerciaux", label: "Commerciaux", icon: Users },
-    { href: "/manager/simulations", label: "Simulations", icon: ClipboardList },
-    { href: "/manager/competences", label: "Compétences", icon: Radar },
-    { href: "/manager/rapports", label: "Rapports", icon: FileBarChart },
+    {
+      label: "Piloter",
+      items: [
+        { href: "/manager", label: "Vue équipe", icon: LayoutDashboard },
+        { href: "/manager/simulations", label: "Simulations", icon: ClipboardList },
+      ],
+    },
+    {
+      label: "Accompagner",
+      items: [
+        { href: "/manager/commerciaux", label: "Commerciaux", icon: Users },
+        { href: "/manager/competences", label: "Compétences", icon: Radar },
+      ],
+    },
+    {
+      label: "Rendre compte",
+      items: [{ href: "/manager/rapports", label: "Rapports", icon: FileBarChart }],
+    },
   ],
+};
+
+/** Liste à plat des mêmes rubriques, utilisée par la navigation mobile. */
+export const NAVIGATION: Record<WorkspaceRole, NavItem[]> = {
+  commercial: NAVIGATION_GROUPS.commercial.flatMap((group) => group.items),
+  manager: NAVIGATION_GROUPS.manager.flatMap((group) => group.items),
 };
 
 export const WORKSPACE_LABEL: Record<WorkspaceRole, string> = {
@@ -54,4 +95,10 @@ export function isNavItemActive(itemHref: string, pathname: string): boolean {
     return pathname === itemHref;
   }
   return pathname === itemHref || pathname.startsWith(`${itemHref}/`);
+}
+
+/** Libellé de la rubrique courante, pour le fil d'ariane du bandeau. */
+export function currentNavLabel(role: WorkspaceRole, pathname: string): string | null {
+  const match = NAVIGATION[role].find((item) => isNavItemActive(item.href, pathname));
+  return match?.label ?? null;
 }

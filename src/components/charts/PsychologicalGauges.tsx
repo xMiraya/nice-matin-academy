@@ -12,6 +12,7 @@ import {
 } from "recharts";
 import type { PsychologicalState } from "@/src/types";
 import { PSYCH_GAUGE_LABELS } from "@/src/data/competencies";
+import { CHART_AXIS_TICK, CHART_GRID, CHART_TOOLTIP, NM } from "@/src/lib/theme";
 
 interface PsychologicalGaugesProps {
   start: PsychologicalState;
@@ -37,12 +38,12 @@ export function PsychologicalGauges({ start, end, height = 300 }: PsychologicalG
     <div style={{ height }} className="w-full">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -24 }} barGap={4}>
-          <CartesianGrid stroke="#f4f4f5" vertical={false} />
+          <CartesianGrid stroke={CHART_GRID} vertical={false} />
           <XAxis
             dataKey="jauge"
-            tick={{ fill: "#3f3f46", fontSize: 11 }}
+            tick={{ fill: NM.graphite, fontSize: 11 }}
             tickLine={false}
-            axisLine={{ stroke: "#e4e4e7" }}
+            axisLine={{ stroke: NM.line }}
             interval={0}
             height={48}
             angle={-18}
@@ -50,19 +51,14 @@ export function PsychologicalGauges({ start, end, height = 300 }: PsychologicalG
           />
           <YAxis
             domain={[0, 100]}
-            tick={{ fill: "#71717a", fontSize: 11 }}
+            tick={CHART_AXIS_TICK}
             tickLine={false}
             axisLine={false}
             width={44}
           />
           <Tooltip
-            cursor={{ fill: "#fafafa" }}
-            contentStyle={{
-              borderRadius: 6,
-              border: "1px solid #e4e4e7",
-              fontSize: 12,
-              boxShadow: "none",
-            }}
+            cursor={{ fill: NM.lineSoft }}
+            contentStyle={CHART_TOOLTIP}
             formatter={(value: unknown, name: unknown) =>
               [`${value} / 100`, String(name)] as [string, string]
             }
@@ -71,8 +67,8 @@ export function PsychologicalGauges({ start, end, height = 300 }: PsychologicalG
             wrapperStyle={{ fontSize: 12, paddingTop: 8 }}
             formatter={(value) => <span className="text-graphite">{value}</span>}
           />
-          <Bar name="Début" dataKey="debut" fill="#a1a1aa" radius={[3, 3, 0, 0]} isAnimationActive={false} />
-          <Bar name="Fin estimée" dataKey="fin" fill="#f4476b" radius={[3, 3, 0, 0]} isAnimationActive={false} />
+          <Bar name="Début" dataKey="debut" fill={NM.sky} radius={[6, 6, 2, 2]} isAnimationActive={false} />
+          <Bar name="Fin estimée" dataKey="fin" fill={NM.navy} radius={[6, 6, 2, 2]} isAnimationActive={false} />
         </BarChart>
       </ResponsiveContainer>
     </div>

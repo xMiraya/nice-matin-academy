@@ -5,27 +5,27 @@ import { cx } from "@/src/lib/format";
 
 /** Aplat de couleur en fonction du niveau, du plus fragile au plus solide. */
 function cellClasses(score: number): string {
-  if (score >= 75) return "bg-positive/85 text-white";
-  if (score >= 65) return "bg-positive/45 text-ink";
-  if (score >= 55) return "bg-warning/30 text-ink";
-  if (score >= 45) return "bg-warning/55 text-ink";
-  return "bg-danger/60 text-white";
+  if (score >= 75) return "bg-positive-bright text-white";
+  if (score >= 65) return "bg-positive-bright/30 text-ink";
+  if (score >= 55) return "bg-warning-bright/25 text-ink";
+  if (score >= 45) return "bg-warning-bright/60 text-ink";
+  return "bg-danger-bright/85 text-white";
 }
 
 const LEGEND = [
-  { label: "À travailler", className: "bg-danger/60" },
-  { label: "En construction", className: "bg-warning/55" },
-  { label: "En progression", className: "bg-warning/30" },
-  { label: "Acquis", className: "bg-positive/45" },
-  { label: "Solide", className: "bg-positive/85" },
+  { label: "À travailler", className: "bg-danger-bright/85" },
+  { label: "En construction", className: "bg-warning-bright/60" },
+  { label: "En progression", className: "bg-warning-bright/25" },
+  { label: "Acquis", className: "bg-positive-bright/30" },
+  { label: "Solide", className: "bg-positive-bright" },
 ];
 
 /** Carte thermique commerciaux × compétences. */
 export function SkillsHeatmap({ members }: { members: TeamMember[] }) {
   return (
     <div>
-      <div className="-mx-5 overflow-x-auto px-5">
-        <table className="w-full min-w-[760px] border-separate border-spacing-0.5 text-sm">
+      <div className="-mx-5 overflow-x-auto px-5 sm:-mx-6 sm:px-6">
+        <table className="w-full min-w-[760px] border-separate border-spacing-1 text-sm">
           <caption className="sr-only">
             Niveau de chaque commercial sur les huit compétences, de 0 à 100
           </caption>
@@ -53,7 +53,7 @@ export function SkillsHeatmap({ members }: { members: TeamMember[] }) {
                     {member.href ? (
                       <Link
                         href={member.href}
-                        className="text-sm font-medium text-ink underline-offset-2 hover:text-brand hover:underline"
+                        className="text-sm font-semibold text-ink underline-offset-2 hover:text-brand hover:underline"
                       >
                         {name}
                       </Link>
@@ -67,7 +67,7 @@ export function SkillsHeatmap({ members }: { members: TeamMember[] }) {
                       <td key={competency.id} className="p-0">
                         <span
                           className={cx(
-                            "flex h-10 items-center justify-center rounded-sm text-xs font-semibold tabular-nums",
+                            "flex h-10 items-center justify-center rounded-xs text-xs font-semibold tabular-nums",
                             cellClasses(score),
                           )}
                           title={`${name} — ${competency.label} : ${score} sur 100`}
@@ -87,7 +87,7 @@ export function SkillsHeatmap({ members }: { members: TeamMember[] }) {
       <ul className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2">
         {LEGEND.map((item) => (
           <li key={item.label} className="flex items-center gap-2 text-xs text-graphite">
-            <span className={cx("h-3 w-3 rounded-sm", item.className)} aria-hidden />
+            <span className={cx("h-3 w-3 rounded-xs", item.className)} aria-hidden />
             {item.label}
           </li>
         ))}

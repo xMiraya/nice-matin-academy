@@ -26,11 +26,11 @@ export default function RessourcesPage() {
         title="Les huit compétences évaluées"
         description="Chaque simulation est notée sur ces huit dimensions, de 0 à 100."
       >
-        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2">
           {COMPETENCIES.map((competency, index) => (
-            <li key={competency.id} className="rounded-md border border-line p-4">
+            <li key={competency.id} className="rounded-md bg-mist/70 p-4">
               <div className="flex items-center gap-2">
-                <span className="flex h-6 w-6 items-center justify-center rounded-sm bg-ink text-xs font-semibold tabular-nums text-white">
+                <span className="flex h-6 w-6 items-center justify-center rounded-xs bg-brand text-xs font-semibold tabular-nums text-white">
                   {index + 1}
                 </span>
                 <span className="text-sm font-semibold text-ink">{competency.label}</span>
@@ -43,7 +43,7 @@ export default function RessourcesPage() {
         </ul>
       </Panel>
 
-      <div className="mt-6">
+      <div className="mt-5">
         <EmptyState
           icon={<BookOpen size={20} aria-hidden />}
           title="Fiches méthodologiques en préparation"

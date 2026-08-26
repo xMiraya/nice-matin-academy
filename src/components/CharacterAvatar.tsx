@@ -11,8 +11,8 @@ export function CharacterAvatar({
   className?: string;
   tone?: "light" | "dark";
 }) {
-  const bg = tone === "dark" ? "#1f1f22" : "#fff0f4";
-  const shape = tone === "dark" ? "#3f3f46" : "#f4476b";
+  const bg = tone === "dark" ? "#000c32" : "#ecf4fc";
+  const shape = tone === "dark" ? "#213b86" : "#001a64";
   const shapeOpacity = tone === "dark" ? 1 : 0.85;
 
   return (

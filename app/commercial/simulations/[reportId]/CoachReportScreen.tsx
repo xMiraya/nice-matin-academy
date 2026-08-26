@@ -104,7 +104,7 @@ export function CoachReportScreen({ reportId }: { reportId: string }) {
 
               <a
                 href="#conseils"
-                className="mt-4 inline-flex items-center gap-2 rounded-sm bg-ink px-3.5 py-2 text-sm font-semibold text-white transition-colors hover:bg-graphite"
+                className="mt-4 inline-flex items-center gap-2 rounded-sm bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-card transition-colors hover:bg-brand-accent"
               >
                 Voir les conseils
               </a>
@@ -113,8 +113,8 @@ export function CoachReportScreen({ reportId }: { reportId: string }) {
 
           <div className="mt-5 grid grid-cols-1 gap-3 border-t border-line pt-5 sm:grid-cols-3">
             {report.nextActions.map((action, index) => (
-              <div key={`${action.title}-${index}`} className="rounded-md border border-line p-4">
-                <span className="flex h-6 w-6 items-center justify-center rounded-sm bg-ink text-xs font-semibold tabular-nums text-white">
+              <div key={`${action.title}-${index}`} className="rounded-md bg-mist/70 p-4">
+                <span className="flex h-6 w-6 items-center justify-center rounded-xs bg-brand text-xs font-semibold tabular-nums text-white">
                   {index + 1}
                 </span>
                 <p className="mt-3 text-sm font-semibold leading-snug text-ink">{action.title}</p>

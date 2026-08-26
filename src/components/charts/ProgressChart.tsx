@@ -13,15 +13,7 @@ import {
   YAxis,
 } from "recharts";
 import { scoreColor } from "@/src/lib/format";
-
-const AXIS_TICK = { fill: "#71717a", fontSize: 11 } as const;
-
-const TOOLTIP_STYLE = {
-  borderRadius: 6,
-  border: "1px solid #e4e4e7",
-  fontSize: 12,
-  boxShadow: "none",
-} as const;
+import { CHART_AXIS_TICK, CHART_GRID, CHART_TOOLTIP, NM } from "@/src/lib/theme";
 
 interface ProgressChartProps {
   data: { label: string; score: number }[];
@@ -38,25 +30,32 @@ export function ProgressChart({ data, height = 260 }: ProgressChartProps) {
         <AreaChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -18 }}>
           <defs>
             <linearGradient id="nm-progress" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#f4476b" stopOpacity={0.22} />
-              <stop offset="100%" stopColor="#f4476b" stopOpacity={0.02} />
+              <stop offset="0%" stopColor={NM.blue} stopOpacity={0.26} />
+              <stop offset="100%" stopColor={NM.blue} stopOpacity={0.01} />
             </linearGradient>
           </defs>
-          <CartesianGrid stroke="#f4f4f5" vertical={false} />
-          <XAxis dataKey="label" tick={AXIS_TICK} tickLine={false} axisLine={{ stroke: "#e4e4e7" }} />
-          <YAxis domain={[0, 100]} tick={AXIS_TICK} tickLine={false} axisLine={false} width={44} />
+          <CartesianGrid stroke={CHART_GRID} vertical={false} />
+          <XAxis
+            dataKey="label"
+            tick={CHART_AXIS_TICK}
+            tickLine={false}
+            axisLine={{ stroke: NM.line }}
+            dy={4}
+          />
+          <YAxis domain={[0, 100]} tick={CHART_AXIS_TICK} tickLine={false} axisLine={false} width={44} />
           <Tooltip
-            contentStyle={TOOLTIP_STYLE}
+            cursor={{ stroke: NM.line, strokeWidth: 1 }}
+            contentStyle={CHART_TOOLTIP}
             formatter={(value: unknown) => [`${value} / 100`, "Score"] as [string, string]}
           />
           <Area
             type="monotone"
             dataKey="score"
-            stroke="#f4476b"
-            strokeWidth={2}
+            stroke={NM.blue}
+            strokeWidth={2.5}
             fill="url(#nm-progress)"
-            dot={{ r: 3, fill: "#f4476b", strokeWidth: 0 }}
-            activeDot={{ r: 5 }}
+            dot={{ r: 3, fill: "#ffffff", stroke: NM.blue, strokeWidth: 2 }}
+            activeDot={{ r: 5, fill: NM.blue, stroke: "#ffffff", strokeWidth: 2 }}
             isAnimationActive={false}
           />
         </AreaChart>
@@ -79,15 +78,22 @@ export function WeeklyEvolutionChart({
         <AreaChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -18 }}>
           <defs>
             <linearGradient id="nm-weekly" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#377dff" stopOpacity={0.18} />
-              <stop offset="100%" stopColor="#377dff" stopOpacity={0.02} />
+              <stop offset="0%" stopColor={NM.navy} stopOpacity={0.22} />
+              <stop offset="100%" stopColor={NM.navy} stopOpacity={0.01} />
             </linearGradient>
           </defs>
-          <CartesianGrid stroke="#f4f4f5" vertical={false} />
-          <XAxis dataKey="week" tick={AXIS_TICK} tickLine={false} axisLine={{ stroke: "#e4e4e7" }} />
-          <YAxis domain={[0, 100]} tick={AXIS_TICK} tickLine={false} axisLine={false} width={44} />
+          <CartesianGrid stroke={CHART_GRID} vertical={false} />
+          <XAxis
+            dataKey="week"
+            tick={CHART_AXIS_TICK}
+            tickLine={false}
+            axisLine={{ stroke: NM.line }}
+            dy={4}
+          />
+          <YAxis domain={[0, 100]} tick={CHART_AXIS_TICK} tickLine={false} axisLine={false} width={44} />
           <Tooltip
-            contentStyle={TOOLTIP_STYLE}
+            cursor={{ stroke: NM.line, strokeWidth: 1 }}
+            contentStyle={CHART_TOOLTIP}
             formatter={(value: unknown, name: unknown) =>
               [`${value} / 100`, name === "score" ? "Score moyen" : String(name)] as [string, string]
             }
@@ -95,10 +101,11 @@ export function WeeklyEvolutionChart({
           <Area
             type="monotone"
             dataKey="score"
-            stroke="#377dff"
-            strokeWidth={2}
+            stroke={NM.navy}
+            strokeWidth={2.5}
             fill="url(#nm-weekly)"
-            dot={{ r: 3, fill: "#377dff", strokeWidth: 0 }}
+            dot={{ r: 3, fill: "#ffffff", stroke: NM.navy, strokeWidth: 2 }}
+            activeDot={{ r: 5, fill: NM.navy, stroke: "#ffffff", strokeWidth: 2 }}
             isAnimationActive={false}
           />
         </AreaChart>
@@ -120,17 +127,23 @@ export function ScoreDistributionChart({
     <div style={{ height }} className="w-full">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -24 }}>
-          <CartesianGrid stroke="#f4f4f5" vertical={false} />
-          <XAxis dataKey="range" tick={AXIS_TICK} tickLine={false} axisLine={{ stroke: "#e4e4e7" }} />
-          <YAxis allowDecimals={false} tick={AXIS_TICK} tickLine={false} axisLine={false} width={44} />
+          <CartesianGrid stroke={CHART_GRID} vertical={false} />
+          <XAxis
+            dataKey="range"
+            tick={CHART_AXIS_TICK}
+            tickLine={false}
+            axisLine={{ stroke: NM.line }}
+            dy={4}
+          />
+          <YAxis allowDecimals={false} tick={CHART_AXIS_TICK} tickLine={false} axisLine={false} width={44} />
           <Tooltip
-            cursor={{ fill: "#fafafa" }}
-            contentStyle={TOOLTIP_STYLE}
+            cursor={{ fill: NM.lineSoft }}
+            contentStyle={CHART_TOOLTIP}
             formatter={(value: unknown) =>
               [`${value} commercial${Number(value) > 1 ? "aux" : ""}`, "Effectif"] as [string, string]
             }
           />
-          <Bar dataKey="count" radius={[3, 3, 0, 0]} isAnimationActive={false} maxBarSize={56}>
+          <Bar dataKey="count" radius={[8, 8, 4, 4]} isAnimationActive={false} maxBarSize={44}>
             {data.map((entry, index) => (
               <Cell key={entry.range} fill={scoreColor(midpoints[index] ?? 60)} />
             ))}

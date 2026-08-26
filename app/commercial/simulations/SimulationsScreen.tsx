@@ -33,7 +33,7 @@ export function SimulationsScreen() {
         }
       />
 
-      <div className="space-y-6">
+      <div className="space-y-5">
         {insights.hasReports ? (
           <Panel
             title="Analyses du Coach IA"

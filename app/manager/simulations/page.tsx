@@ -33,7 +33,7 @@ export default function ManagerSimulationsPage() {
         <DemoBadge>Données de démonstration</DemoBadge>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
         <MetricCard label="Simulations réalisées" value={data.sessionsCount} />
         <MetricCard label="Analyses en cours" value={analysed} hint="Comptes rendus en préparation." />
         <MetricCard
@@ -44,7 +44,7 @@ export default function ManagerSimulationsPage() {
         />
       </div>
 
-      <div className="mt-6">
+      <div className="mt-5">
         <Panel
           title="Dernières simulations"
           description="Seul l'appel de validation technique dispose d'un compte rendu complet dans cette maquette."

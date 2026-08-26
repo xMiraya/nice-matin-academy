@@ -248,7 +248,7 @@ export const DEMO_MANAGER_DASHBOARD: ManagerDashboard = {
       level: "priorite",
       title: "Gestion des objections à renforcer sur l'ensemble de l'équipe",
       detail:
-        "Moyenne de 57 sur cette compétence, soit dix points sous la moyenne générale. Un atelier collectif est proposé.",
+        "Moyenne de 55 sur cette compétence, soit douze points sous la moyenne générale de l'équipe. Un atelier collectif est proposé.",
     },
     {
       id: "a-2",
