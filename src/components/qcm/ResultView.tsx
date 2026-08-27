@@ -8,7 +8,7 @@ import { Badge } from "@/src/components/StatusBadge";
 import { ButtonLink } from "@/src/components/Button";
 import { EmptyState } from "@/src/components/EmptyState";
 import { CompetencyChart } from "@/src/components/qcm/CompetencyChart";
-import { Correction } from "@/src/components/qcm/Correction";
+import { AssessmentCorrections } from "@/src/components/qcm/AssessmentCorrections";
 import { getAssessmentById } from "@/src/data/qcm/assessments";
 import { getCompetency } from "@/src/data/qcm/competencies";
 import { qcmRoutes } from "@/src/data/qcm/routes";
@@ -142,7 +142,7 @@ export function ResultView({ resultId }: { readonly resultId: string }) {
               <li key={reco.href + reco.title}>
                 <Link
                   href={reco.href}
-                  className="group flex h-full flex-col rounded-sm border border-line bg-mist/60 p-4 transition-colors hover:border-brand-accent hover:bg-brand-soft"
+                  className="nm-card-link group flex h-full flex-col rounded-sm p-4"
                 >
                   <span className="flex items-center gap-1.5 text-sm font-semibold text-ink group-hover:text-brand">
                     {reco.title}
@@ -167,32 +167,18 @@ export function ResultView({ resultId }: { readonly resultId: string }) {
           description={
             errors.length === 0
               ? "Toutes vos réponses sont correctes. La correction complète reste consultable ci-dessous."
-              : `${errors.length} question${errors.length > 1 ? "s" : ""} à revoir. Chaque correction indique la compétence concernée et la pratique attendue sur le terrain.`
+              : `${errors.length} question${errors.length > 1 ? "s" : ""} à revoir. Ouvrez une carte pour voir la correction commentée.`
           }
         >
           Correction détaillée
         </SectionTitle>
 
-        <div className="space-y-6">
-          {assessment?.questions.map((question, position) => {
-            const questionResult = result.perQuestion.find((r) => r.questionId === question.id);
-            if (!questionResult) return null;
-            return (
-              <article key={question.id} className="nm-card p-5 sm:p-6">
-                <p className="nm-label">Question {position + 1}</p>
-                {question.scenario ? (
-                  <p className="mt-2.5 max-w-prose text-sm italic leading-relaxed text-graphite">
-                    {question.scenario}
-                  </p>
-                ) : null}
-                <h3 className="mt-1.5 max-w-prose text-base font-semibold leading-snug text-ink">
-                  {question.prompt}
-                </h3>
-                <Correction question={question} result={questionResult} />
-              </article>
-            );
-          })}
-        </div>
+        {assessment ? (
+          <AssessmentCorrections
+            questions={assessment.questions}
+            results={result.perQuestion}
+          />
+        ) : null}
       </div>
     </>
   );

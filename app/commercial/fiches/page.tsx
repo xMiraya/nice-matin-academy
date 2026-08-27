@@ -40,12 +40,12 @@ export default function FichesPage() {
         }
       />
 
-      <ul className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+      <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
         {methodologySheets.map((sheet) => (
           <li key={sheet.slug} className="flex">
             <Link
               href={`/commercial/fiches/${sheet.slug}`}
-              className="nm-card group flex w-full flex-col p-5 transition-shadow hover:shadow-lift sm:p-6"
+              className="nm-card-link group flex w-full flex-col p-5"
             >
               <div className="flex items-center gap-2.5">
                 <span

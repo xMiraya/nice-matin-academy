@@ -6,6 +6,7 @@ import { Button, ButtonLink } from "@/src/components/Button";
 import { Correction } from "@/src/components/qcm/Correction";
 import { ProgressIndicator } from "@/src/components/qcm/ProgressIndicator";
 import { QuestionView } from "@/src/components/qcm/QuestionView";
+import { TrainingRecap } from "@/src/components/qcm/TrainingRecap";
 import { TRAINING_SAMPLE_SIZE } from "@/src/data/qcm/config";
 import { qcmRoutes } from "@/src/data/qcm/routes";
 import { addTraining } from "@/src/lib/qcm/progression";
@@ -30,7 +31,8 @@ export function TrainingSession({ competency, pool }: Props) {
   const [index, setIndex] = useState(0);
   const [answer, setAnswer] = useState<AnswerValue>([]);
   const [result, setResult] = useState<QuestionResult | null>(null);
-  const [correctCount, setCorrectCount] = useState(0);
+  // Les résultats sont conservés pour le récapitulatif de fin de série.
+  const [answered, setAnswered] = useState<readonly QuestionResult[]>([]);
   const [finished, setFinished] = useState(false);
 
   const questions = useMemo(() => {
@@ -43,7 +45,7 @@ export function TrainingSession({ competency, pool }: Props) {
     setIndex(0);
     setAnswer([]);
     setResult(null);
-    setCorrectCount(0);
+    setAnswered([]);
     setFinished(false);
   }, []);
 
@@ -66,18 +68,25 @@ export function TrainingSession({ competency, pool }: Props) {
   }
 
   if (finished) {
+    const correctCount = answered.filter((r) => r.outcome === "correct").length;
+
     return (
-      <section className="nm-card max-w-prose p-5 sm:p-6">
-        <p className="nm-label">Série terminée</p>
-        <h2 className="nm-display mt-2 text-2xl text-ink">
-          {correctCount} réponse{correctCount > 1 ? "s" : ""} entièrement correcte
-          {correctCount > 1 ? "s" : ""} sur {questions.length}
-        </h2>
-        <p className="mt-2.5 text-sm leading-relaxed text-graphite">
-          Les questions sont retirées à chaque série : refaire l’exercice mesure la compréhension
-          plutôt que la mémorisation de l’ordre.
-        </p>
-        <div className="mt-5 flex flex-wrap gap-2.5">
+      <section className="nm-card p-5 sm:p-6">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="nm-label">Série terminée</p>
+            <h2 className="nm-display mt-2 text-2xl text-ink">
+              {correctCount} réponse{correctCount > 1 ? "s" : ""} entièrement correcte
+              {correctCount > 1 ? "s" : ""} sur {answered.length}
+            </h2>
+          </div>
+        </div>
+
+        <div className="mt-6 border-t border-line pt-6">
+          <TrainingRecap questions={questions} results={answered} />
+        </div>
+
+        <div className="mt-6 flex flex-wrap gap-2.5 border-t border-line pt-6">
           <Button onClick={start}>
             <RotateCcw size={15} aria-hidden />
             Refaire avec d’autres questions
@@ -100,7 +109,7 @@ export function TrainingSession({ competency, pool }: Props) {
     if (!question) return;
     const graded = gradeQuestion(question, answer);
     setResult(graded);
-    if (graded.outcome === "correct") setCorrectCount((n) => n + 1);
+    setAnswered((current) => [...current, graded]);
   }
 
   function next() {
@@ -109,7 +118,7 @@ export function TrainingSession({ competency, pool }: Props) {
         addTraining(current, {
           competency: competency.id,
           completedAt: new Date().toISOString(),
-          correct: correctCount,
+          correct: answered.filter((r) => r.outcome === "correct").length,
           total: questions.length,
         }),
       );
@@ -123,7 +132,7 @@ export function TrainingSession({ competency, pool }: Props) {
 
   return (
     <section>
-      <ProgressIndicator current={index} total={questions.length} answered={index} />
+      <ProgressIndicator current={index} total={questions.length} answered={answered.length} />
 
       <QuestionView
         question={question}

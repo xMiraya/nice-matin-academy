@@ -64,7 +64,7 @@ export default function RessourcesPage() {
             <li key={shortcut.href} className="flex">
               <Link
                 href={shortcut.href}
-                className="nm-card group flex w-full flex-col p-5 transition-shadow hover:shadow-lift sm:p-6"
+                className="nm-card-link group flex w-full flex-col p-5 sm:p-6"
               >
                 <span className="flex h-10 w-10 items-center justify-center rounded-md bg-brand-soft text-brand">
                   <Icon size={18} aria-hidden />

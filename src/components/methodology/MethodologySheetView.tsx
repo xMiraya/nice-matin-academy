@@ -237,7 +237,7 @@ export function MethodologySheetView({ sheet, previous, next }: MethodologySheet
           <Link
             href={`/commercial/fiches/${previous.slug}`}
             rel="prev"
-            className="nm-card group flex items-center gap-3 p-4 transition-shadow hover:shadow-lift"
+            className="nm-card-link group flex items-center gap-3 p-4"
           >
             <ChevronLeft size={18} aria-hidden className="shrink-0 text-muted" />
             <span className="min-w-0">
@@ -254,7 +254,7 @@ export function MethodologySheetView({ sheet, previous, next }: MethodologySheet
           <Link
             href={`/commercial/fiches/${next.slug}`}
             rel="next"
-            className="nm-card group flex items-center justify-end gap-3 p-4 text-right transition-shadow hover:shadow-lift sm:col-start-2"
+            className="nm-card-link group flex items-center justify-end gap-3 p-4 text-right sm:col-start-2"
           >
             <span className="min-w-0">
               <span className="nm-label">Fiche suivante</span>

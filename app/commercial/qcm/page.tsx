@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { BookOpen, ClipboardList, Target, TrendingUp } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, BookOpen, ClipboardList, Target, TrendingUp } from "lucide-react";
 import { PageHeader } from "@/src/components/PageHeader";
 import { Panel } from "@/src/components/Panel";
 import { ButtonLink } from "@/src/components/Button";
@@ -74,9 +75,9 @@ export default function QcmHomePage() {
           const Icon = entry.icon;
           return (
             <li key={entry.href} className="flex">
-              <a
+              <Link
                 href={entry.href}
-                className="nm-card group flex w-full flex-col p-5 transition-shadow hover:shadow-lift sm:p-6"
+                className="nm-card-link group flex w-full flex-col p-5 sm:p-6"
               >
                 <span className="flex h-10 w-10 items-center justify-center rounded-md bg-brand-soft text-brand">
                   <Icon size={18} aria-hidden />
@@ -88,7 +89,15 @@ export default function QcmHomePage() {
                 <span className="mt-2 text-sm leading-relaxed text-graphite">
                   {entry.description}
                 </span>
-              </a>
+                <span className="mt-4 inline-flex items-center gap-1.5 text-[13px] font-semibold text-brand">
+                  Ouvrir
+                  <ArrowRight
+                    size={14}
+                    aria-hidden
+                    className="transition-transform group-hover:translate-x-0.5"
+                  />
+                </span>
+              </Link>
             </li>
           );
         })}

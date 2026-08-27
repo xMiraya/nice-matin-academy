@@ -1,10 +1,11 @@
 "use client";
 
-import { FileSearch, Target } from "lucide-react";
+import { FileSearch, Lightbulb, Target } from "lucide-react";
 import { PageHeader } from "@/src/components/PageHeader";
 import { Panel } from "@/src/components/Panel";
 import { Badge } from "@/src/components/StatusBadge";
 import { EmptyState } from "@/src/components/EmptyState";
+import { MetricCard } from "@/src/components/MetricCard";
 import { ButtonLink } from "@/src/components/Button";
 import { useIsHydrated, useReport } from "@/src/lib/reports/use-reports";
 import { CoachMascot } from "@/src/components/coach/CoachMascot";
@@ -18,6 +19,7 @@ import {
   CoachPsychologicalPanel,
   CoachRadarPanel,
   CoachScorePanel,
+  OUTCOME_LABELS,
 } from "@/src/components/coach/CoachShared";
 import { formatDate, formatDuration } from "@/src/lib/format";
 
@@ -31,6 +33,8 @@ export function CoachReportScreen({ reportId }: { reportId: string }) {
       <div className="py-16 text-center text-sm text-graphite">Chargement du compte rendu…</div>
     );
   }
+
+  const observed = report ? report.competencies.filter((c) => c.evidence.length > 0).length : 0;
 
   if (!report) {
     return (
@@ -78,6 +82,34 @@ export function CoachReportScreen({ reportId }: { reportId: string }) {
       />
 
       <div className="space-y-6">
+        {/* Chiffres clés : la forme du compte rendu se lit sans lire le texte. */}
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          <MetricCard
+            tone="neutre"
+            label="Durée"
+            value={formatDuration(report.session.durationSeconds)}
+            hint={OUTCOME_LABELS[report.session.outcome]}
+          />
+          <MetricCard
+            tone="ciel"
+            label="Compétences observées"
+            value={`${observed} / ${report.competencies.length}`}
+            hint="notées à partir d’extraits réels"
+          />
+          <MetricCard
+            tone="positif"
+            label="Points forts"
+            value={report.strengths.length}
+            hint="relevés par le Coach IA"
+          />
+          <MetricCard
+            tone="vigilance"
+            label="Axes d’amélioration"
+            value={report.improvements.length}
+            hint="à travailler en priorité"
+          />
+        </div>
+
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
           <CoachScorePanel report={report} className="lg:col-span-2" />
           <CoachRadarPanel report={report} className="lg:col-span-3" />
@@ -97,8 +129,13 @@ export function CoachReportScreen({ reportId }: { reportId: string }) {
                 {report.pedagogicalPriority.reason}
               </p>
 
-              {/* Conseil principal, volontairement très court */}
-              <p className="mt-3 rounded-md border border-brand/25 bg-brand-soft px-4 py-3 text-sm font-medium leading-relaxed text-ink">
+              {/*
+                Conseil principal. Présenté comme une citation et non comme un
+                encadré plein largeur : un bloc bordé se lisait comme un champ
+                de saisie alors que rien n'est modifiable ici.
+              */}
+              <p className="mt-3.5 flex gap-3 border-l-[3px] border-brand pl-4 text-[15px] font-semibold leading-relaxed text-brand">
+                <Lightbulb size={17} className="mt-0.5 shrink-0" aria-hidden />
                 {report.nextActions[0]?.title ?? "Poursuivez l'entraînement sur cette compétence."}
               </p>
 

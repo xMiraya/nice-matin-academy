@@ -4,6 +4,7 @@ import {
   CheckCircle2,
   CircleAlert,
   Flag,
+  ChevronDown,
   Info,
   MessageSquareQuote,
   Milestone,
@@ -123,44 +124,66 @@ export function CoachRadarPanel({
 
 /** Détail par compétence : note, poids, observation et preuves horodatées. */
 export function CoachCompetencyDetail({ report }: { report: CoachReport }) {
+  const sorted = [...report.competencies].sort((a, b) => a.score - b.score);
+
   return (
     <Panel
       title="Détail par compétence"
-      description="Chaque note est justifiée par des extraits réellement prononcés."
+      description="Classées de la plus perfectible à la mieux maîtrisée. Ouvrez une carte pour voir les extraits qui justifient la note."
     >
-      <ul className="space-y-5">
-        {report.competencies.map((competency) => (
-          <li key={competency.id} className="border-b border-line/70 pb-5 last:border-0 last:pb-0">
-            <div className="flex flex-wrap items-baseline justify-between gap-2">
-              <span className="text-sm font-semibold text-ink">{competency.label}</span>
-              <span className="flex items-center gap-3">
-                <span className="text-xs text-graphite">poids {competency.weight}</span>
-                <span
-                  className="text-sm font-semibold tabular-nums"
-                  style={{ color: scoreColor(competency.score * 10) }}
-                >
-                  {competency.score} / 10
-                </span>
-              </span>
-            </div>
+      <ul className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+        {sorted.map((competency) => {
+          const percent = competency.score * 10;
+          const color = scoreColor(percent);
+          return (
+            <li key={competency.id} className="flex">
+              <details className="nm-card group w-full overflow-hidden">
+                <summary className="flex cursor-pointer list-none flex-col gap-3 p-4 transition-colors hover:bg-mist sm:p-5">
+                  <span className="flex items-start justify-between gap-4">
+                    <span className="min-w-0">
+                      <span className="block text-sm font-semibold leading-snug text-ink">
+                        {competency.label}
+                      </span>
+                      <span className="nm-label mt-1 block">poids {competency.weight}</span>
+                    </span>
+                    <span className="flex shrink-0 items-center gap-2">
+                      <span
+                        className="nm-display text-2xl tabular-nums"
+                        style={{ color }}
+                      >
+                        {competency.score}
+                        <span className="text-sm text-muted">/10</span>
+                      </span>
+                      <ChevronDown
+                        size={17}
+                        aria-hidden
+                        className="text-muted transition-transform group-open:rotate-180"
+                      />
+                    </span>
+                  </span>
 
-            <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-mist">
-              <div
-                className="h-full rounded-full"
-                style={{
-                  width: `${competency.score * 10}%`,
-                  backgroundColor: scoreColor(competency.score * 10),
-                }}
-              />
-            </div>
+                  <span
+                    className="block h-1.5 w-full overflow-hidden rounded-full bg-mist"
+                    role="img"
+                    aria-label={`${competency.label} : ${competency.score} sur 10`}
+                  >
+                    <span
+                      className="block h-full rounded-full"
+                      style={{ width: `${percent}%`, backgroundColor: color }}
+                    />
+                  </span>
+                </summary>
 
-            <p className="mt-2.5 text-sm leading-relaxed text-graphite">{competency.observation}</p>
-
-            {competency.evidence.length > 0 ? (
-              <EvidenceList evidence={competency.evidence} />
-            ) : null}
-          </li>
-        ))}
+                <div className="border-t border-line p-4 sm:p-5">
+                  <p className="text-sm leading-relaxed text-graphite">{competency.observation}</p>
+                  {competency.evidence.length > 0 ? (
+                    <EvidenceList evidence={competency.evidence} />
+                  ) : null}
+                </div>
+              </details>
+            </li>
+          );
+        })}
       </ul>
     </Panel>
   );

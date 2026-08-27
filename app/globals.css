@@ -19,9 +19,13 @@
 
   /* Texte et surfaces */
   --color-ink: #000d32;
-  --color-graphite: #59617a;
-  /* Texte secondaire le plus clair encore conforme AA sur blanc (4.7:1). */
-  --color-muted: #6b7290;
+  /*
+   * Texte secondaire assombri : le gris precedent (#59617a) etait conforme mais
+   * peu engageant sur de longs paragraphes. Ces deux valeurs montent le
+   * contraste sur blanc a ~9:1 et ~6,5:1 sans changer la teinte bleutee.
+   */
+  --color-graphite: #3f4763;
+  --color-muted: #575f7d;
   --color-canvas: #eff2f8;
   --color-mist: #f4f6fa;
   --color-line: #e4e8f1;
@@ -93,6 +97,28 @@
   border: 1px solid color-mix(in oklab, var(--color-line) 70%, white);
   background-color: #ffffff;
   box-shadow: var(--shadow-card);
+}
+
+/*
+ * Carte cliquable : meme fond que .nm-card, mais l'etat de survol est explicite
+ * (bord bleu, fond bleu tres clair, legere elevation) pour distinguer d'un coup
+ * d'oeil ce qui s'ouvre de ce qui est purement informatif.
+ */
+@utility nm-card-link {
+  border-radius: var(--radius-lg);
+  border: 1px solid color-mix(in oklab, var(--color-line) 70%, white);
+  background-color: #ffffff;
+  box-shadow: var(--shadow-card);
+  transition:
+    border-color 150ms ease,
+    background-color 150ms ease,
+    box-shadow 150ms ease;
+
+  &:hover {
+    border-color: var(--color-brand-accent);
+    background-color: var(--color-brand-soft);
+    box-shadow: var(--shadow-lift);
+  }
 }
 
 /* Micro-libellé de section, en capitales espacées. */
