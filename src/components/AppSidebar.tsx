@@ -51,7 +51,7 @@ export function AppSidebar({ role, profile }: AppSidebarProps) {
   const groups = NAVIGATION_GROUPS[role];
 
   return (
-    <aside className="sticky top-0 hidden h-screen w-[264px] shrink-0 flex-col border-r border-line bg-white lg:flex">
+    <aside data-app-chrome className="sticky top-0 hidden h-screen w-[264px] shrink-0 flex-col border-r border-line bg-white lg:flex">
       <div className="px-5 py-6">
         <Link href="/connexion" aria-label="Nice-Matin Academy — accueil">
           <Logo size="sm" />

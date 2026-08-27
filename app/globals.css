@@ -133,3 +133,56 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/*
+ * Impression des fiches méthodologiques.
+ *
+ * A4 paysage : l'ossature de l'application (barre latérale, bandeau, navigation
+ * mobile) disparaît, les cartes ne se coupent pas entre deux pages et les
+ * aplats de marque repassent en blanc pour rester lisibles à l'encre noire.
+ */
+@media print {
+  [data-app-chrome],
+  [data-print="hide"] {
+    display: none !important;
+  }
+
+  @page {
+    size: A4 landscape;
+    margin: 10mm;
+  }
+
+  html,
+  body {
+    background: #ffffff !important;
+    overflow: visible !important;
+  }
+
+  main {
+    padding: 0 !important;
+  }
+
+  .nm-card {
+    border: 1px solid #c9d0e0 !important;
+    box-shadow: none !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Le bandeau de titre reste identifiable sans consommer de l'encre. */
+  .nm-navy {
+    background-image: none !important;
+    background-color: #ffffff !important;
+    color: #000d32 !important;
+  }
+
+  .nm-navy .nm-label,
+  .nm-navy p,
+  .nm-navy h1 {
+    color: #000d32 !important;
+  }
+
+  a[href]::after {
+    content: none !important;
+  }
+}

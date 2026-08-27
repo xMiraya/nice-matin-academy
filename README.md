@@ -79,3 +79,39 @@ Facultatives, pour une future voix française native (serveur uniquement, jamais
 
 Tant qu'elles sont absentes, rien n'est activé automatiquement.
 
+## Fiches méthodologiques et entraînement QCM
+
+Deux rubriques de l'espace commercial reprennent des contenus construits à part,
+désormais intégrés au code de ce projet (aucun déploiement séparé n'est requis).
+
+### Fiches méthodologiques — `/commercial/fiches`
+
+Huit fiches, une par compétence évaluée, en dix blocs : enjeu, méthode en quatre
+étapes, bons réflexes, à dire, à éviter, questions utiles, situation terrain,
+checklist cochable, indicateur de maîtrise et conseil du formateur.
+
+- Données : `src/data/methodology/sheets.ts`, types dans `src/types/methodology.ts`.
+- Les huit compétences sont dérivées de `src/data/competencies.ts` : ce fichier
+  reste la source de vérité unique du référentiel.
+- Chaque fiche s'imprime en A4 paysage (bouton « Imprimer la fiche »). La feuille
+  d'impression est en fin de `app/globals.css` ; elle masque l'ossature de
+  l'application via l'attribut `data-app-chrome` et les blocs `data-print="hide"`.
+
+### Entraînement QCM — `/commercial/qcm`
+
+260 questions : 120 d'entraînement ciblé (15 par compétence, tirage aléatoire et
+correction immédiate) et 140 réparties sur cinq évaluations transversales
+progressives, corrigées après envoi complet.
+
+- Données : `src/data/qcm/`, moteur dans `src/lib/qcm/`, types dans `src/types/qcm/`.
+- Toutes les routes internes passent par `src/data/qcm/routes.ts` : déplacer la
+  rubrique ne demande qu'une seule modification.
+- La progression est stockée en `localStorage` (`nm-academie-qcm.v1`), derrière
+  l'abstraction `ProgressStore` : une base de données pourra la remplacer sans
+  toucher à l'interface.
+
+**Référentiel de compétences distinct.** Les fiches et le Coach IA partagent les
+huit mêmes compétences. Le QCM conserve sa propre taxonomie (`c1-prise-de-contact`
+à `c8-conclusion`), qui est celle sur laquelle les 260 questions ont été écrites.
+Les deux référentiels ne sont donc pas encore alignés : voir
+`docs/QCM-REFERENTIEL-A-ALIGNER.md`.
