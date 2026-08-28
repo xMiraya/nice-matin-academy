@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 225" role="img" aria-label="Portrait illustré de Julie Dupont, la cliente virtuelle">
+  <title>Julie Dupont — cliente virtuelle</title>
+
+  <defs>
+    <linearGradient id="jd-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f6ddd2" />
+      <stop offset="55%" stop-color="#efe4dc" />
+      <stop offset="100%" stop-color="#dfe4ea" />
+    </linearGradient>
+    <linearGradient id="jd-skin" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#e0a97f" />
+      <stop offset="100%" stop-color="#cd8f66" />
+    </linearGradient>
+    <linearGradient id="jd-hair" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#3a251b" />
+      <stop offset="100%" stop-color="#211009" />
+    </linearGradient>
+    <clipPath id="jd-frame">
+      <rect width="300" height="225" />
+    </clipPath>
+  </defs>
+
+  <g clip-path="url(#jd-frame)">
+    <rect width="300" height="225" fill="url(#jd-bg)" />
+    <circle cx="150" cy="120" r="96" fill="#e8c7b6" opacity="0.4" />
+
+    <!-- Gilet clair ouvert, posé sur les épaules -->
+    <path
+      d="M46 225c0-35 23-62 55-72l49-15 49 15c32 10 55 37 55 72z"
+      fill="#f1e8de"
+    />
+    <path d="M101 153l49 72h-24l-36-62z" fill="#e2d5c6" />
+    <path d="M199 153l-49 72h24l36-62z" fill="#e2d5c6" />
+
+    <!-- Haut foncé, encolure en V -->
+    <path d="M119 149h62l-31 60z" fill="#23433d" />
+
+    <!-- Cou et ombre portée -->
+    <path d="M132 124h36v33c0 11-36 11-36 0z" fill="#c1835c" />
+    <path d="M132 124h36v12c-9 7-27 7-36 0z" fill="#a86e4b" opacity="0.55" />
+
+    <!-- Visage -->
+    <ellipse cx="150" cy="97" rx="39" ry="45" fill="url(#jd-skin)" />
+    <ellipse cx="119" cy="102" rx="6" ry="9" fill="#d69a72" />
+    <ellipse cx="181" cy="102" rx="6" ry="9" fill="#d69a72" />
+
+    <!-- Chevelure bouclée, volumineuse, tombant sur les épaules -->
+    <path
+      d="M150 42c-38 0-65 27-65 63 0 23 5 42 11 60 4 12-2 21-11 25 15 7 28 2 36-7 8-9 10-21 6-33-6-17-10-30-10-45 0-27 15-46 33-46s33 19 33 46c0 15-4 28-10 45-4 12-2 24 6 33 8 9 21 14 36 7-9-4-15-13-11-25 6-18 11-37 11-60 0-36-27-63-65-63z"
+      fill="url(#jd-hair)"
+    />
+    <path
+      d="M150 49c-25 0-44 17-46 40 11-13 26-20 46-20s35 7 46 20c-2-23-21-40-46-40z"
+      fill="#42291d"
+    />
+    <circle cx="98" cy="86" r="9" fill="#31200f" opacity="0.85" />
+    <circle cx="202" cy="86" r="9" fill="#31200f" opacity="0.85" />
+    <circle cx="95" cy="112" r="8" fill="#31200f" opacity="0.7" />
+    <circle cx="205" cy="112" r="8" fill="#31200f" opacity="0.7" />
+
+    <!-- Traits du visage, volontairement sobres -->
+    <path d="M129 84c5-4 13-4 18 0" stroke="#31200f" stroke-width="3.4" stroke-linecap="round" fill="none" />
+    <path d="M153 84c5-4 13-4 18 0" stroke="#31200f" stroke-width="3.4" stroke-linecap="round" fill="none" />
+    <ellipse cx="136" cy="95" rx="4.4" ry="4.8" fill="#2a1a12" />
+    <ellipse cx="164" cy="95" rx="4.4" ry="4.8" fill="#2a1a12" />
+    <path d="M147 104c2 5 4 7 6 7" stroke="#b0724c" stroke-width="2.6" stroke-linecap="round" fill="none" />
+    <path
+      d="M138 117c7 7 17 7 24 0"
+      stroke="#95412f"
+      stroke-width="3.6"
+      stroke-linecap="round"
+      fill="none"
+    />
+  </g>
+</svg>

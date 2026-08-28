@@ -12,10 +12,13 @@ import { cx } from "@/src/lib/format";
  * dessinée localement en SVG, sans jamais afficher d'image cassée.
  */
 export const PORTRAIT_CANDIDATES = [
+  // Une photographie déposée sous l'un de ces noms passe devant l'illustration.
   "/images/julie-dupont.png",
   "/images/julie-dupont.jpg",
   "/images/gloria.png",
   "/images/gloria.jpg",
+  // Portrait vectoriel livré avec le projet, d'après l'avatar de la simulation.
+  "/images/julie-dupont.svg",
 ] as const;
 
 export function CharacterAvatar({
