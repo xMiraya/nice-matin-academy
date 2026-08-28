@@ -59,8 +59,14 @@ export function AssessmentCorrections({ questions, results }: AssessmentCorrecti
       position,
       result: results.find((r) => r.questionId === question.id),
     }))
-    .filter((row): row is { question: Question; position: number; result: QuestionResult } =>
-      Boolean(row.result),
+    .filter(
+      (
+        row,
+      ): row is {
+        question: Question;
+        position: number;
+        result: QuestionResult;
+      } => Boolean(row.result),
     );
 
   const toReview = rows.filter((row) => row.result.outcome !== "correct");
@@ -72,8 +78,17 @@ export function AssessmentCorrections({ questions, results }: AssessmentCorrecti
     { id: "tout", label: "Toutes", count: rows.length },
   ];
 
-  const shown =
-    filter === "revoir" ? toReview : filter === "correct" ? correct : rows;
+  const shown = filter === "revoir" ? toReview : filter === "correct" ? correct : rows;
+
+  /*
+    Deux colonnes indépendantes plutôt qu'une grille : dans une grille, ouvrir
+    une carte étire toute la rangée et laisse une grande zone blanche à côté.
+    Ici chaque colonne empile ses propres cartes et n'affecte pas l'autre.
+  */
+  const columns: (typeof shown)[] = [
+    shown.filter((_, position) => position % 2 === 0),
+    shown.filter((_, position) => position % 2 === 1),
+  ];
 
   return (
     <div>
@@ -111,69 +126,70 @@ export function AssessmentCorrections({ questions, results }: AssessmentCorrecti
             : "Aucune question dans cette catégorie."}
         </p>
       ) : (
-        <ul className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-          {shown.map(({ question, position, result }) => {
-            const meta = OUTCOME_META[result.outcome];
-            const Icon = meta.icon;
-            return (
-              <li key={question.id} className="flex">
-                <details
-                  className={cx(
-                    "nm-card group w-full overflow-hidden border-l-4",
-                    meta.border,
-                  )}
-                >
-                  <summary className="flex cursor-pointer list-none gap-3.5 p-4 transition-colors hover:bg-mist sm:p-5">
-                    <span
-                      aria-hidden
-                      className={cx(
-                        "flex h-8 w-8 shrink-0 items-center justify-center rounded-sm border",
-                        meta.chip,
-                      )}
+        <div className="grid grid-cols-1 items-start gap-4 xl:grid-cols-2">
+          {columns.map((column, columnIndex) => (
+            <ul key={columnIndex} className="flex flex-col gap-4">
+              {column.map(({ question, position, result }) => {
+                const meta = OUTCOME_META[result.outcome];
+                const Icon = meta.icon;
+                return (
+                  <li key={question.id} className="flex">
+                    <details
+                      className={cx("nm-card group w-full overflow-hidden border-l-4", meta.border)}
                     >
-                      <Icon size={14} strokeWidth={3} />
-                    </span>
-
-                    <span className="min-w-0 flex-1">
-                      <span className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
-                        <span className="nm-label">Question {position + 1}</span>
+                      <summary className="flex cursor-pointer list-none gap-3.5 p-4 transition-colors hover:bg-mist sm:p-5">
                         <span
+                          aria-hidden
                           className={cx(
-                            "rounded-full border px-2 py-0.5 text-[11px] font-semibold",
+                            "flex h-8 w-8 shrink-0 items-center justify-center rounded-sm border",
                             meta.chip,
                           )}
                         >
-                          {meta.label}
+                          <Icon size={14} strokeWidth={3} />
                         </span>
-                        <span className="text-[11px] text-muted">
-                          {getCompetency(question.competency).shortLabel}
+
+                        <span className="min-w-0 flex-1">
+                          <span className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
+                            <span className="nm-label">Question {position + 1}</span>
+                            <span
+                              className={cx(
+                                "rounded-full border px-2 py-0.5 text-[11px] font-semibold",
+                                meta.chip,
+                              )}
+                            >
+                              {meta.label}
+                            </span>
+                            <span className="text-[11px] text-muted">
+                              {getCompetency(question.competency).shortLabel}
+                            </span>
+                          </span>
+                          <span className="mt-1.5 block text-sm font-medium leading-snug text-ink">
+                            {question.prompt}
+                          </span>
                         </span>
-                      </span>
-                      <span className="mt-1.5 block text-sm font-medium leading-snug text-ink">
-                        {question.prompt}
-                      </span>
-                    </span>
 
-                    <ChevronDown
-                      size={18}
-                      aria-hidden
-                      className="mt-1 shrink-0 text-muted transition-transform group-open:rotate-180"
-                    />
-                  </summary>
+                        <ChevronDown
+                          size={18}
+                          aria-hidden
+                          className="mt-1 shrink-0 text-muted transition-transform group-open:rotate-180"
+                        />
+                      </summary>
 
-                  <div className="border-t border-line px-4 pb-4 sm:px-5 sm:pb-5">
-                    {question.scenario ? (
-                      <p className="mt-4 rounded-sm border border-warning-bright/40 bg-warning-soft p-3.5 text-sm leading-relaxed text-ink">
-                        {question.scenario}
-                      </p>
-                    ) : null}
-                    <Correction question={question} result={result} />
-                  </div>
-                </details>
-              </li>
-            );
-          })}
-        </ul>
+                      <div className="border-t border-line px-4 pb-4 sm:px-5 sm:pb-5">
+                        {question.scenario ? (
+                          <p className="mt-4 rounded-sm border border-warning-bright/40 bg-warning-soft p-3.5 text-sm leading-relaxed text-ink">
+                            {question.scenario}
+                          </p>
+                        ) : null}
+                        <Correction question={question} result={result} />
+                      </div>
+                    </details>
+                  </li>
+                );
+              })}
+            </ul>
+          ))}
+        </div>
       )}
     </div>
   );

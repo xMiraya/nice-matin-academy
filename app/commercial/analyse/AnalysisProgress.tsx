@@ -13,6 +13,7 @@ import { OBJECTIVES } from "@/src/data/competencies";
 import { reportRepository } from "@/src/lib/reports/report-repository";
 import {
   readLastConversationId,
+  readSelectedDifficulty,
   readSelectedObjectiveIds,
   storeLastReportId,
 } from "@/src/lib/session-storage";
@@ -135,6 +136,7 @@ async function performAnalysis(options: PerformAnalysisOptions): Promise<void> {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           conversationId: options.conversationId,
+          difficulty: readSelectedDifficulty(),
           selectedObjectiveIds: objectiveIds,
           selectedObjectiveLabels: objectiveLabels,
           commercial: {

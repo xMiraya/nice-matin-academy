@@ -103,7 +103,7 @@ export function toSessionSummary(report: CoachReport, hrefPrefix: string): Sessi
         : "Simulation avec Julie Dupont",
     date: report.session.date.slice(0, 10),
     objectiveLabel: report.pedagogicalPriority.label,
-    difficulty: "intermediaire",
+    difficulty: report.session.difficulty ?? "intermediaire",
     durationSeconds: report.session.durationSeconds,
     score: report.overallScore,
     status: "terminee",

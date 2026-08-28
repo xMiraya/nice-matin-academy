@@ -198,9 +198,14 @@ export function SessionReportBody({
         </div>
       </div>
 
-      {/* Enregistrement + transcript */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <Panel title="Enregistrement">
+      {/*
+        Enregistrement + transcript.
+        Les deux cartes sont alignées en haut (`items-start`) et le transcript
+        occupe la colonne large : sans cela, déplier le transcript étirait la
+        carte « Enregistrement » et ouvrait une grande zone vide à sa droite.
+      */}
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-5">
+        <Panel title="Enregistrement" className="lg:col-span-2">
           <RecordingPlayerPlaceholder
             notice={report.recordingNotice ?? "Aucun enregistrement disponible"}
           />
@@ -210,6 +215,7 @@ export function SessionReportBody({
           title="Transcript"
           description="Extrait du dialogue, replié par défaut."
           action={<FileText size={18} className="text-graphite" aria-hidden />}
+          className="lg:col-span-3"
         >
           <TranscriptViewer
             lines={report.transcript}

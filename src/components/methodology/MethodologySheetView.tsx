@@ -118,8 +118,11 @@ export function MethodologySheetView({ sheet, previous, next }: MethodologySheet
       {/*
         Grille volontairement non uniforme : la méthode, la situation terrain et
         l'indicateur de maîtrise occupent deux colonnes, les blocs courts une.
+        `items-start` empêche les blocs courts (enjeu, réflexes, à éviter,
+        questions utiles) d'être étirés à la hauteur de leur voisin : la place
+        perdue en bas de carte se reporte en respiration entre les rangées.
       */}
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+      <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-3">
         <Panel title="Enjeu de la compétence" action={<BlockIndex value={1} />}>
           <Bullets items={sheet.stakes} />
         </Panel>
@@ -217,13 +220,24 @@ export function MethodologySheetView({ sheet, previous, next }: MethodologySheet
           </dl>
         </Panel>
 
-        <Panel title="Conseil du formateur" action={<BlockIndex value={10} />}>
-          <p className="text-sm leading-relaxed text-graphite">{sheet.trainerTip.text}</p>
-          {sheet.trainerTip.validationStatus === "a-valider" ? (
-            <Badge tone="vigilance" className="mt-4">
-              {VALIDATION_LABEL}
-            </Badge>
-          ) : null}
+        {/*
+          Le conseil du formateur ferme la fiche sur toute la largeur : en une
+          seule colonne, les deux tiers droits de la dernière rangée restaient
+          vides.
+        */}
+        <Panel
+          title="Conseil du formateur"
+          action={<BlockIndex value={10} />}
+          className="lg:col-span-3"
+        >
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+            <p className="min-w-0 flex-1 text-[15px] leading-relaxed text-graphite">
+              {sheet.trainerTip.text}
+            </p>
+            {sheet.trainerTip.validationStatus === "a-valider" ? (
+              <Badge tone="vigilance">{VALIDATION_LABEL}</Badge>
+            ) : null}
+          </div>
         </Panel>
       </div>
 
@@ -237,7 +251,7 @@ export function MethodologySheetView({ sheet, previous, next }: MethodologySheet
           <Link
             href={`/commercial/fiches/${previous.slug}`}
             rel="prev"
-            className="nm-card-link group flex items-center gap-3 p-4"
+            className="nm-card-link group flex items-center gap-3 p-4 sm:p-5"
           >
             <ChevronLeft size={18} aria-hidden className="shrink-0 text-muted" />
             <span className="min-w-0">
@@ -250,19 +264,29 @@ export function MethodologySheetView({ sheet, previous, next }: MethodologySheet
         ) : (
           <span />
         )}
+        {/*
+          La fiche suivante est le seul vrai appel à l'action de la page : elle
+          est traitée comme un bouton plein, pour qu'on la distingue au premier
+          coup d'œil des dix blocs de contenu, qui ne sont pas cliquables.
+        */}
         {next ? (
           <Link
             href={`/commercial/fiches/${next.slug}`}
             rel="next"
-            className="nm-card-link group flex items-center justify-end gap-3 p-4 text-right sm:col-start-2"
+            className="nm-navy group flex items-center justify-end gap-4 rounded-lg p-4 text-right shadow-lift transition-shadow hover:shadow-lg sm:col-start-2 sm:p-5"
           >
             <span className="min-w-0">
-              <span className="nm-label">Fiche suivante</span>
-              <span className="mt-1 block truncate text-sm font-semibold text-ink group-hover:text-brand">
+              <span className="nm-label text-white/60">Fiche suivante</span>
+              <span className="mt-1 block truncate text-base font-semibold text-white">
                 {next.number}. {next.title}
               </span>
             </span>
-            <ChevronRight size={18} aria-hidden className="shrink-0 text-muted" />
+            <span
+              aria-hidden
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/12 text-white transition-transform group-hover:translate-x-0.5"
+            >
+              <ChevronRight size={20} />
+            </span>
           </Link>
         ) : null}
       </nav>

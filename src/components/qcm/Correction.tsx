@@ -44,10 +44,7 @@ export function Correction({ question, result }: Props) {
   const competency = getCompetency(question.competency);
 
   return (
-    <section
-      className={cx("mt-4 rounded-lg border p-5", outcome.surface)}
-      aria-live="polite"
-    >
+    <section className={cx("mt-4 rounded-lg border p-5", outcome.surface)} aria-live="polite">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="nm-label">Correction · {competency.label}</p>
         <Badge tone={outcome.tone} dot>
@@ -58,14 +55,14 @@ export function Correction({ question, result }: Props) {
       {question.kind === "ordering" ? (
         <OrderingCorrection question={question} given={result.given} />
       ) : (
-        <ul className="mt-4 space-y-3 text-sm">
+        <ul className="mt-4 grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
           {question.options.map((option) => {
             const chosen = result.given.includes(option.id);
             return (
               <li
                 key={option.id}
                 className={cx(
-                  "max-w-prose rounded-sm border bg-white/70 p-3.5",
+                  "rounded-sm border bg-white/70 p-3.5",
                   option.correct ? "border-positive-bright/30" : "border-line",
                 )}
               >
@@ -83,17 +80,21 @@ export function Correction({ question, result }: Props) {
         </ul>
       )}
 
-      <div className="mt-4 space-y-2 text-sm">
-        <p className="max-w-prose leading-relaxed text-graphite">
+      {/*
+        « Pourquoi » et « Sur le terrain » sont posés côte à côte : en une seule
+        colonne étroite, la moitié droite du bloc de correction restait vide.
+      */}
+      <div className="mt-4 grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
+        <p className="rounded-sm bg-white/60 p-3.5 leading-relaxed text-graphite">
           <span className="font-semibold text-ink">Pourquoi : </span>
           {question.explanation}
         </p>
-        <p className="max-w-prose leading-relaxed text-graphite">
+        <p className="rounded-sm bg-white/60 p-3.5 leading-relaxed text-graphite">
           <span className="font-semibold text-ink">Sur le terrain : </span>
           {question.fieldTip}
         </p>
-        <p className="text-xs text-muted">Source : {question.source}</p>
       </div>
+      <p className="mt-3 text-xs text-muted">Source : {question.source}</p>
     </section>
   );
 }

@@ -1,5 +1,6 @@
 import type { CompetencyId } from '@/src/types/qcm/competency';
 import type { Question } from '@/src/types/qcm/quiz';
+import { withShuffledQuestionOptions } from '@/src/lib/qcm/option-order';
 
 import { C1_TRAINING } from './training/c1-prise-de-contact';
 import { C2_TRAINING } from './training/c2-ecoute-active';
@@ -15,14 +16,14 @@ import { C8_TRAINING } from './training/c8-conclusion';
  * Chaque session tire aleatoirement un sous-ensemble (voir TRAINING_SAMPLE_SIZE).
  */
 export const TRAINING_QUESTIONS: Readonly<Record<CompetencyId, readonly Question[]>> = {
-  'c1-prise-de-contact': C1_TRAINING,
-  'c2-ecoute-active': C2_TRAINING,
-  'c3-decouverte-des-besoins': C3_TRAINING,
-  'c4-reformulation': C4_TRAINING,
-  'c5-argumentation': C5_TRAINING,
-  'c6-objections': C6_TRAINING,
-  'c7-posture': C7_TRAINING,
-  'c8-conclusion': C8_TRAINING,
+  'c1-prise-de-contact': withShuffledQuestionOptions(C1_TRAINING),
+  'c2-ecoute-active': withShuffledQuestionOptions(C2_TRAINING),
+  'c3-decouverte-des-besoins': withShuffledQuestionOptions(C3_TRAINING),
+  'c4-reformulation': withShuffledQuestionOptions(C4_TRAINING),
+  'c5-argumentation': withShuffledQuestionOptions(C5_TRAINING),
+  'c6-objections': withShuffledQuestionOptions(C6_TRAINING),
+  'c7-posture': withShuffledQuestionOptions(C7_TRAINING),
+  'c8-conclusion': withShuffledQuestionOptions(C8_TRAINING),
 };
 
 export const ALL_TRAINING_QUESTIONS: readonly Question[] =

@@ -21,7 +21,7 @@ import {
   CoachScorePanel,
   OUTCOME_LABELS,
 } from "@/src/components/coach/CoachShared";
-import { formatDate, formatDuration } from "@/src/lib/format";
+import { DIFFICULTY_LABELS, formatDate, formatDuration } from "@/src/lib/format";
 
 /** Compte rendu réel produit par le Coach IA, vue commercial. */
 export function CoachReportScreen({ reportId }: { reportId: string }) {
@@ -74,6 +74,9 @@ export function CoachReportScreen({ reportId }: { reportId: string }) {
           <>
             <Badge tone="marque">Analyse du Coach IA</Badge>
             <Badge>{formatDuration(report.session.durationSeconds)}</Badge>
+            {report.session.difficulty ? (
+              <Badge>Niveau {DIFFICULTY_LABELS[report.session.difficulty].toLowerCase()}</Badge>
+            ) : null}
             {report.session.selectedObjectiveLabels.map((label) => (
               <Badge key={label}>{label}</Badge>
             ))}

@@ -1,6 +1,6 @@
 import OpenAI from "openai";
 import { zodTextFormat } from "openai/helpers/zod";
-import type { CompetencyId } from "@/src/types";
+import type { CompetencyId, SessionDifficulty } from "@/src/types";
 import type {
   CoachCompetencyScore,
   CoachEvidence,
@@ -127,6 +127,7 @@ export interface BuildReportInput {
   commercial: { id: string; name: string };
   sessionDate: string;
   durationSeconds: number;
+  difficulty?: SessionDifficulty;
   selectedObjectiveIds: string[];
   selectedObjectiveLabels: string[];
   transcriptAvailable: boolean;
@@ -155,6 +156,7 @@ export function buildCoachReport(input: BuildReportInput): CoachReport {
     session: {
       date: input.sessionDate,
       durationSeconds: input.durationSeconds,
+      ...(input.difficulty ? { difficulty: input.difficulty } : {}),
       selectedObjectiveIds: input.selectedObjectiveIds,
       selectedObjectiveLabels: input.selectedObjectiveLabels,
       outcome: input.output.outcome,

@@ -23,6 +23,7 @@ const MAX_BODY_BYTES = 8_192;
 
 const RequestSchema = z.object({
   conversationId: z.string().min(8).max(64),
+  difficulty: z.enum(["facile", "intermediaire", "difficile"]).optional(),
   selectedObjectiveIds: z.array(z.string().max(64)).max(20),
   selectedObjectiveLabels: z.array(z.string().max(120)).max(20),
   commercial: z.object({
@@ -71,7 +72,7 @@ export async function POST(request: Request) {
     return failure("Requête invalide.", 400);
   }
 
-  const { conversationId, selectedObjectiveIds, selectedObjectiveLabels, commercial } =
+  const { conversationId, difficulty, selectedObjectiveIds, selectedObjectiveLabels, commercial } =
     validation.data;
 
   if (!isValidConversationId(conversationId)) {
@@ -164,6 +165,7 @@ export async function POST(request: Request) {
       commercial,
       sessionDate: conversation.createdAt,
       durationSeconds: conversation.durationSeconds,
+      difficulty,
       selectedObjectiveIds,
       selectedObjectiveLabels,
       transcriptAvailable: true,

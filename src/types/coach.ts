@@ -1,3 +1,5 @@
+import type { SessionDifficulty } from "@/src/types";
+
 /**
  * Types du Coach IA Nice-Matin.
  *
@@ -82,6 +84,11 @@ export interface CoachSessionInfo {
   /** Date ISO du début de la conversation. */
   date: string;
   durationSeconds: number;
+  /**
+   * Niveau joué par Julie. Optionnel : les comptes rendus produits avant
+   * l'ajout du réglage n'en portent pas.
+   */
+  difficulty?: SessionDifficulty;
   selectedObjectiveIds: string[];
   selectedObjectiveLabels: string[];
   outcome: CoachOutcome;
@@ -151,6 +158,7 @@ export interface TavusPerceptionAnalysis {
 
 export interface CoachAnalysisRequest {
   conversationId: string;
+  difficulty?: SessionDifficulty;
   selectedObjectiveIds: string[];
   selectedObjectiveLabels: string[];
   commercial: CoachParticipant;

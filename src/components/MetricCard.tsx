@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import Link from "next/link";
 import { ArrowDownRight, ArrowRight, ArrowUpRight } from "lucide-react";
 import { cx, formatDelta } from "@/src/lib/format";
 
@@ -64,6 +65,10 @@ interface MetricCardProps {
   accent?: boolean;
   /** Contenu libre en pied de carte (mini-courbe, jauge, liste courte). */
   footer?: ReactNode;
+  /** Rend la carte cliquable et affiche l'invitation correspondante. */
+  href?: string;
+  /** Libellé de l'invitation au clic, affiché en pied de carte. */
+  linkLabel?: string;
   className?: string;
 }
 
@@ -79,6 +84,8 @@ export function MetricCard({
   tone,
   accent = false,
   footer,
+  href,
+  linkLabel = "Consulter",
   className,
 }: MetricCardProps) {
   const resolved: MetricTone = tone ?? (accent ? "ciel" : "neutre");
@@ -96,8 +103,8 @@ export function MetricCard({
         ? "bg-positive-soft text-positive"
         : "bg-danger-soft text-danger";
 
-  return (
-    <div className={cx("flex h-full flex-col p-5", style.card, className)}>
+  const body = (
+    <>
       <div className="flex items-start justify-between gap-3">
         <span className={cx("text-sm font-medium leading-snug", style.label)}>{label}</span>
         {icon ? (
@@ -148,6 +155,43 @@ export function MetricCard({
       ) : null}
 
       {footer ? <div className="mt-auto pt-4">{footer}</div> : null}
-    </div>
+
+      {href ? (
+        <span
+          className={cx(
+            "mt-auto inline-flex items-center gap-1.5 pt-4 text-sm font-semibold",
+            dark ? "text-brand-sky" : "text-brand",
+          )}
+        >
+          {linkLabel}
+          <ArrowRight
+            size={14}
+            aria-hidden
+            className="transition-transform group-hover/metric:translate-x-0.5"
+          />
+        </span>
+      ) : null}
+    </>
   );
+
+  /*
+    Les chiffres clés qui mènent quelque part sont de vrais liens : sans cela,
+    la carte a l'apparence d'un bouton mais ne réagit pas au clic.
+  */
+  if (href) {
+    return (
+      <Link
+        href={href}
+        className={cx(
+          "group/metric flex h-full flex-col p-5 transition-shadow hover:shadow-lift",
+          style.card,
+          className,
+        )}
+      >
+        {body}
+      </Link>
+    );
+  }
+
+  return <div className={cx("flex h-full flex-col p-5", style.card, className)}>{body}</div>;
 }

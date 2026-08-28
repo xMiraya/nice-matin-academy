@@ -86,6 +86,9 @@ export function DashboardScreen() {
 
   const objectives = nextObjectives(competencyScores);
 
+  // Le compte rendu le plus récent, cible du clic sur « Dernière note du Coach ».
+  const latestSessionHref = insights.sessions[0]?.href ?? "/commercial/simulations";
+
   return (
     <>
       <PageHeader
@@ -139,6 +142,8 @@ export function DashboardScreen() {
             delta={useReal ? (insights.progression ?? undefined) : demo.thirtyDayProgress}
             deltaSuffix={useReal ? "pts depuis la 1re analyse" : "pts sur 30 jours"}
             className="flex-1"
+            href={useReal ? latestSessionHref : "/commercial/simulations"}
+            linkLabel={useReal ? "Ouvrir le compte rendu" : "Voir l’historique"}
             footer={
               sparkValues.length >= 2 ? (
                 <Sparkline
@@ -156,6 +161,8 @@ export function DashboardScreen() {
               value={useReal ? insights.count : demo.sessionsCount}
               icon={<CalendarCheck size={17} aria-hidden />}
               hint={useReal ? `Moyenne ${insights.averageScore} / 100.` : "Analysées à ce jour."}
+              href="/commercial/simulations"
+              linkLabel="Mes simulations"
             />
             <MetricCard
               label="Régularité"
@@ -164,6 +171,8 @@ export function DashboardScreen() {
               icon={<Flame size={17} aria-hidden />}
               hint="Semaines consécutives."
               tone="ciel"
+              href="/commercial/progression"
+              linkLabel="Ma progression"
             />
           </div>
         </div>
@@ -178,6 +187,8 @@ export function DashboardScreen() {
           icon={<Award size={18} aria-hidden />}
           hint={useReal ? insights.strongest?.label : getCompetencyLabel(demo.strongest)}
           tone="positif"
+          href="/commercial/fiches"
+          linkLabel="Relire la fiche méthodologique"
         />
         <MetricCard
           label="Compétence prioritaire"
@@ -186,6 +197,8 @@ export function DashboardScreen() {
           icon={<Target size={18} aria-hidden />}
           hint={useReal ? insights.priority?.label : getCompetencyLabel(demo.priority)}
           tone="vigilance"
+          href="/commercial/nouvelle-simulation"
+          linkLabel="Travailler cette compétence"
         />
       </div>
 

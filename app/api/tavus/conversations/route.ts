@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import type { SessionDifficulty } from "@/src/types";
 import type {
   TavusApiErrorResponse,
   TavusConversationApiResponse,
@@ -34,6 +35,46 @@ const CONVERSATIONAL_CONTEXT = [
   // les bascules d'une phrase à l'autre que le seul réglage moteur laisse passer.
   "La langue obligatoire de cette conversation est le français. Julie comprend et répond exclusivement en français naturel pendant toute la simulation.",
 ].join(" ");
+
+/**
+ * Consigne de jeu propre à chaque niveau de difficulté choisi dans l'écran de
+ * préparation. Sans cela, les trois niveaux produisaient exactement la même
+ * Julie.
+ */
+const DIFFICULTY_CONTEXT: Record<SessionDifficulty, string> = {
+  facile: [
+    "Niveau de la simulation : facile.",
+    "Vous êtes disponible, curieuse et plutôt bien disposée.",
+    "Vous posez peu d'objections et vous laissez le commercial dérouler sa présentation.",
+    "Vous acceptez de poursuivre l'échange même si l'introduction est maladroite.",
+  ].join(" "),
+  intermediaire: [
+    "Niveau de la simulation : intermédiaire.",
+    "Vous êtes intéressée mais pressée : vous rappelez que vous avez peu de temps.",
+    "Vous comparez avec la concurrence et demandez ce que Nice-Matin apporte de plus.",
+    "Vous soulevez une ou deux objections concrètes, notamment sur le prix et l'engagement.",
+  ].join(" "),
+  difficile: [
+    "Niveau de la simulation : difficile.",
+    "Vous êtes méfiante, en particulier sur le prix et la durée d'engagement.",
+    "Vous relancez sur les points restés flous et vous ne vous contentez pas d'une réponse vague.",
+    "Si le ton devient pressant, insistant ou irrespectueux, vous mettez fin à l'échange poliment mais fermement.",
+  ].join(" "),
+};
+
+const DIFFICULTIES = Object.keys(DIFFICULTY_CONTEXT) as SessionDifficulty[];
+
+/** Lit le niveau demandé par le client ; retombe sur « intermédiaire ». */
+async function readDifficulty(request: Request): Promise<SessionDifficulty> {
+  try {
+    const body: unknown = await request.json();
+    const raw =
+      body && typeof body === "object" ? (body as { difficulty?: unknown }).difficulty : undefined;
+    return DIFFICULTIES.find((value) => value === raw) ?? "intermediaire";
+  } catch {
+    return "intermediaire";
+  }
+}
 
 /**
  * Garde-fous de facturation. Tavus clôt la conversation lui-même : aucun
@@ -90,7 +131,8 @@ async function classifyTavusFailure(response: Response): Promise<TavusErrorCode>
   return "TAVUS_CONVERSATION_CREATION_FAILED";
 }
 
-export async function POST() {
+export async function POST(request: Request) {
+  const difficulty = await readDifficulty(request);
   const apiKey = process.env.TAVUS_API_KEY;
   const faceId = process.env.TAVUS_FACE_ID;
   const palId = process.env.TAVUS_PAL_ID;
@@ -104,9 +146,9 @@ export async function POST() {
   const requestBody: TavusConversationRequestBody = {
     face_id: faceId,
     pal_id: palId,
-    conversation_name: `Nice-Matin Academy — Simulation Julie — ${new Date().toISOString()}`,
+    conversation_name: `Nice-Matin Academy — Simulation Julie (${difficulty}) — ${new Date().toISOString()}`,
     custom_greeting: "Bonjour… Oui, je vous écoute ?",
-    conversational_context: CONVERSATIONAL_CONTEXT,
+    conversational_context: `${CONVERSATIONAL_CONTEXT} ${DIFFICULTY_CONTEXT[difficulty]}`,
     policy: "eu",
     require_auth: false,
     max_participants: 2,

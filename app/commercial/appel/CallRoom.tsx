@@ -15,10 +15,13 @@ import type {
 } from "@/src/types/tavus";
 import { cx, formatTimer } from "@/src/lib/format";
 import {
+  readSelectedDifficulty,
   storeLastCallSession,
   storeLastConversationId,
+  useSelectedDifficulty,
   useSelectedObjectiveIds,
 } from "@/src/lib/session-storage";
+import { DIFFICULTY_LABELS } from "@/src/lib/format";
 
 type CallStatus = "idle" | "starting" | "connecting" | "active" | "error";
 
@@ -43,6 +46,7 @@ export function CallRoom() {
   const [cameraOn, setCameraOn] = useState(true);
   const [micOn, setMicOn] = useState(true);
   const objectiveIds = useSelectedObjectiveIds();
+  const difficulty = useSelectedDifficulty();
 
   // Empêche les doubles clics / créations multiples de conversation.
   const isStartingRef = useRef(false);
@@ -120,7 +124,13 @@ export function CallRoom() {
     setIsJulieReady(false);
 
     try {
-      const response = await fetch("/api/tavus/conversations", { method: "POST" });
+      // Le niveau choisi à la préparation pilote le comportement de Julie :
+      // il est transmis à la création de la conversation.
+      const response = await fetch("/api/tavus/conversations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ difficulty: readSelectedDifficulty() }),
+      });
       const payload = (await response.json()) as
         | TavusConversationClientResponse
         | TavusApiErrorResponse;
@@ -203,6 +213,7 @@ export function CallRoom() {
         endedAt: new Date().toISOString(),
         durationSeconds: seconds,
         selectedObjectiveIds: objectiveIds,
+        difficulty: readSelectedDifficulty(),
       });
 
       let closeFailed = false;
@@ -263,11 +274,16 @@ export function CallRoom() {
 
       <main className="flex flex-1 flex-col px-4 py-5 sm:px-6">
         {/* Rappel discret de l'objectif */}
-        {objectiveLabel ? (
-          <p className="mb-4 text-sm text-white/55">
-            Objectif de la session : <span className="font-medium text-white/85">{objectiveLabel}</span>
-          </p>
-        ) : null}
+        <p className="mb-4 text-sm text-white/55">
+          {objectiveLabel ? (
+            <>
+              Objectif de la session :{" "}
+              <span className="font-medium text-white/85">{objectiveLabel}</span>
+              <span aria-hidden> · </span>
+            </>
+          ) : null}
+          Niveau : <span className="font-medium text-white/85">{DIFFICULTY_LABELS[difficulty]}</span>
+        </p>
 
         <div className="mx-auto w-full max-w-5xl">
           {conversation ? (

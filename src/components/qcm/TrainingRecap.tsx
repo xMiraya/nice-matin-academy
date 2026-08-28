@@ -1,6 +1,7 @@
 "use client";
 
-import { Check, Minus, X } from "lucide-react";
+import { Check, ChevronDown, Minus, X } from "lucide-react";
+import { Correction } from "@/src/components/qcm/Correction";
 import { cx } from "@/src/lib/format";
 import type { Question, QuestionOutcome, QuestionResult } from "@/src/types/qcm/quiz";
 
@@ -34,13 +35,6 @@ const OUTCOME_META: Record<
   },
 };
 
-/** Coupe une phrase longue sans casser un mot. */
-function shorten(text: string, max = 90): string {
-  if (text.length <= max) return text;
-  const cut = text.slice(0, max);
-  return `${cut.slice(0, cut.lastIndexOf(" "))}…`;
-}
-
 interface TrainingRecapProps {
   readonly questions: readonly Question[];
   readonly results: readonly QuestionResult[];
@@ -49,8 +43,9 @@ interface TrainingRecapProps {
 /**
  * Récapitulatif visuel d'une série d'entraînement.
  *
- * Volontairement court : la correction complète a déjà été lue question par
- * question. Ici on ne montre que la forme d'ensemble et les points à reprendre.
+ * On montre d'abord la forme d'ensemble, puis la correction complète de chaque
+ * question : réponse donnée, réponse attendue, commentaire de chaque option et
+ * conseil de terrain. Les questions ratées sont ouvertes d'office.
  */
 export function TrainingRecap({ questions, results }: TrainingRecapProps) {
   const total = results.length;
@@ -66,7 +61,11 @@ export function TrainingRecap({ questions, results }: TrainingRecapProps) {
     .filter((row) => row.result.outcome !== "correct" && row.question);
 
   const ringColor =
-    percent >= 80 ? "var(--color-positive-bright)" : percent >= 50 ? "var(--color-brand-accent)" : "var(--color-warning-bright)";
+    percent >= 80
+      ? "var(--color-positive-bright)"
+      : percent >= 50
+        ? "var(--color-brand-accent)"
+        : "var(--color-warning-bright)";
 
   return (
     <div className="space-y-5">
@@ -139,45 +138,77 @@ export function TrainingRecap({ questions, results }: TrainingRecapProps) {
         </ol>
       </div>
 
-      {/* Points à reprendre, une ligne chacun */}
-      {toReview.length > 0 ? (
-        <div>
-          <p className="nm-label mb-2.5">À reprendre</p>
-          <ul className="space-y-2">
-            {toReview.map(({ result, index, question }) => {
-              const meta = OUTCOME_META[result.outcome];
-              return (
-                <li
-                  key={result.questionId}
-                  className="flex gap-3 rounded-sm border border-line bg-mist/60 p-3.5"
+      {/* Correction complète de la série, question par question */}
+      <div>
+        <p className="nm-label mb-1">Correction de la série</p>
+        <p className="mb-2.5 text-[13px] leading-relaxed text-graphite">
+          Les questions à reprendre sont ouvertes d’office. Les réponses correctes se déplient si
+          vous voulez relire pourquoi elles l’étaient.
+        </p>
+        <ul className="space-y-2">
+          {results.map((result, index) => {
+            const question = questions[index];
+            if (!question) return null;
+            const meta = OUTCOME_META[result.outcome];
+            const Icon = meta.icon;
+            return (
+              <li key={result.questionId}>
+                <details
+                  open={result.outcome !== "correct"}
+                  className="group rounded-sm border border-line bg-white"
                 >
-                  <span
-                    aria-hidden
-                    className={cx(
-                      "flex h-6 w-6 shrink-0 items-center justify-center rounded-xs text-[11px] font-semibold tabular-nums",
-                      meta.chip,
-                    )}
-                  >
-                    {index + 1}
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block text-[13px] font-medium leading-snug text-ink">
-                      {shorten(question!.prompt)}
+                  <summary className="flex cursor-pointer list-none items-start gap-3 rounded-sm p-3.5 transition-colors hover:bg-mist">
+                    <span
+                      aria-hidden
+                      className={cx(
+                        "flex h-6 w-6 shrink-0 items-center justify-center gap-0.5 rounded-xs border text-[11px] font-semibold tabular-nums",
+                        meta.chip,
+                      )}
+                    >
+                      {index + 1}
                     </span>
-                    <span className="mt-1 block text-[13px] leading-relaxed text-graphite">
-                      {question!.fieldTip}
+                    <span className="min-w-0 flex-1">
+                      <span className="flex flex-wrap items-center gap-2">
+                        <span
+                          className={cx(
+                            "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold",
+                            meta.chip,
+                          )}
+                        >
+                          <Icon size={11} strokeWidth={3} aria-hidden />
+                          {meta.label}
+                        </span>
+                      </span>
+                      <span className="mt-1.5 block text-[13px] font-medium leading-snug text-ink">
+                        {question.prompt}
+                      </span>
                     </span>
-                  </span>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      ) : (
+                    <ChevronDown
+                      size={17}
+                      aria-hidden
+                      className="mt-0.5 shrink-0 text-muted transition-transform group-open:rotate-180"
+                    />
+                  </summary>
+                  <div className="px-3.5 pb-3.5">
+                    {question.scenario ? (
+                      <p className="mt-1 rounded-sm border border-warning-bright/40 bg-warning-soft p-3.5 text-sm leading-relaxed text-ink">
+                        {question.scenario}
+                      </p>
+                    ) : null}
+                    <Correction question={question} result={result} />
+                  </div>
+                </details>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+
+      {toReview.length === 0 ? (
         <p className="rounded-sm border border-positive-bright/30 bg-positive-soft p-4 text-sm text-ink">
           Toutes les réponses sont entièrement correctes. Rien à reprendre sur cette série.
         </p>
-      )}
+      ) : null}
     </div>
   );
 }

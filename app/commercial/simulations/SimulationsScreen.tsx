@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import {
   DEMO_COMMERCIAL_SESSIONS,
   DEMO_COMMERCIAL_TECHNICAL_SESSION,
@@ -16,6 +18,9 @@ import { computeReportInsights } from "@/src/lib/reports/report-insights";
 export function SimulationsScreen() {
   const reports = useReports();
   const insights = computeReportInsights(reports, "/commercial/simulations");
+  // Le compte rendu le plus récent, mis en avant pour éviter de le chercher
+  // dans le tableau après chaque simulation.
+  const latest = insights.sessions[0];
 
   return (
     <>
@@ -33,7 +38,29 @@ export function SimulationsScreen() {
         }
       />
 
-      <div className="space-y-5">
+      {/* Accès direct au dernier compte rendu produit */}
+      {latest ? (
+        <Link
+          href={latest.href ?? "/commercial/simulations"}
+          className="nm-card nm-navy mb-5 flex flex-wrap items-center gap-x-6 gap-y-3 px-5 py-4 transition-shadow hover:shadow-lift"
+        >
+          <span className="min-w-0">
+            <span className="nm-label block text-white/60">Votre dernière simulation</span>
+            <span className="mt-1 block truncate text-base font-semibold text-white">
+              {latest.title}
+            </span>
+          </span>
+          <span className="text-sm font-semibold tabular-nums text-brand-sky">
+            {latest.score} / 100
+          </span>
+          <span className="ml-auto inline-flex items-center gap-1.5 text-sm font-semibold text-white">
+            Ouvrir le compte rendu
+            <ArrowRight size={15} aria-hidden />
+          </span>
+        </Link>
+      ) : null}
+
+      <div className="space-y-5 pb-2">
         {insights.hasReports ? (
           <Panel
             title="Analyses du Coach IA"
@@ -58,13 +85,20 @@ export function SimulationsScreen() {
           <SessionTable sessions={DEMO_COMMERCIAL_SESSIONS} />
         </Panel>
 
-        <Panel
-          title="Appel de validation technique"
-          description="Exclu du calcul de votre score moyen et de votre progression."
-          action={<TechnicalTestBadge />}
-        >
-          <SessionTable sessions={[DEMO_COMMERCIAL_TECHNICAL_SESSION]} />
-        </Panel>
+        {/*
+          Séparé du reste par un trait : c'est une vérification d'ingénierie,
+          pas un repère de progression, et la page ne doit pas s'arrêter net
+          juste après le tableau.
+        */}
+        <div className="border-t border-line pt-5">
+          <Panel
+            title="Appel de validation technique"
+            description="Exclu du calcul de votre score moyen et de votre progression."
+            action={<TechnicalTestBadge />}
+          >
+            <SessionTable sessions={[DEMO_COMMERCIAL_TECHNICAL_SESSION]} />
+          </Panel>
+        </div>
       </div>
     </>
   );

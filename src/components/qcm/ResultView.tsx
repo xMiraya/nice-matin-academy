@@ -4,7 +4,6 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { PageHeader } from "@/src/components/PageHeader";
 import { Panel, SectionTitle } from "@/src/components/Panel";
-import { Badge } from "@/src/components/StatusBadge";
 import { ButtonLink } from "@/src/components/Button";
 import { EmptyState } from "@/src/components/EmptyState";
 import { CompetencyChart } from "@/src/components/qcm/CompetencyChart";
@@ -45,7 +44,6 @@ export function ResultView({ resultId }: { readonly resultId: string }) {
   const band = getBand(result.band);
   const recommendations = recommendationsFor(result);
   const errors = result.perQuestion.filter((r) => r.outcome !== "correct");
-  const tone = result.percent >= 80 ? "positif" : result.percent >= 65 ? "information" : "vigilance";
 
   return (
     <>
@@ -65,32 +63,43 @@ export function ResultView({ resultId }: { readonly resultId: string }) {
         }
       />
 
-      <Panel>
-        <div className="flex flex-wrap items-end gap-6">
-          <p className="nm-display text-5xl tabular-nums text-ink">
-            {result.percent}
-            <span className="text-2xl"> %</span>
-          </p>
-          <div>
-            <p className="nm-label">Niveau atteint</p>
-            <p className="mt-1.5 flex items-center gap-2 text-lg font-semibold text-ink">
-              {band.label}
-              <Badge tone={tone} dot>
-                {result.earned} / {result.max} points
-              </Badge>
+      {/*
+        Bandeau de résultat : le score occupe toute la largeur plutôt qu'un coin
+        de carte, et le commentaire pédagogique est ramené à une seule phrase.
+        Le détail complet se lit plus bas, compétence par compétence.
+      */}
+      <section className="nm-card nm-navy overflow-hidden px-5 py-6 sm:px-8 sm:py-8">
+        <div className="flex flex-wrap items-center justify-between gap-x-10 gap-y-6">
+          <div className="flex items-center gap-6">
+            <p className="nm-display text-6xl leading-none tabular-nums text-white sm:text-7xl">
+              {result.percent}
+              <span className="text-3xl text-white/60"> %</span>
             </p>
+            <div className="min-w-0">
+              <p className="nm-label text-white/60">Niveau atteint</p>
+              <p className="mt-1.5 text-xl font-semibold leading-tight text-white sm:text-2xl">
+                {band.label}
+              </p>
+              <p className="mt-2 text-sm font-semibold tabular-nums text-brand-sky">
+                {result.earned} / {result.max} points · {result.correctCount} bonne
+                {result.correctCount > 1 ? "s" : ""} réponse
+                {result.correctCount > 1 ? "s" : ""} sur {result.perQuestion.length}
+              </p>
+            </div>
           </div>
-        </div>
-        <p className="mt-4 max-w-prose text-sm leading-relaxed text-graphite">{band.message}</p>
 
-        <dl className="mt-6 grid gap-3 sm:grid-cols-3 lg:grid-cols-5">
-          <Stat label="Réponses correctes" value={String(result.correctCount)} />
-          <Stat label="Réponses partielles" value={String(result.partialCount)} />
-          <Stat label="Réponses incorrectes" value={String(result.incorrectCount)} />
-          <Stat label="Sans réponse" value={String(result.unansweredCount)} />
-          <Stat label="Temps passé" value={formatDuration(result.durationSeconds)} />
-        </dl>
-      </Panel>
+          <dl className="flex flex-wrap gap-x-8 gap-y-4">
+            <HeroStat label="Partielles" value={String(result.partialCount)} />
+            <HeroStat label="Incorrectes" value={String(result.incorrectCount)} />
+            <HeroStat label="Sans réponse" value={String(result.unansweredCount)} />
+            <HeroStat label="Temps passé" value={formatDuration(result.durationSeconds)} />
+          </dl>
+        </div>
+
+        <p className="mt-6 max-w-3xl border-t border-white/15 pt-5 text-sm leading-relaxed text-brand-sky">
+          {band.message}
+        </p>
+      </section>
 
       <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-3">
         <Panel title="Résultat par compétence" className="lg:col-span-2">
@@ -184,11 +193,12 @@ export function ResultView({ resultId }: { readonly resultId: string }) {
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+/** Chiffre secondaire du bandeau de résultat, sur fond marine. */
+function HeroStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-sm bg-mist/70 p-4">
-      <dt className="nm-label">{label}</dt>
-      <dd className="mt-1.5 text-lg font-semibold tabular-nums text-ink">{value}</dd>
+    <div>
+      <dt className="nm-label text-white/55">{label}</dt>
+      <dd className="mt-1.5 text-2xl font-semibold tabular-nums text-white">{value}</dd>
     </div>
   );
 }

@@ -2,12 +2,15 @@
 
 import { useMemo, useSyncExternalStore } from "react";
 
+import type { SessionDifficulty } from "@/src/types";
+
 /**
  * Clés `sessionStorage` partagées entre la préparation de simulation, l'appel
  * Tavus et la future analyse par le Coach IA. Centralisées ici pour éviter
  * les chaînes dupliquées entre les pages.
  */
 export const SELECTED_OBJECTIVES_STORAGE_KEY = "niceMatinSelectedObjectiveIds";
+export const SELECTED_DIFFICULTY_STORAGE_KEY = "niceMatinSelectedDifficulty";
 export const LAST_CONVERSATION_ID_STORAGE_KEY = "niceMatinLastConversationId";
 export const LAST_REPORT_ID_STORAGE_KEY = "niceMatinLastReportId";
 
@@ -22,6 +25,43 @@ export function readSelectedObjectiveIds(): string[] {
   return parseObjectiveIdsJson(
     typeof window === "undefined" ? null : window.sessionStorage.getItem(SELECTED_OBJECTIVES_STORAGE_KEY),
   );
+}
+
+const DIFFICULTIES: readonly SessionDifficulty[] = ["facile", "intermediaire", "difficile"];
+
+/** Enregistre le niveau de difficulté choisi avant de lancer l'appel. */
+export function storeSelectedDifficulty(difficulty: SessionDifficulty): void {
+  if (typeof window === "undefined") return;
+  window.sessionStorage.setItem(SELECTED_DIFFICULTY_STORAGE_KEY, difficulty);
+}
+
+/**
+ * Relit le niveau choisi. À défaut de choix enregistré, on retombe sur le
+ * niveau intermédiaire, qui est aussi la valeur par défaut de l'écran de
+ * préparation.
+ */
+export function readSelectedDifficulty(): SessionDifficulty {
+  if (typeof window === "undefined") return "intermediaire";
+  const raw = window.sessionStorage.getItem(SELECTED_DIFFICULTY_STORAGE_KEY);
+  return DIFFICULTIES.find((value) => value === raw) ?? "intermediaire";
+}
+
+/**
+ * Variante hook du niveau choisi, sans écart d'hydratation : la page est
+ * prérendue en statique, `useSyncExternalStore` gère la reprise côté client.
+ */
+export function useSelectedDifficulty(): SessionDifficulty {
+  const raw = useSyncExternalStore(
+    subscribeToNothing,
+    getDifficultyRawSnapshot,
+    getObjectiveIdsServerSnapshot,
+  );
+  return DIFFICULTIES.find((value) => value === raw) ?? "intermediaire";
+}
+
+function getDifficultyRawSnapshot(): string | null {
+  if (typeof window === "undefined") return null;
+  return window.sessionStorage.getItem(SELECTED_DIFFICULTY_STORAGE_KEY);
 }
 
 function parseObjectiveIdsJson(raw: string | null): string[] {
@@ -101,6 +141,8 @@ export interface LastCallSession {
   /** Durée mesurée côté navigateur, en secondes. */
   durationSeconds: number;
   selectedObjectiveIds: string[];
+  /** Niveau de difficulté joué par Julie pendant cet appel. */
+  difficulty: SessionDifficulty;
 }
 
 export function storeLastCallSession(session: LastCallSession): void {

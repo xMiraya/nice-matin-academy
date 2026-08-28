@@ -9,7 +9,10 @@ import { Badge, DemoBadge } from "@/src/components/StatusBadge";
 import { Button, ButtonLink } from "@/src/components/Button";
 import { CharacterAvatar } from "@/src/components/CharacterAvatar";
 import { cx } from "@/src/lib/format";
-import { storeSelectedObjectiveIds } from "@/src/lib/session-storage";
+import {
+  storeSelectedDifficulty,
+  storeSelectedObjectiveIds,
+} from "@/src/lib/session-storage";
 
 const DIFFICULTIES: {
   id: SessionDifficulty;
@@ -116,7 +119,12 @@ export function SimulationSetup() {
                   type="button"
                   role="radio"
                   aria-checked={active}
-                  onClick={() => setDifficulty(item.id)}
+                  onClick={() => {
+                    setDifficulty(item.id);
+                    // Enregistré tout de suite : le niveau pilote le
+                    // comportement de Julie et l'étiquette du compte rendu.
+                    storeSelectedDifficulty(item.id);
+                  }}
                   className={cx(
                     "rounded-md border p-4 text-left transition-colors",
                     active ? "border-brand bg-brand-soft" : "border-line bg-white hover:bg-mist",
@@ -233,24 +241,32 @@ export function SimulationSetup() {
         </Panel>
       </div>
 
-      {/* Colonne latérale : personnage, matériel, lancement */}
-      <div className="space-y-6">
-        <Panel title="Votre interlocutrice" action={<DemoBadge>Personnage virtuel</DemoBadge>}>
-          <div className="flex items-center gap-4">
-            <span className="h-16 w-16 shrink-0 overflow-hidden rounded-md border border-line">
-              <CharacterAvatar />
-            </span>
-            <span>
-              <span className="block text-base font-semibold text-ink">Julie Dupont</span>
-              <span className="mt-0.5 block text-sm text-graphite">
+      {/*
+        Colonne latérale : personnage, matériel, lancement.
+        Le bloc reste collé en haut au défilement pour que le récapitulatif et
+        le bouton de lancement restent visibles pendant qu'on parcourt les
+        objectifs et les conditions.
+      */}
+      <div className="space-y-6 lg:sticky lg:top-6 lg:self-start">
+        <Panel
+          title="Votre interlocutrice"
+          action={<DemoBadge>Personnage virtuel</DemoBadge>}
+          bodyClassName="p-0 sm:p-0"
+        >
+          {/* Portrait pleine largeur : on voit qui on va avoir en face. */}
+          <div className="relative aspect-[4/3] w-full overflow-hidden border-y border-line">
+            <CharacterAvatar />
+            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/85 to-transparent px-4 pb-3.5 pt-10">
+              <p className="text-base font-semibold text-white">Julie Dupont</p>
+              <p className="mt-0.5 text-sm text-white/75">
                 42 ans, cadre à Nice, lectrice occasionnelle
-              </span>
-            </span>
+              </p>
+            </div>
           </div>
-          <p className="mt-4 text-sm leading-relaxed text-graphite">
-            Julie évalue en continu sa confiance, son intérêt, sa compréhension, la valeur qu&apos;elle
-            perçoit et la pression qu&apos;elle ressent. Ces cinq jauges apparaissent dans votre compte
-            rendu.
+          <p className="p-5 text-sm leading-relaxed text-graphite sm:p-6">
+            Julie évalue en continu sa confiance, son intérêt, sa compréhension, la valeur
+            qu&apos;elle perçoit et la pression qu&apos;elle ressent. Ces cinq jauges apparaissent
+            dans votre compte rendu.
           </p>
         </Panel>
 
@@ -307,8 +323,12 @@ export function SimulationSetup() {
           </dl>
 
           <div className="mt-3 border-t border-line pt-3">
-            <p className="text-graphite">
-              {isFullInterview ? "Entretien commercial complet" : "Objectifs"}
+            <p className="text-sm text-graphite">
+              {isFullInterview
+                ? "Entretien commercial complet"
+                : selectedObjectiveIds.length === 1
+                  ? "Objectif unique — l’analyse se concentre dessus"
+                  : "Objectifs"}
             </p>
             {hasSelection ? (
               <div className="mt-2 flex flex-wrap gap-1.5">
@@ -329,7 +349,11 @@ export function SimulationSetup() {
             <ButtonLink
               href="/commercial/appel"
               className="mt-5 w-full"
-              onClick={() => storeSelectedObjectiveIds(selectedObjectiveIds)}
+              onClick={() => {
+                storeSelectedObjectiveIds(selectedObjectiveIds);
+                // Le niveau par défaut n'a jamais été cliqué : on le confirme ici.
+                storeSelectedDifficulty(difficulty);
+              }}
             >
               <Play size={17} aria-hidden />
               Lancer la simulation

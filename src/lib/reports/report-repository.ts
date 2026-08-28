@@ -70,6 +70,8 @@ const StoredReportSchema = z.object({
   session: z.object({
     date: z.string(),
     durationSeconds: z.number(),
+    // Absent des comptes rendus enregistrés avant l'ajout du réglage de niveau.
+    difficulty: z.enum(["facile", "intermediaire", "difficile"]).optional(),
     selectedObjectiveIds: z.array(z.string()),
     selectedObjectiveLabels: z.array(z.string()),
     outcome: z.enum(["accepted", "refused", "postponed", "interrupted", "inconclusive"]),
