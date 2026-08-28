@@ -240,12 +240,14 @@ export function SimulationSetup() {
         </div>
 
         {/*
-        Colonne latérale : personnage, matériel, lancement.
-        Le bloc reste collé en haut au défilement pour que le récapitulatif et
-        le bouton de lancement restent visibles pendant qu'on parcourt les
-        objectifs et les conditions.
+        Colonne latérale : personnage puis récapitulatif.
+        Elle n'est volontairement pas collante et sa dernière carte s'étire
+        jusqu'en bas de la rangée : une colonne plus courte que sa voisine —
+        a fortiori décalée par un `sticky` — laissait une bande blanche au pied
+        de l'autre colonne. Les deux colonnes se terminent maintenant sur la
+        même ligne, quelle que soit la largeur d'écran.
       */}
-        <div className="space-y-6 lg:sticky lg:top-6 lg:self-start">
+        <div className="flex flex-col gap-6">
           <Panel
             title="Votre interlocutrice"
             action={<DemoBadge>Personnage virtuel</DemoBadge>}
@@ -268,7 +270,7 @@ export function SimulationSetup() {
             </p>
           </Panel>
 
-          <Panel title="Récapitulatif">
+          <Panel title="Récapitulatif" className="flex-1" bodyClassName="flex flex-col">
             <dl className="space-y-3 text-sm">
               <div className="flex items-start justify-between gap-4">
                 <dt className="text-graphite">Personnage</dt>
@@ -344,7 +346,7 @@ export function SimulationSetup() {
               </p>
             ) : null}
 
-            <div className="mt-4 border-t border-line pt-4">
+            <div className="mt-auto border-t border-line pt-4">
               <Badge tone="marque">Tavus — intégration à venir</Badge>
             </div>
           </Panel>

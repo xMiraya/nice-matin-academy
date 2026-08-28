@@ -4,14 +4,19 @@ import { useCallback, useState } from "react";
 import { cx } from "@/src/lib/format";
 
 /**
- * Portrait du personnage virtuel Julie Dupont.
+ * Portrait du personnage virtuel incarné par l'avatar Tavus.
  *
- * Si un visuel est déposé dans `public/images/julie-dupont.png`, il est affiché
- * tel quel. Tant qu'il n'existe pas, on retombe sur une illustration dessinée
- * localement en SVG : aucune photographie externe n'est chargée, et l'écran ne
- * montre jamais d'image cassée.
+ * Il suffit de déposer le visuel dans `public/images/` sous l'un des noms
+ * ci-dessous : le premier fichier réellement présent est affiché. Aucun n'est
+ * obligatoire — tant qu'aucun n'existe, on retombe sur une illustration
+ * dessinée localement en SVG, sans jamais afficher d'image cassée.
  */
-export const JULIE_PORTRAIT_SRC = "/images/julie-dupont.png";
+export const PORTRAIT_CANDIDATES = [
+  "/images/julie-dupont.png",
+  "/images/julie-dupont.jpg",
+  "/images/gloria.png",
+  "/images/gloria.jpg",
+] as const;
 
 export function CharacterAvatar({
   className,
@@ -20,28 +25,37 @@ export function CharacterAvatar({
   className?: string;
   tone?: "light" | "dark";
 }) {
-  const [portraitFailed, setPortraitFailed] = useState(false);
+  // Index du candidat testé : on passe au suivant à chaque échec, et au-delà
+  // du dernier on bascule sur l'illustration.
+  const [candidate, setCandidate] = useState(0);
+  const src = PORTRAIT_CANDIDATES[candidate];
+
+  const skipToNext = useCallback(() => setCandidate((index) => index + 1), []);
 
   /*
     `onError` ne suffit pas : quand le fichier est absent, l'échec de chargement
     a déjà eu lieu au moment où React attache ses gestionnaires sur le HTML
     rendu côté serveur. On vérifie donc aussi l'état de l'image au montage.
   */
-  const checkPortrait = useCallback((node: HTMLImageElement | null) => {
-    if (node && node.complete && node.naturalWidth === 0) setPortraitFailed(true);
-  }, []);
+  const checkPortrait = useCallback(
+    (node: HTMLImageElement | null) => {
+      if (node && node.complete && node.naturalWidth === 0) skipToNext();
+    },
+    [skipToNext],
+  );
 
-  if (!portraitFailed) {
+  if (src) {
     return (
       /* eslint-disable-next-line @next/next/no-img-element --
          repli silencieux si le fichier est absent : `next/image` renverrait une
          erreur d'exécution au lieu de déclencher `onError`. */
       <img
+        key={src}
         ref={checkPortrait}
-        src={JULIE_PORTRAIT_SRC}
+        src={src}
         alt="Portrait du personnage Julie Dupont"
         className={cx("h-full w-full object-cover", className)}
-        onError={() => setPortraitFailed(true)}
+        onError={skipToNext}
       />
     );
   }
