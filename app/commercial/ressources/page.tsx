@@ -99,26 +99,41 @@ export default function RessourcesPage() {
         description="Chaque simulation est notée sur ces huit dimensions, de 0 à 100. Les fiches suivent le même référentiel."
         action={<DemoBadge>Contenus à valider par l’équipe formation</DemoBadge>}
       >
+        {/*
+          Chaque compétence se comporte comme les trois raccourcis du haut : la
+          carte entière ouvre la fiche. Le lien « Fiche » discret en coin
+          n'offrait pas la même cible de clic ni la même affordance.
+        */}
         <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2">
           {COMPETENCIES.map((competency, index) => (
-            <li key={competency.id} className="rounded-md bg-mist/70 p-4">
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex min-w-0 items-center gap-2">
-                  <span className="flex h-6 w-6 items-center justify-center rounded-xs bg-brand text-xs font-semibold tabular-nums text-white">
+            <li key={competency.id} className="flex">
+              <Link
+                href={`/commercial/fiches/${competency.id}`}
+                className="nm-card-link group flex w-full flex-col p-4"
+              >
+                <span className="flex items-center gap-2">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-xs bg-brand text-xs font-semibold tabular-nums text-white">
                     {index + 1}
                   </span>
-                  <span className="text-sm font-semibold text-ink">{competency.label}</span>
-                </div>
-                <Link
-                  href={`/commercial/fiches/${competency.id}`}
-                  className="shrink-0 text-[13px] font-medium text-brand underline underline-offset-4 hover:text-brand-accent"
-                >
-                  Fiche
-                </Link>
-              </div>
-              <p className="mt-2.5 text-sm leading-relaxed text-graphite">
-                {competency.description}
-              </p>
+                  <span className="text-sm font-semibold text-ink group-hover:text-brand">
+                    {competency.label}
+                  </span>
+                </span>
+                <span className="mt-2.5 flex-1 text-sm leading-relaxed text-graphite">
+                  {competency.description}
+                </span>
+                <span className="mt-3.5 flex items-center justify-between gap-3 border-t border-line pt-3">
+                  <span className="text-[13px] text-muted">Fiche méthodologique</span>
+                  <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-brand">
+                    Ouvrir
+                    <ArrowRight
+                      size={14}
+                      aria-hidden
+                      className="transition-transform group-hover:translate-x-0.5"
+                    />
+                  </span>
+                </span>
+              </Link>
             </li>
           ))}
         </ul>
