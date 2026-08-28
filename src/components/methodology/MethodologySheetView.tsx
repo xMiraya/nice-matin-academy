@@ -116,129 +116,127 @@ export function MethodologySheetView({ sheet, previous, next }: MethodologySheet
       </div>
 
       {/*
-        Grille volontairement non uniforme : la méthode, la situation terrain et
-        l'indicateur de maîtrise occupent deux colonnes, les blocs courts une.
-        `items-start` empêche les blocs courts (enjeu, réflexes, à éviter,
-        questions utiles) d'être étirés à la hauteur de leur voisin : la place
-        perdue en bas de carte se reporte en respiration entre les rangées.
+        Deux colonnes indépendantes plutôt qu'une grille : dans une grille, la
+        hauteur d'une rangée est celle de son bloc le plus haut, ce qui creusait
+        un trou sous chaque bloc court. Ici chaque colonne empile ses propres
+        cartes et se remplit à son rythme. La colonne large accueille les blocs
+        tabulaires (méthode, situation terrain, indicateur), la colonne étroite
+        les listes.
       */}
       <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-3">
-        <Panel title="Enjeu de la compétence" action={<BlockIndex value={1} />}>
-          <Bullets items={sheet.stakes} />
-        </Panel>
+        <div className="flex flex-col gap-5">
+          <Panel title="Enjeu de la compétence" action={<BlockIndex value={1} />}>
+            <Bullets items={sheet.stakes} />
+          </Panel>
 
-        <Panel
-          title="Méthode en quatre étapes"
-          action={<BlockIndex value={2} />}
-          className="lg:col-span-2"
-        >
-          <ol className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            {sheet.methodSteps.map((step) => (
-              <li key={step.order} className="rounded-sm border border-line bg-mist/60 p-4">
-                <div className="flex items-center gap-2">
-                  <span
-                    aria-hidden
-                    className="flex h-6 w-6 items-center justify-center rounded-xs bg-brand text-xs font-semibold tabular-nums text-white"
-                  >
-                    {step.order}
-                  </span>
-                  <span className="nm-label">{step.phase}</span>
+          <Panel title="Les bons réflexes" action={<BlockIndex value={3} />}>
+            <Bullets items={sheet.goodReflexes} tone="positif" />
+          </Panel>
+
+          <Panel title="À éviter" action={<BlockIndex value={5} />}>
+            <Bullets items={sheet.phrasesToAvoid} tone="critique" />
+          </Panel>
+
+          <Panel title="Questions utiles" action={<BlockIndex value={6} />}>
+            <Bullets items={sheet.usefulQuestions} />
+          </Panel>
+
+          <Panel title="Checklist avant de poursuivre" action={<BlockIndex value={8} />}>
+            <MethodologyChecklist items={sheet.checklist} />
+          </Panel>
+        </div>
+
+        <div className="flex flex-col gap-5 lg:col-span-2">
+          <Panel title="Méthode en quatre étapes" action={<BlockIndex value={2} />}>
+            <ol className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {sheet.methodSteps.map((step) => (
+                <li key={step.order} className="rounded-sm border border-line bg-mist/60 p-4">
+                  <div className="flex items-center gap-2">
+                    <span
+                      aria-hidden
+                      className="flex h-6 w-6 items-center justify-center rounded-xs bg-brand text-xs font-semibold tabular-nums text-white"
+                    >
+                      {step.order}
+                    </span>
+                    <span className="nm-label">{step.phase}</span>
+                  </div>
+                  <p className="mt-2.5 text-sm font-semibold text-ink">{step.title}</p>
+                  <p className="mt-1 text-sm leading-relaxed text-graphite">{step.detail}</p>
+                </li>
+              ))}
+            </ol>
+          </Panel>
+
+          <Panel title="À dire" action={<BlockIndex value={4} />}>
+            <ul className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+              {sheet.phrasesToUse.map((phrase) => (
+                <li
+                  key={phrase}
+                  className="flex gap-2.5 rounded-sm border border-brand-sky bg-brand-soft px-3.5 py-2.5"
+                >
+                  <Quote size={14} aria-hidden className="mt-0.5 shrink-0 text-brand-accent" />
+                  <p className="text-sm leading-relaxed text-brand">« {phrase} »</p>
+                </li>
+              ))}
+            </ul>
+          </Panel>
+
+          <Panel title="Situation terrain" action={<BlockIndex value={7} />}>
+            <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {SCENARIO_ROWS.map((row) => (
+                <div
+                  key={row.key}
+                  className={cx(
+                    "rounded-sm border p-4",
+                    SCENARIO_TONES[row.tone],
+                    row.key === "why" ? "sm:col-span-2" : undefined,
+                  )}
+                >
+                  <dt className="nm-label">{row.term}</dt>
+                  <dd className="mt-2 text-sm leading-relaxed text-graphite">
+                    {sheet.fieldScenario[row.key]}
+                  </dd>
                 </div>
-                <p className="mt-2.5 text-sm font-semibold text-ink">{step.title}</p>
-                <p className="mt-1 text-sm leading-relaxed text-graphite">{step.detail}</p>
-              </li>
-            ))}
-          </ol>
-        </Panel>
+              ))}
+            </dl>
+          </Panel>
 
-        <Panel title="Les bons réflexes" action={<BlockIndex value={3} />}>
-          <Bullets items={sheet.goodReflexes} tone="positif" />
-        </Panel>
+          <Panel
+            title="Indicateur de maîtrise"
+            description="Trois niveaux décrits par des comportements observables, sans note."
+            action={<BlockIndex value={9} />}
+          >
+            <dl className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              {sheet.masteryLevels.map((level, position) => (
+                <div key={level.name} className="rounded-sm border border-line bg-mist/60 p-4">
+                  <dt>
+                    <span className="nm-label">Niveau {position + 1}</span>
+                    <span className="mt-1.5 block text-sm font-semibold text-ink">
+                      {level.name}
+                    </span>
+                  </dt>
+                  <dd className="mt-2 text-sm leading-relaxed text-graphite">{level.behaviour}</dd>
+                </div>
+              ))}
+            </dl>
+          </Panel>
 
-        <Panel title="À dire" action={<BlockIndex value={4} />}>
-          <ul className="space-y-2.5">
-            {sheet.phrasesToUse.map((phrase) => (
-              <li
-                key={phrase}
-                className="flex gap-2.5 rounded-sm border border-brand-sky bg-brand-soft px-3.5 py-2.5"
-              >
-                <Quote size={14} aria-hidden className="mt-0.5 shrink-0 text-brand-accent" />
-                <p className="text-sm leading-relaxed text-brand">« {phrase} »</p>
-              </li>
-            ))}
-          </ul>
-        </Panel>
-
-        <Panel title="À éviter" action={<BlockIndex value={5} />}>
-          <Bullets items={sheet.phrasesToAvoid} tone="critique" />
-        </Panel>
-
-        <Panel title="Questions utiles" action={<BlockIndex value={6} />}>
-          <Bullets items={sheet.usefulQuestions} />
-        </Panel>
-
-        <Panel title="Situation terrain" action={<BlockIndex value={7} />} className="lg:col-span-2">
-          <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            {SCENARIO_ROWS.map((row) => (
-              <div
-                key={row.key}
-                className={cx(
-                  "rounded-sm border p-4",
-                  SCENARIO_TONES[row.tone],
-                  row.key === "why" ? "sm:col-span-2" : undefined,
-                )}
-              >
-                <dt className="nm-label">{row.term}</dt>
-                <dd className="mt-2 text-sm leading-relaxed text-graphite">
-                  {sheet.fieldScenario[row.key]}
-                </dd>
-              </div>
-            ))}
-          </dl>
-        </Panel>
-
-        <Panel title="Checklist avant de poursuivre" action={<BlockIndex value={8} />}>
-          <MethodologyChecklist items={sheet.checklist} />
-        </Panel>
-
-        <Panel
-          title="Indicateur de maîtrise"
-          description="Trois niveaux décrits par des comportements observables, sans note."
-          action={<BlockIndex value={9} />}
-          className="lg:col-span-2"
-        >
-          <dl className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            {sheet.masteryLevels.map((level, position) => (
-              <div key={level.name} className="rounded-sm border border-line bg-mist/60 p-4">
-                <dt>
-                  <span className="nm-label">Niveau {position + 1}</span>
-                  <span className="mt-1.5 block text-sm font-semibold text-ink">{level.name}</span>
-                </dt>
-                <dd className="mt-2 text-sm leading-relaxed text-graphite">{level.behaviour}</dd>
-              </div>
-            ))}
-          </dl>
-        </Panel>
-
-        {/*
-          Le conseil du formateur ferme la fiche sur toute la largeur : en une
-          seule colonne, les deux tiers droits de la dernière rangée restaient
-          vides.
-        */}
-        <Panel
-          title="Conseil du formateur"
-          action={<BlockIndex value={10} />}
-          className="lg:col-span-3"
-        >
-          <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
-            <p className="min-w-0 flex-1 text-[15px] leading-relaxed text-graphite">
-              {sheet.trainerTip.text}
-            </p>
-            {sheet.trainerTip.validationStatus === "a-valider" ? (
-              <Badge tone="vigilance">{VALIDATION_LABEL}</Badge>
-            ) : null}
-          </div>
-        </Panel>
+          {/*
+            Le conseil du formateur ferme la colonne large : il équilibre les
+            deux piles et occupe toute sa largeur, alors qu'en colonne étroite
+            il laissait une bande vide à sa droite.
+          */}
+          <Panel title="Conseil du formateur" action={<BlockIndex value={10} />}>
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+              <p className="min-w-0 flex-1 text-[15px] leading-relaxed text-graphite">
+                {sheet.trainerTip.text}
+              </p>
+              {sheet.trainerTip.validationStatus === "a-valider" ? (
+                <Badge tone="vigilance">{VALIDATION_LABEL}</Badge>
+              ) : null}
+            </div>
+          </Panel>
+        </div>
       </div>
 
       {/* ----------------------------- Navigation ----------------------------- */}

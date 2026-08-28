@@ -79,6 +79,23 @@
     overflow-x: hidden;
   }
 
+  /*
+   * Curseur main sur tout ce qui réagit au clic. Sans cette règle, plusieurs
+   * commandes construites sur des `<button>` ou des `<summary>` gardaient le
+   * curseur texte et ne se distinguaient pas d'un simple bloc de contenu.
+   */
+  a[href],
+  summary,
+  label:has(input[type="checkbox"]),
+  label:has(input[type="radio"]),
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  [role="radio"],
+  [role="checkbox"],
+  [role="tab"] {
+    cursor: pointer;
+  }
+
   :focus-visible {
     outline: 2px solid var(--color-brand-accent);
     outline-offset: 2px;
@@ -100,24 +117,45 @@
 }
 
 /*
- * Carte cliquable : meme fond que .nm-card, mais l'etat de survol est explicite
- * (bord bleu, fond bleu tres clair, legere elevation) pour distinguer d'un coup
- * d'oeil ce qui s'ouvre de ce qui est purement informatif.
+ * Carte cliquable.
+ *
+ * La distinction avec une carte informative doit se voir AVANT le survol :
+ * bord bleu clair au repos, filet de marque sur l'arête gauche, puis fond bleu
+ * tres clair et legere elevation au survol. Une carte `.nm-card` reste, elle,
+ * strictement plate et neutre.
  */
 @utility nm-card-link {
+  position: relative;
+  overflow: hidden;
   border-radius: var(--radius-lg);
-  border: 1px solid color-mix(in oklab, var(--color-line) 70%, white);
+  border: 1px solid var(--color-brand-sky);
   background-color: #ffffff;
   box-shadow: var(--shadow-card);
+  cursor: pointer;
   transition:
     border-color 150ms ease,
     background-color 150ms ease,
     box-shadow 150ms ease;
 
+  &::before {
+    content: "";
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 0;
+    width: 3px;
+    background-color: var(--color-brand-accent);
+    opacity: 0.45;
+    transition: opacity 150ms ease;
+  }
+
   &:hover {
     border-color: var(--color-brand-accent);
     background-color: var(--color-brand-soft);
     box-shadow: var(--shadow-lift);
+  }
+
+  &:hover::before {
+    opacity: 1;
   }
 }
 

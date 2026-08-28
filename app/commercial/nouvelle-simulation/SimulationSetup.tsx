@@ -229,16 +229,59 @@ export function SimulationSetup() {
           <p className="mt-4 text-sm font-medium text-graphite">{counterLabel}</p>
         </Panel>
 
-        <Panel title="Conditions de la simulation">
-          <ul className="space-y-3">
-            {CONDITIONS.map((condition) => (
-              <li key={condition} className="flex gap-3 text-sm leading-relaxed text-graphite">
-                <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-brand" aria-hidden />
-                {condition}
-              </li>
-            ))}
-          </ul>
-        </Panel>
+        {/*
+          Conditions et test matériel occupent ensemble le bas de la colonne
+          large : placés dans la colonne étroite, ils laissaient un grand vide
+          sous les objectifs, à gauche du récapitulatif.
+        */}
+        <div className="grid grid-cols-1 items-start gap-6 sm:grid-cols-2">
+          <Panel title="Conditions de la simulation">
+            <ul className="space-y-3">
+              {CONDITIONS.map((condition) => (
+                <li key={condition} className="flex gap-3 text-sm leading-relaxed text-graphite">
+                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-brand" aria-hidden />
+                  {condition}
+                </li>
+              ))}
+            </ul>
+          </Panel>
+
+          <Panel title="Test caméra et microphone" action={<DemoBadge>Visuel</DemoBadge>}>
+            <div className="overflow-hidden rounded-md border border-line bg-ink/95">
+              <div className="flex aspect-video items-center justify-center">
+                <span className="text-sm text-white/60">Aperçu caméra désactivé</span>
+              </div>
+            </div>
+
+            <div className="mt-4 space-y-2">
+              <label className="flex cursor-pointer items-center gap-3 rounded-sm border border-line px-3 py-2.5 transition-colors hover:border-line-strong hover:bg-mist">
+                <input
+                  type="checkbox"
+                  checked={cameraChecked}
+                  onChange={(event) => setCameraChecked(event.target.checked)}
+                  className="h-4 w-4 accent-[#001a64]"
+                />
+                <Video size={16} className="text-graphite" aria-hidden />
+                <span className="text-sm text-ink">Ma caméra fonctionne</span>
+              </label>
+              <label className="flex cursor-pointer items-center gap-3 rounded-sm border border-line px-3 py-2.5 transition-colors hover:border-line-strong hover:bg-mist">
+                <input
+                  type="checkbox"
+                  checked={micChecked}
+                  onChange={(event) => setMicChecked(event.target.checked)}
+                  className="h-4 w-4 accent-[#001a64]"
+                />
+                <Mic size={16} className="text-graphite" aria-hidden />
+                <span className="text-sm text-ink">Mon microphone fonctionne</span>
+              </label>
+            </div>
+
+            <p className="mt-3 text-xs leading-relaxed text-graphite">
+              Ce test est purement visuel dans cette version : aucun périphérique n&apos;est
+              réellement sollicité.
+            </p>
+          </Panel>
+        </div>
       </div>
 
       {/*
@@ -267,42 +310,6 @@ export function SimulationSetup() {
             Julie évalue en continu sa confiance, son intérêt, sa compréhension, la valeur
             qu&apos;elle perçoit et la pression qu&apos;elle ressent. Ces cinq jauges apparaissent
             dans votre compte rendu.
-          </p>
-        </Panel>
-
-        <Panel title="Test caméra et microphone" action={<DemoBadge>Visuel</DemoBadge>}>
-          <div className="overflow-hidden rounded-md border border-line bg-ink/95">
-            <div className="flex aspect-video items-center justify-center">
-              <span className="text-sm text-white/60">Aperçu caméra désactivé</span>
-            </div>
-          </div>
-
-          <div className="mt-4 space-y-2">
-            <label className="flex cursor-pointer items-center gap-3 rounded-sm border border-line px-3 py-2.5">
-              <input
-                type="checkbox"
-                checked={cameraChecked}
-                onChange={(event) => setCameraChecked(event.target.checked)}
-                className="h-4 w-4 accent-[#001a64]"
-              />
-              <Video size={16} className="text-graphite" aria-hidden />
-              <span className="text-sm text-ink">Ma caméra fonctionne</span>
-            </label>
-            <label className="flex cursor-pointer items-center gap-3 rounded-sm border border-line px-3 py-2.5">
-              <input
-                type="checkbox"
-                checked={micChecked}
-                onChange={(event) => setMicChecked(event.target.checked)}
-                className="h-4 w-4 accent-[#001a64]"
-              />
-              <Mic size={16} className="text-graphite" aria-hidden />
-              <span className="text-sm text-ink">Mon microphone fonctionne</span>
-            </label>
-          </div>
-
-          <p className="mt-3 text-xs leading-relaxed text-graphite">
-            Ce test est purement visuel dans cette version : aucun périphérique n&apos;est réellement
-            sollicité.
           </p>
         </Panel>
 

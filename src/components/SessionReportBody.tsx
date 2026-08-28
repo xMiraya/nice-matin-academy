@@ -199,31 +199,28 @@ export function SessionReportBody({
       </div>
 
       {/*
-        Enregistrement + transcript.
-        Les deux cartes sont alignées en haut (`items-start`) et le transcript
-        occupe la colonne large : sans cela, déplier le transcript étirait la
-        carte « Enregistrement » et ouvrait une grande zone vide à sa droite.
+        Enregistrement et transcript réunis dans une seule carte pleine largeur.
+        Côte à côte, l'enregistrement — réduit à un bandeau tant qu'aucune vidéo
+        n'est rattachée — laissait une zone morte à sa droite, et déplier le
+        transcript rouvrait ce vide de plus belle.
       */}
-      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-5">
-        <Panel title="Enregistrement" className="lg:col-span-2">
-          <RecordingPlayerPlaceholder
-            notice={report.recordingNotice ?? "Aucun enregistrement disponible"}
-          />
-        </Panel>
+      <Panel
+        title="Enregistrement et transcript"
+        description="Le dialogue est replié par défaut."
+        action={<FileText size={18} className="text-graphite" aria-hidden />}
+      >
+        <RecordingPlayerPlaceholder
+          notice={report.recordingNotice ?? "Aucun enregistrement disponible"}
+        />
 
-        <Panel
-          title="Transcript"
-          description="Extrait du dialogue, replié par défaut."
-          action={<FileText size={18} className="text-graphite" aria-hidden />}
-          className="lg:col-span-3"
-        >
+        <div className="mt-5 border-t border-line pt-5">
           <TranscriptViewer
             lines={report.transcript}
             characterName={report.characterName}
             repName={repName ?? "Commercial"}
           />
-        </Panel>
-      </div>
+        </div>
+      </Panel>
 
       <ContextPanel report={report} repName={variant === "manager" ? repName : undefined} />
     </div>
