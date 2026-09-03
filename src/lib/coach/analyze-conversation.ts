@@ -52,6 +52,14 @@ export interface AnalyzeConversationInput {
   shutdownReason: string | null;
   selectedObjectiveLabels: string[];
   commercialName: string;
+  /**
+   * Niveau joué par Julie. Sans lui, le Coach jugeait un entretien « difficile »
+   * avec la même grille de lecture qu'un entretien « facile » : une objection
+   * dure prévue par le scénario pouvait être imputée au commercial.
+   */
+  difficulty?: SessionDifficulty;
+  /** Vrai lorsque tous les objectifs proposés ont été sélectionnés. */
+  isFullInterview?: boolean;
 }
 
 /**

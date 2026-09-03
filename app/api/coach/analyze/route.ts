@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import type { CoachAnalysisResponse, CoachApiError, CoachPendingResponse } from "@/src/types/coach";
 import { getTavusConversation, isValidConversationId } from "@/src/lib/tavus/get-conversation";
+import { OBJECTIVES } from "@/src/data/competencies";
 import {
   analyzeConversation,
   buildCoachReport,
@@ -134,6 +135,10 @@ export async function POST(request: Request) {
       shutdownReason: conversation.shutdownReason,
       selectedObjectiveLabels,
       commercialName: commercial.name,
+      // Le niveau et la portée étaient reçus par la route puis conservés dans
+      // les métadonnées du compte rendu, sans jamais atteindre le Coach.
+      difficulty,
+      isFullInterview: selectedObjectiveIds.length >= OBJECTIVES.length,
     });
 
     if (analysis.kind === "not_configured") {

@@ -1,6 +1,6 @@
 "use client";
 
-import { FileSearch, Lightbulb, Target } from "lucide-react";
+import { ArrowRight, FileSearch, Lightbulb, Target } from "lucide-react";
 import { PageHeader } from "@/src/components/PageHeader";
 import { Panel } from "@/src/components/Panel";
 import { Badge } from "@/src/components/StatusBadge";
@@ -142,12 +142,19 @@ export function CoachReportScreen({ reportId }: { reportId: string }) {
                 {report.nextActions[0]?.title ?? "Poursuivez l'entraînement sur cette compétence."}
               </p>
 
-              <a
-                href="#conseils"
-                className="mt-4 inline-flex items-center gap-2 rounded-sm bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-card transition-colors hover:bg-brand-accent"
+              {/*
+                Le bouton menait auparavant a l'ancre #conseils, qui ne faisait
+                que descendre sur les points forts. Il ouvre desormais la page
+                de conseils : priorite, chronologie de l'appel, gestes a changer
+                et extraits reellement releves par le Coach.
+              */}
+              <ButtonLink
+                href={`/commercial/simulations/${reportId}/conseils`}
+                className="mt-4"
               >
-                Voir les conseils
-              </a>
+                Voir les conseils du Coach
+                <ArrowRight size={16} aria-hidden />
+              </ButtonLink>
             </div>
           </div>
 
@@ -166,7 +173,7 @@ export function CoachReportScreen({ reportId }: { reportId: string }) {
           </div>
         </Panel>
 
-        <div id="conseils" className="grid scroll-mt-24 grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <CoachHighlightsPanel
             title="Points forts"
             description="Ce qui a fonctionné pendant l'échange."

@@ -1,3 +1,4 @@
+import type { SessionDifficulty } from "@/src/types";
 import type { TavusPerceptionAnalysis, TavusTranscriptEntry } from "@/src/types/coach";
 import { COACH_COMPETENCY_SCALE } from "@/src/lib/coach/competency-scale";
 
@@ -57,11 +58,28 @@ Points d'attention par compétence :
 - Gestion de la confiance : honnêteté, cohérence des informations, respect du rythme, effet des maladresses.
 - Conclusion : choix du moment, proposition claire, liberté de décision laissée, respect d'un refus ou d'un report.
 
+# Niveau de simulation
+
+Le commercial choisit avant l'appel le niveau joué par Julie : facile, intermédiaire ou difficile. Ce niveau t'est communiqué.
+
+Le niveau ne modifie jamais le barème ni les notes attendues. Il sert uniquement à interpréter correctement le comportement de Julie :
+
+- Facile : Julie est coopérative et pose peu d'objections. L'absence d'objection ne prouve donc pas que le commercial sait les traiter ; note « Gestion des objections » avec prudence et dis dans l'observation que la compétence n'a pas pu être éprouvée.
+- Intermédiaire : Julie est pressée et compare avec la concurrence. Les objections attendues portent sur le prix, l'engagement et la valeur.
+- Difficile : Julie est méfiante et peut mettre fin à l'échange si le ton dérape. Une objection dure, une relance insistante de sa part ou une fin d'échange abrupte relèvent du scénario : ne les impute pas au commercial sans preuve d'une maladresse de sa part.
+
 # Jauges internes de Julie
 
 Reconstitue avec prudence l'état estimé de Julie à la fin de l'échange, sur cinq jauges de 0 à 100 : confiance, intérêt, compréhension, valeur perçue, pression ressentie.
 
 Ce sont des estimations pédagogiques destinées à illustrer l'effet du comportement du commercial. Ce ne sont pas des mesures scientifiques ni un diagnostic. Une pression ressentie élevée est un signal négatif ; les quatre autres jauges sont positives.
+
+# Portée de l'analyse
+
+Le contexte précise si le commercial a choisi l'entretien commercial complet ou un sous-ensemble d'objectifs. Les huit compétences sont notées dans tous les cas ; c'est la profondeur du commentaire qui change.
+
+- Entretien complet : traite les huit compétences avec la même attention. Répartis \`keyMoments\`, \`strengths\`, \`improvements\` et \`nextActions\` sur l'ensemble du déroulé, de l'ouverture à la conclusion, sans concentrer le propos sur une seule étape.
+- Objectifs ciblés : le compte rendu doit se lire comme un retour sur ces objectifs. La \`pedagogicalPriority\` porte sur une compétence visée par les objectifs choisis, sauf si une autre compétence est manifestement plus dégradée — dans ce cas, explique-le dans \`reason\`. Au moins deux des trois \`nextActions\` portent sur les objectifs choisis. Les \`evidence\` des compétences visées sont les plus fournies, et \`keyMoments\` privilégie les passages qui les concernent. Les autres compétences restent notées et commentées, plus brièvement.
 
 # Contraintes de rédaction
 
@@ -85,7 +103,20 @@ export interface CoachUserPayloadInput {
   shutdownReason: string | null;
   selectedObjectiveLabels: string[];
   commercialName: string;
+  /** Niveau joué par Julie, choisi avant l'appel. */
+  difficulty?: SessionDifficulty;
+  /** Vrai lorsque tous les objectifs proposés ont été sélectionnés. */
+  isFullInterview?: boolean;
 }
+
+/** Rappel du comportement attendu de Julie, transmis au Coach avec le niveau. */
+const DIFFICULTY_BRIEF: Record<SessionDifficulty, string> = {
+  facile: "facile — Julie est disponible, curieuse, et pose peu d'objections",
+  intermediaire:
+    "intermédiaire — Julie est intéressée mais pressée, compare avec la concurrence et soulève une ou deux objections",
+  difficile:
+    "difficile — Julie est méfiante sur le prix et l'engagement, relance sur les points flous et peut mettre fin à l'échange",
+};
 
 /**
  * Construit le message utilisateur envoyé au Coach.
@@ -102,10 +133,22 @@ export function buildCoachUserPayload(input: CoachUserPayloadInput): string {
   lines.push(`- Cliente virtuelle : Julie Dupont`);
   lines.push(`- Durée de la session : ${input.durationSeconds} secondes`);
   lines.push(
+    `- Niveau joué par Julie : ${
+      input.difficulty ? DIFFICULTY_BRIEF[input.difficulty] : "non précisé"
+    }`,
+  );
+  lines.push(
     `- Objectifs pédagogiques choisis : ${
       input.selectedObjectiveLabels.length > 0
         ? input.selectedObjectiveLabels.join(", ")
         : "aucun objectif précisé"
+    }`,
+  );
+  lines.push(
+    `- Portée demandée : ${
+      input.isFullInterview
+        ? "entretien commercial complet — couvre les huit compétences de façon équilibrée"
+        : "objectifs ciblés — centre le compte rendu sur les objectifs ci-dessus"
     }`,
   );
   lines.push(`- Motif technique de fin d'appel : ${describeShutdown(input.shutdownReason)}`);
