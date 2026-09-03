@@ -12,11 +12,15 @@ import { cx } from "@/src/lib/format";
  * dessinée localement en SVG, sans jamais afficher d'image cassée.
  */
 export const PORTRAIT_CANDIDATES = [
-  // Une photographie déposée sous l'un de ces noms passe devant l'illustration.
+  /*
+    Une photographie déposée sous l'un de ces noms passe devant l'illustration.
+    Seuls des noms au nom du personnage sont acceptés : un visuel portant le
+    nom de quelqu'un d'autre a déjà été affiché ici à la place de Julie.
+    La source de vérité est la réplique Tavus utilisée pendant l'appel.
+  */
   "/images/julie-dupont.png",
   "/images/julie-dupont.jpg",
-  "/images/gloria.png",
-  "/images/gloria.jpg",
+  "/images/julie-dupont.webp",
   // Portrait vectoriel livré avec le projet, d'après l'avatar de la simulation.
   "/images/julie-dupont.svg",
 ] as const;

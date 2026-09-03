@@ -61,7 +61,7 @@ export const CONFIDENCE_LABELS: Record<CoachConfidenceLevel, string> = {
   low: "Confiance limitée",
 };
 
-const KEY_MOMENT_META: Record<
+export const KEY_MOMENT_META: Record<
   CoachKeyMomentType,
   { label: string; dot: string; text: string; icon: typeof CheckCircle2 }
 > = {
@@ -131,12 +131,18 @@ export function CoachCompetencyDetail({ report }: { report: CoachReport }) {
       title="Détail par compétence"
       description="Classées de la plus perfectible à la mieux maîtrisée. Ouvrez une carte pour voir les extraits qui justifient la note."
     >
-      <ul className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+      {/*
+        `items-start` est indispensable : sans lui, chaque <li> est étiré à la
+        hauteur de sa rangée de grille. En ouvrant une carte, la carte voisine
+        restée fermée s’étirait elle aussi et affichait une grande zone vide
+        sous son en-tête, comme si elle s’était ouverte sans contenu.
+      */}
+      <ul className="grid grid-cols-1 items-start gap-4 xl:grid-cols-2">
         {sorted.map((competency) => {
           const percent = competency.score * 10;
           const color = scoreColor(percent);
           return (
-            <li key={competency.id} className="flex">
+            <li key={competency.id} className="flex min-w-0">
               <details className="nm-card group w-full overflow-hidden">
                 <summary className="flex cursor-pointer list-none flex-col gap-3 p-4 transition-colors hover:bg-mist sm:p-5">
                   <span className="flex items-start justify-between gap-4">
