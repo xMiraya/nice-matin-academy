@@ -24,6 +24,7 @@ import {
   TeamMemberList,
 } from "@/src/components/TeamMemberList";
 import { CoachFocusHero } from "@/src/components/CoachPriorityCard";
+import { TeamSpotlight } from "@/src/components/TeamSpotlight";
 import { RealReportsPanel } from "@/src/components/coach/RealReportsPanel";
 import {
   ScoreDistributionChart,
@@ -106,8 +107,32 @@ export default function ManagerDashboardPage() {
         Vue d&apos;équipe
       </SectionTitle>
 
-      {/* 1 — La priorité collective et le niveau moyen, côte à côte. */}
+      {/*
+        1 — Ce qui demande une décision cette semaine, en tout premier : ce
+        bloc a été remonté de la troisième à la première position. C'est ici
+        que le manager doit agir, avant même les indicateurs de tendance.
+      */}
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
+        <Panel
+          title="À traiter cette semaine"
+          description="Propositions d'accompagnement, sans notion de sanction."
+          className="lg:col-span-7"
+          action={<Badge tone="critique">{data.alerts.length}</Badge>}
+        >
+          <PedagogicalAlerts alerts={data.alerts} />
+        </Panel>
+
+        <Panel
+          title="À relancer"
+          description="Sans simulation depuis plus de deux semaines."
+          className="lg:col-span-5"
+        >
+          <InactiveMembers members={data.members} />
+        </Panel>
+      </div>
+
+      {/* 2 — La priorité collective et le niveau moyen, côte à côte. */}
+      <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-12">
         <CoachFocusHero
           className="lg:col-span-8"
           eyebrow="Priorité collective"
@@ -155,7 +180,7 @@ export default function ManagerDashboardPage() {
         </div>
       </div>
 
-      {/* 2 — Les repères de volume et de couverture. */}
+      {/* 3 — Les repères de volume et de couverture. */}
       <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard
           label="Commerciaux"
@@ -186,7 +211,7 @@ export default function ManagerDashboardPage() {
         />
       </div>
 
-      {/* 3 — La tendance, et à droite ce qui demande une décision cette semaine. */}
+      {/* 4 — La tendance, moins urgente que les deux blocs précédents. */}
       <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-12">
         <Panel
           title="Évolution hebdomadaire"
@@ -197,17 +222,17 @@ export default function ManagerDashboardPage() {
           <WeeklyEvolutionChart data={data.weeklyEvolution} height={300} />
         </Panel>
 
-        <Panel
-          title="À traiter cette semaine"
-          description="Propositions d'accompagnement, sans notion de sanction."
-          className="lg:col-span-5"
-          action={<Badge tone="critique">{data.alerts.length}</Badge>}
-        >
-          <PedagogicalAlerts alerts={data.alerts} />
+        <Panel title="Répartition des scores" description="Nombre de commerciaux par tranche." className="lg:col-span-5" flush>
+          <ScoreDistributionChart data={data.scoreDistribution} height={300} />
         </Panel>
       </div>
 
-      {/* 4 — La lecture croisée, point d'entrée du diagnostic individuel. */}
+      {/* 5 — Qui porte l'équipe, qui a le plus besoin d'accompagnement. */}
+      <div className="mt-5">
+        <TeamSpotlight members={data.members} />
+      </div>
+
+      {/* 6 — La lecture croisée, pour aller plus loin que les deux profils mis en avant. */}
       <div className="mt-5">
         <Panel
           title="Commerciaux × compétences"
@@ -222,12 +247,11 @@ export default function ManagerDashboardPage() {
         </Panel>
       </div>
 
-      {/* 5 — Le suivi individuel, avec les relances à faire juste à côté. */}
-      <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-12">
+      {/* 7 — Le suivi individuel complet, consulté moins souvent que la carte thermique. */}
+      <div className="mt-5">
         <Panel
           title="Commerciaux"
           description="Score moyen, progression sur trente jours et compétence à travailler."
-          className="lg:col-span-8"
           action={
             <ButtonLink href="/manager/commerciaux" variant="secondary" size="sm">
               Tout voir
@@ -236,23 +260,9 @@ export default function ManagerDashboardPage() {
         >
           <TeamMemberList members={data.members} />
         </Panel>
-
-        <div className="flex flex-col gap-5 lg:col-span-4">
-          <Panel title="À relancer" description="Sans simulation depuis plus de deux semaines.">
-            <InactiveMembers members={data.members} />
-          </Panel>
-
-          <Panel
-            title="Répartition des scores"
-            description="Nombre de commerciaux par tranche."
-            flush
-          >
-            <ScoreDistributionChart data={data.scoreDistribution} height={220} />
-          </Panel>
-        </div>
       </div>
 
-      {/* 6 — Le flux d'activité récente. */}
+      {/* 8 — Le flux d'activité récente, en toute fin de page. */}
       <div className="mt-5">
         <Panel
           title="Simulations récentes"

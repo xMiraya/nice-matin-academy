@@ -5,10 +5,26 @@ import { cx } from "@/src/lib/format";
 type Variant = "primary" | "secondary" | "ghost" | "danger" | "inverse";
 type Size = "sm" | "md";
 
+/*
+ * Hiérarchie visuelle des boutons.
+ *
+ * Avant cette révision, `secondary` (fond blanc + bordure fine + ombre douce)
+ * était visuellement identique aux cartes non cliquables (`nm-card` utilise
+ * exactly la même recette). Un bouton secondaire posé à côté d'un panneau
+ * ordinaire ne se distinguait donc que par son contenu, jamais par sa forme —
+ * on ne pouvait pas deviner au premier coup d'œil ce qui réagissait au clic.
+ *
+ * Chaque variante porte maintenant une couleur de marque bien à elle, visible
+ * même sans lire le texte : bordure teintée + fond légèrement teinté pour le
+ * secondaire, puce visible pour le fantôme. Le survol accentue toujours la
+ * teinte plutôt que de simplement foncer un gris neutre.
+ */
 const VARIANTS: Record<Variant, string> = {
   primary: "bg-brand text-white shadow-card hover:bg-brand-accent",
-  secondary: "border border-line bg-white text-ink shadow-card hover:border-line-strong hover:bg-mist",
-  ghost: "text-graphite hover:bg-mist hover:text-ink",
+  secondary:
+    "border-[1.5px] border-brand-sky bg-brand-soft text-brand shadow-card hover:border-brand-accent hover:bg-white",
+  ghost:
+    "border border-transparent bg-mist text-graphite hover:border-line-strong hover:bg-white hover:text-ink",
   danger: "bg-danger text-white hover:bg-danger-bright",
   inverse: "bg-white text-brand shadow-card hover:bg-brand-sky",
 };

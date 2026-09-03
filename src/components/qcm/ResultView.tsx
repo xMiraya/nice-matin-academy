@@ -14,15 +14,24 @@ import { qcmRoutes } from "@/src/data/qcm/routes";
 import { recommendationsFor } from "@/src/lib/qcm/recommendations";
 import { formatDuration, getBand } from "@/src/lib/qcm/scoring";
 import { useProgress } from "@/src/lib/qcm/useProgress";
+import { useEffectiveQuestions } from "@/src/lib/content/use-effective-content";
 
 export function ResultView({ resultId }: { readonly resultId: string }) {
   const { progress, ready } = useProgress();
+  const result = ready ? (progress.results.find((r) => r.id === resultId) ?? null) : null;
+  const assessment = result ? getAssessmentById(result.assessmentId) : undefined;
+  /*
+    Hook appelé sans condition, avant tout retour anticipé : les règles des
+    hooks interdisent de le sauter selon l'état de chargement ou l'existence
+    du résultat. La liste vide en repli n'affecte rien tant qu'aucune
+    évaluation n'est disponible.
+  */
+  const effectiveQuestions = useEffectiveQuestions(assessment?.questions ?? []);
 
   if (!ready) {
     return <p className="text-sm text-graphite">Chargement de votre résultat…</p>;
   }
 
-  const result = progress.results.find((r) => r.id === resultId);
   if (!result) {
     return (
       <>
@@ -40,7 +49,6 @@ export function ResultView({ resultId }: { readonly resultId: string }) {
     );
   }
 
-  const assessment = getAssessmentById(result.assessmentId);
   const band = getBand(result.band);
   const recommendations = recommendationsFor(result);
   const errors = result.perQuestion.filter((r) => r.outcome !== "correct");
@@ -184,7 +192,7 @@ export function ResultView({ resultId }: { readonly resultId: string }) {
 
         {assessment ? (
           <AssessmentCorrections
-            questions={assessment.questions}
+            questions={effectiveQuestions}
             results={result.perQuestion}
           />
         ) : null}

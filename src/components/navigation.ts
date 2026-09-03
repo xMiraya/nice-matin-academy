@@ -1,5 +1,6 @@
 import {
   BarChart3,
+  Bell,
   BookOpen,
   ClipboardList,
   GraduationCap,
@@ -52,6 +53,7 @@ export const NAVIGATION_GROUPS: Record<WorkspaceRole, NavGroup[]> = {
         { href: "/commercial/progression", label: "Progression", icon: TrendingUp },
         { href: "/commercial/fiches", label: "Fiches méthodologiques", icon: BookOpen },
         { href: "/commercial/ressources", label: "Ressources", icon: LibraryBig },
+        { href: "/commercial/notifications", label: "Notifications", icon: Bell },
       ],
     },
   ],

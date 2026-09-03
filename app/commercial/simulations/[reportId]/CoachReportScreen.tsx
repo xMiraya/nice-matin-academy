@@ -10,6 +10,7 @@ import { ButtonLink } from "@/src/components/Button";
 import { useIsHydrated, useReport } from "@/src/lib/reports/use-reports";
 import { CoachMascot } from "@/src/components/coach/CoachMascot";
 import { CoachTranscriptPanel } from "@/src/components/coach/CoachTranscriptPanel";
+import { ReportCommentThread } from "@/src/components/coach/ReportCommentThread";
 import {
   CoachCompetencyDetail,
   CoachDisclaimer,
@@ -199,6 +200,14 @@ export function CoachReportScreen({ reportId }: { reportId: string }) {
         <CoachMissedOpportunitiesPanel opportunities={report.missedOpportunities} />
 
         <CoachTranscriptPanel report={report} />
+
+        {/* Lecture seule côté commercial : seul le manager peut écrire ici. */}
+        <ReportCommentThread
+          reportId={report.reportId}
+          canWrite={false}
+          authorName={report.commercial.name}
+          authorRole="commercial"
+        />
 
         <CoachLimitationsPanel report={report} />
 

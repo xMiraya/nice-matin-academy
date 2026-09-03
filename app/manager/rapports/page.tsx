@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { FileBarChart } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, BookOpen, FileBarChart, GraduationCap } from "lucide-react";
 import { DEMO_MANAGER_DASHBOARD } from "@/src/data/demo-manager";
 import { PageHeader } from "@/src/components/PageHeader";
 import { Panel } from "@/src/components/Panel";
@@ -61,6 +62,61 @@ export default function ManagerRapportsPage() {
             </ButtonLink>
           }
         />
+      </div>
+
+      {/*
+        Le contenu pédagogique n'a pas sa place dans la navigation principale
+        du manager — c'est une tâche occasionnelle, pas un tableau de bord
+        consulté au quotidien. Elle reste accessible ici, en fin de page.
+      */}
+      <div className="mt-8 border-t border-line pt-8">
+        <h2 className="text-lg font-semibold tracking-tight text-ink">Contenu pédagogique</h2>
+        <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-graphite">
+          Modifiez les fiches méthodologiques et les questions de QCM vues par les commerciaux.
+          Vos modifications restent en brouillon, invisibles d&apos;eux, jusqu&apos;à ce que vous les
+          publiiez.
+        </p>
+        <ul className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <li>
+            <Link
+              href="/manager/contenu/fiches"
+              className="nm-card-link group flex items-center gap-3 p-4"
+            >
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-brand-soft text-brand">
+                <BookOpen size={16} aria-hidden />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm font-semibold text-ink group-hover:text-brand">
+                  Fiches méthodologiques
+                </span>
+                <span className="block text-xs text-graphite">Modifier le contenu des 8 fiches</span>
+              </span>
+              <ArrowRight
+                size={15}
+                aria-hidden
+                className="shrink-0 text-muted transition-transform group-hover:translate-x-0.5 group-hover:text-brand"
+              />
+            </Link>
+          </li>
+          <li>
+            <Link href="/manager/contenu/qcm" className="nm-card-link group flex items-center gap-3 p-4">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-brand-soft text-brand">
+                <GraduationCap size={16} aria-hidden />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm font-semibold text-ink group-hover:text-brand">
+                  Questions de QCM
+                </span>
+                <span className="block text-xs text-graphite">Modifier l&apos;énoncé et les réponses</span>
+              </span>
+              <ArrowRight
+                size={15}
+                aria-hidden
+                className="shrink-0 text-muted transition-transform group-hover:translate-x-0.5 group-hover:text-brand"
+              />
+            </Link>
+          </li>
+        </ul>
       </div>
     </>
   );

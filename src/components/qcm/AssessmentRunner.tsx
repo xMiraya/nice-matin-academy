@@ -11,6 +11,7 @@ import { qcmRoutes } from "@/src/data/qcm/routes";
 import { addResult, dropSession, upsertSession } from "@/src/lib/qcm/progression";
 import { formatDuration, gradeAssessment } from "@/src/lib/qcm/scoring";
 import { useProgress } from "@/src/lib/qcm/useProgress";
+import { useEffectiveQuestions } from "@/src/lib/content/use-effective-content";
 import { cx } from "@/src/lib/format";
 import type { AnswerMap, AnswerValue, Assessment } from "@/src/types/qcm/quiz";
 
@@ -32,7 +33,8 @@ export function AssessmentRunner({ assessment }: { readonly assessment: Assessme
   const tickRef = useRef<number | null>(null);
 
   const openSession = ready ? progress.openSessions[assessment.id] : undefined;
-  const questions = assessment.questions;
+  // Applique les publications du manager avant que la passation ne commence.
+  const questions = useEffectiveQuestions(assessment.questions);
   const answeredCount = useMemo(
     () => questions.filter((q) => (answers[q.id] ?? []).length > 0).length,
     [questions, answers],
@@ -103,7 +105,10 @@ export function AssessmentRunner({ assessment }: { readonly assessment: Assessme
 
   function submit() {
     const resultId = `${assessment.id}-${Date.now()}`;
-    const result = gradeAssessment(assessment, answers, {
+    // `gradeAssessment` doit noter sur les questions réellement affichées : si
+    // le manager a corrigé une bonne réponse, il faut grader sur cette
+    // correction, pas sur la version d'origine du dépôt.
+    const result = gradeAssessment({ ...assessment, questions }, answers, {
       durationSeconds: elapsed,
       resultId,
     });

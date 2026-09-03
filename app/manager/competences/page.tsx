@@ -5,13 +5,22 @@ import { PageHeader } from "@/src/components/PageHeader";
 import { Panel } from "@/src/components/Panel";
 import { SkillsHeatmap } from "@/src/components/SkillsHeatmap";
 import { CompetencyRadar } from "@/src/components/charts/CompetencyRadar";
-import { ScoreBar } from "@/src/components/ScoreGauge";
+import { CompetencyLeaderRow } from "@/src/components/CompetencyLeaderRow";
+import { TeamSpotlight } from "@/src/components/TeamSpotlight";
 import { Badge } from "@/src/components/StatusBadge";
+import { cx } from "@/src/lib/format";
 
 export const metadata: Metadata = {
   title: "Compétences",
   description: "Niveau de l'équipe sur les huit compétences commerciales.",
 };
+
+/** Rotation de trois teintes de la charte, pour distinguer les cartes sans sortir du ton général. */
+const PRIORITY_ACCENTS = [
+  "border-brand-sky bg-brand-soft",
+  "border-info/25 bg-info-soft",
+  "border-line-strong bg-mist",
+] as const;
 
 export default function ManagerCompetencesPage() {
   const members = DEMO_MANAGER_DASHBOARD.members;
@@ -38,6 +47,11 @@ export default function ManagerCompetencesPage() {
         description="Moyennes calculées sur l'ensemble des commerciaux, hors appels de validation technique."
       />
 
+      {/* Qui porte l'équipe, qui a le plus besoin d'accompagnement — vue d'ensemble avant le détail. */}
+      <div className="mb-5">
+        <TeamSpotlight members={members} />
+      </div>
+
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-5">
         <Panel title="Profil moyen de l'équipe" className="lg:col-span-2">
           <CompetencyRadar scores={teamScores} seriesLabel="Moyenne d'équipe" />
@@ -45,15 +59,17 @@ export default function ManagerCompetencesPage() {
 
         <Panel
           title="Détail par compétence"
-          description="Du niveau le plus fragile au plus solide."
+          description="Du niveau le plus fragile au plus solide, avec qui la tire vers le haut ou vers le bas."
           className="lg:col-span-3"
         >
-          <div className="grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2">
+          <div className="space-y-3">
             {sorted.map((score) => (
-              <ScoreBar
+              <CompetencyLeaderRow
                 key={score.competencyId}
-                score={score.score}
+                competencyId={score.competencyId}
                 label={getCompetency(score.competencyId).label}
+                teamScore={score.score}
+                members={members}
               />
             ))}
           </div>
@@ -72,10 +88,16 @@ export default function ManagerCompetencesPage() {
             </p>
           ) : (
             <ul className="grid grid-cols-1 gap-5 sm:grid-cols-3">
-              {toStrengthen.map((score) => {
+              {toStrengthen.map((score, index) => {
                 const competency = getCompetency(score.competencyId);
                 return (
-                  <li key={score.competencyId} className="rounded-md border border-brand/25 bg-brand-soft p-4">
+                  <li
+                    key={score.competencyId}
+                    className={cx(
+                      "rounded-md border p-4",
+                      PRIORITY_ACCENTS[index % PRIORITY_ACCENTS.length],
+                    )}
+                  >
                     <Badge tone="marque">{score.score} / 100</Badge>
                     <p className="mt-3 text-sm font-semibold text-ink">{competency.label}</p>
                     <p className="mt-1.5 text-sm leading-relaxed text-graphite">
@@ -90,7 +112,10 @@ export default function ManagerCompetencesPage() {
       </div>
 
       <div className="mt-5">
-        <Panel title="Commerciaux × compétences">
+        <Panel
+          title="Commerciaux × compétences"
+          description="Carte thermique complète — recherchez, triez une colonne."
+        >
           <SkillsHeatmap members={members} />
         </Panel>
       </div>

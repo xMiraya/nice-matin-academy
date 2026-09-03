@@ -21,13 +21,21 @@ export default function CommerciauxPage() {
         description="Niveau, régularité et priorité pédagogique de chaque commercial. Seule la fiche d'Alexandre Jégo est détaillée dans cette maquette."
       />
 
+      {/*
+        La vue par compétence arrive en premier : c'est le tableau
+        récapitulatif que la direction consulte le plus souvent en arrivant
+        sur cette page. La liste détaillée « Équipe » suit en dessous.
+      */}
       <div className="space-y-5">
-        <Panel title="Équipe" description={`${data.repsCount} commerciaux suivis.`}>
-          <TeamMemberList members={data.members} />
+        <Panel
+          title="Vue par compétence"
+          description="Carte thermique commerciaux × compétences — recherchez, triez une colonne."
+        >
+          <SkillsHeatmap members={data.members} />
         </Panel>
 
-        <Panel title="Vue par compétence" description="Carte thermique commerciaux × compétences.">
-          <SkillsHeatmap members={data.members} />
+        <Panel title="Équipe" description={`${data.repsCount} commerciaux suivis.`}>
+          <TeamMemberList members={data.members} />
         </Panel>
       </div>
     </>

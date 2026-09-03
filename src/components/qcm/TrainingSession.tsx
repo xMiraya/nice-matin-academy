@@ -13,6 +13,7 @@ import { addTraining } from "@/src/lib/qcm/progression";
 import { gradeQuestion } from "@/src/lib/qcm/scoring";
 import { createRng, sample } from "@/src/lib/qcm/shuffle";
 import { useProgress } from "@/src/lib/qcm/useProgress";
+import { useEffectiveQuestions } from "@/src/lib/content/use-effective-content";
 import type { Competency } from "@/src/types/qcm/competency";
 import type { AnswerValue, Question, QuestionResult } from "@/src/types/qcm/quiz";
 
@@ -25,8 +26,11 @@ interface Props {
  * Entraînement ciblé : tirage aléatoire de questions, correction immédiate
  * après chaque validation, et possibilité de recommencer avec un autre tirage.
  */
-export function TrainingSession({ competency, pool }: Props) {
+export function TrainingSession({ competency, pool: basePool }: Props) {
   const { update } = useProgress();
+  // Applique les éventuelles publications du manager avant le tirage : le
+  // reste du composant travaille sur un pool déjà à jour.
+  const pool = useEffectiveQuestions(basePool);
   const [seed, setSeed] = useState<number | null>(null);
   const [index, setIndex] = useState(0);
   const [answer, setAnswer] = useState<AnswerValue>([]);

@@ -20,6 +20,7 @@ import {
   toCompetencyScores,
 } from "@/src/components/coach/CoachShared";
 import { DEMO_MANAGER_DASHBOARD } from "@/src/data/demo-manager";
+import { ReportCommentThread } from "@/src/components/coach/ReportCommentThread";
 import { formatDate, formatDuration } from "@/src/lib/format";
 
 /** Vue managériale d'un compte rendu réel du Coach IA. */
@@ -177,23 +178,20 @@ export function ManagerReportScreen({ reportId }: { reportId: string }) {
 
         <CoachLimitationsPanel report={report} />
 
-        {/* Champ de commentaire, non connecté à ce stade */}
-        <Panel
-          title="Commentaire du manager"
-          description="Ce commentaire sera partagé avec le commercial dans une prochaine version."
-          action={<DemoBadge>Bientôt disponible</DemoBadge>}
-        >
-          <label htmlFor="manager-comment" className="mb-2 block text-sm font-medium text-ink">
-            Votre retour sur cette simulation
-          </label>
-          <textarea
-            id="manager-comment"
-            rows={4}
-            disabled
-            placeholder="La saisie de commentaires sera activée lors d'une prochaine étape."
-            className="w-full cursor-not-allowed resize-none rounded-sm border border-line bg-mist/50 px-3.5 py-3 text-sm text-graphite placeholder:text-zinc-400"
-          />
-        </Panel>
+        {/*
+          Le commentaire est réellement envoyé : il est enregistré, puis une
+          notification est poussée vers le profil du commercial concerné. Sur
+          cette maquette mono-appareil, le commercial la retrouve dans son
+          propre espace, sur ce même navigateur.
+        */}
+        <ReportCommentThread
+          reportId={report.reportId}
+          canWrite
+          authorName={DEMO_MANAGER_DASHBOARD.profile.firstName + " " + DEMO_MANAGER_DASHBOARD.profile.lastName}
+          authorRole="manager"
+          notifyRecipientId={report.commercial.id}
+          notifyHref={`/commercial/simulations/${report.reportId}`}
+        />
 
         <CoachDisclaimer variant="manager" />
       </div>
