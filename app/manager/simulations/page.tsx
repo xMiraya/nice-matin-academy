@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { DEMO_MANAGER_DASHBOARD } from "@/src/data/demo-manager";
 import { PageHeader } from "@/src/components/PageHeader";
-import { Panel } from "@/src/components/Panel";
+import { Panel, SectionTitle } from "@/src/components/Panel";
 import { MetricCard } from "@/src/components/MetricCard";
-import { SessionTable } from "@/src/components/SessionTable";
+import { ManagerSimulationsExplorer } from "@/src/components/ManagerSimulationsExplorer";
 import { DemoBadge } from "@/src/components/StatusBadge";
 import { RealReportsPanel } from "@/src/components/coach/RealReportsPanel";
 
@@ -21,17 +21,19 @@ export default function ManagerSimulationsPage() {
       <PageHeader
         eyebrow="Espace manager"
         title="Simulations"
-        description="Tous les entraînements de l'équipe, du plus récent au plus ancien."
+        description="Recherchez un commercial, filtrez par statut, triez par date ou par score."
       />
 
       <div className="mb-8">
         <RealReportsPanel />
       </div>
 
-      <div className="mb-4 flex flex-wrap items-center gap-3 border-t border-line pt-8">
-        <h2 className="text-lg font-semibold tracking-tight text-ink">Vue d&apos;ensemble</h2>
-        <DemoBadge>Données de démonstration</DemoBadge>
-      </div>
+      <SectionTitle
+        description="Chiffres d'illustration, en attendant le déploiement complet du dispositif."
+        action={<DemoBadge>Données de démonstration</DemoBadge>}
+      >
+        Vue d&apos;ensemble
+      </SectionTitle>
 
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
         <MetricCard label="Simulations réalisées" value={data.sessionsCount} />
@@ -46,10 +48,10 @@ export default function ManagerSimulationsPage() {
 
       <div className="mt-5">
         <Panel
-          title="Dernières simulations"
+          title="Toutes les simulations"
           description="Seul l'appel de validation technique dispose d'un compte rendu complet dans cette maquette."
         >
-          <SessionTable sessions={data.recentSessions} showRep />
+          <ManagerSimulationsExplorer sessions={data.recentSessions} />
         </Panel>
       </div>
     </>

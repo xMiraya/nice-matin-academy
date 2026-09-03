@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, Clock3, Quote } from "lucide-react";
 import { Panel } from "@/src/components/Panel";
@@ -5,6 +7,7 @@ import { Badge } from "@/src/components/StatusBadge";
 import { MethodologyChecklist } from "@/src/components/methodology/MethodologyChecklist";
 import { PrintSheetButton } from "@/src/components/methodology/PrintSheetButton";
 import { VALIDATION_LABEL, type MethodologySheet } from "@/src/types/methodology";
+import { useEffectiveSheet } from "@/src/lib/content/use-effective-content";
 import { cx, formatDate } from "@/src/lib/format";
 
 interface MethodologySheetViewProps {
@@ -65,7 +68,11 @@ const SCENARIO_ROWS = [
   tone: keyof typeof SCENARIO_TONES;
 }[];
 
-export function MethodologySheetView({ sheet, previous, next }: MethodologySheetViewProps) {
+export function MethodologySheetView({ sheet: baseSheet, previous, next }: MethodologySheetViewProps) {
+  // Fusionne, si elle existe, la version publiée par le manager : le contenu
+  // statique reste la référence côté serveur, la surcouche s'applique après
+  // hydratation.
+  const sheet = useEffectiveSheet(baseSheet);
   const needsValidation =
     sheet.validationStatus === "a-valider" || sheet.trainerTip.validationStatus === "a-valider";
 
