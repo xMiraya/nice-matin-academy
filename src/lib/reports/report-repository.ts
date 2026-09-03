@@ -115,6 +115,21 @@ const StoredReportSchema = z.object({
   confidenceLevel: z.enum(["high", "medium", "low"]),
   limitations: z.array(z.string()),
   transcriptAvailable: z.boolean(),
+  /*
+    Sans cette entrée, zod retire silencieusement le dialogue à chaque
+    relecture : la fiche transcript serait restée vide malgré un compte rendu
+    correctement enregistré. Optionnel, car les comptes rendus antérieurs à son
+    ajout n'en portent pas.
+  */
+  transcript: z
+    .array(
+      z.object({
+        speaker: z.enum(["commercial", "julie"]),
+        timestamp: z.string().optional(),
+        text: z.string(),
+      }),
+    )
+    .optional(),
   perceptionAvailable: z.boolean(),
 });
 

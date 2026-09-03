@@ -1,6 +1,6 @@
 import OpenAI from "openai";
 import { zodTextFormat } from "openai/helpers/zod";
-import type { CompetencyId, SessionDifficulty } from "@/src/types";
+import type { CompetencyId, SessionDifficulty, TranscriptLine } from "@/src/types";
 import type {
   CoachCompetencyScore,
   CoachEvidence,
@@ -139,6 +139,8 @@ export interface BuildReportInput {
   selectedObjectiveIds: string[];
   selectedObjectiveLabels: string[];
   transcriptAvailable: boolean;
+  /** Transcript filtré, conservé dans le compte rendu pour relecture. */
+  transcript: TavusTranscriptEntry[];
   perceptionAvailable: boolean;
   extraLimitations: string[];
 }
@@ -200,6 +202,7 @@ export function buildCoachReport(input: BuildReportInput): CoachReport {
       ...input.output.limitations.map((limitation) => truncate(limitation, MAX_SHORT_TEXT)),
     ].filter((limitation) => limitation.length > 0),
     transcriptAvailable: input.transcriptAvailable,
+    transcript: toTranscriptLines(input.transcript),
     perceptionAvailable: input.perceptionAvailable,
   };
 }
@@ -320,4 +323,26 @@ function truncate(value: string, max: number): string {
   const trimmed = (value ?? "").trim();
   if (trimmed.length <= max) return trimmed;
   return `${trimmed.slice(0, max - 1).trimEnd()}…`;
+}
+
+/**
+ * Convertit le transcript Tavus en dialogue affichable.
+ *
+ * Les rôles `system` et `tool` ont déjà été retirés en amont : seules les
+ * répliques du commercial et de Julie subsistent.
+ */
+function toTranscriptLines(entries: TavusTranscriptEntry[]): TranscriptLine[] {
+  return entries.map((entry) => ({
+    speaker: entry.role === "user" ? "commercial" : "julie",
+    timestamp: formatTranscriptTimestamp(entry.secondsFromStart),
+    text: entry.content,
+  }));
+}
+
+/** Horodatage relatif au format mm:ss. */
+function formatTranscriptTimestamp(seconds: number): string {
+  const total = Math.max(0, Math.round(seconds));
+  const minutes = Math.floor(total / 60);
+  const rest = total % 60;
+  return `${String(minutes).padStart(2, "0")}:${String(rest).padStart(2, "0")}`;
 }

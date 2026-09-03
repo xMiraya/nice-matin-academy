@@ -137,11 +137,11 @@ export function MethodologySheetView({ sheet, previous, next }: MethodologySheet
             <Bullets items={sheet.phrasesToAvoid} tone="critique" />
           </Panel>
 
-          <Panel title="Questions utiles" action={<BlockIndex value={6} />}>
+          <Panel title="Questions utiles" action={<BlockIndex value={7} />}>
             <Bullets items={sheet.usefulQuestions} />
           </Panel>
 
-          <Panel title="Checklist avant de poursuivre" action={<BlockIndex value={8} />}>
+          <Panel title="Checklist avant de poursuivre" action={<BlockIndex value={9} />}>
             <MethodologyChecklist items={sheet.checklist} />
           </Panel>
         </div>
@@ -181,7 +181,7 @@ export function MethodologySheetView({ sheet, previous, next }: MethodologySheet
             </ul>
           </Panel>
 
-          <Panel title="Situation terrain" action={<BlockIndex value={7} />}>
+          <Panel title="Situation terrain" action={<BlockIndex value={6} />}>
             <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               {SCENARIO_ROWS.map((row) => (
                 <div
@@ -204,7 +204,7 @@ export function MethodologySheetView({ sheet, previous, next }: MethodologySheet
           <Panel
             title="Indicateur de maîtrise"
             description="Trois niveaux décrits par des comportements observables, sans note."
-            action={<BlockIndex value={9} />}
+            action={<BlockIndex value={8} />}
           >
             <dl className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               {sheet.masteryLevels.map((level, position) => (
