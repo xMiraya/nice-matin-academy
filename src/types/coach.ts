@@ -9,7 +9,7 @@ import type { SessionDifficulty } from "@/src/types";
  * jusqu'au navigateur.
  */
 
-import type { CompetencyId } from "@/src/types";
+import type { CompetencyId, TranscriptLine } from "@/src/types";
 
 /** Issue technique de la simulation, telle qu'interprétée par le Coach. */
 export type CoachOutcome = "accepted" | "refused" | "postponed" | "interrupted" | "inconclusive";
@@ -125,6 +125,12 @@ export interface CoachReport {
   confidenceLevel: CoachConfidenceLevel;
   limitations: string[];
   transcriptAvailable: boolean;
+  /**
+   * Dialogue de l'échange, conservé pour que le commercial puisse relire son
+   * propre entretien. Absent des comptes rendus produits avant l'ajout de
+   * cette fiche : les écrans doivent gérer le cas.
+   */
+  transcript?: TranscriptLine[];
   perceptionAvailable: boolean;
 }
 

@@ -9,6 +9,7 @@ import { MetricCard } from "@/src/components/MetricCard";
 import { ButtonLink } from "@/src/components/Button";
 import { useIsHydrated, useReport } from "@/src/lib/reports/use-reports";
 import { CoachMascot } from "@/src/components/coach/CoachMascot";
+import { CoachTranscriptPanel } from "@/src/components/coach/CoachTranscriptPanel";
 import {
   CoachCompetencyDetail,
   CoachDisclaimer,
@@ -196,6 +197,8 @@ export function CoachReportScreen({ reportId }: { reportId: string }) {
         <CoachCompetencyDetail report={report} />
 
         <CoachMissedOpportunitiesPanel opportunities={report.missedOpportunities} />
+
+        <CoachTranscriptPanel report={report} />
 
         <CoachLimitationsPanel report={report} />
 

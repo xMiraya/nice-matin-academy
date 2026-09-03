@@ -11,11 +11,13 @@ import {
 } from "lucide-react";
 import { PageHeader } from "@/src/components/PageHeader";
 import { Panel } from "@/src/components/Panel";
-import { Badge } from "@/src/components/StatusBadge";
+import { Badge, DemoBadge } from "@/src/components/StatusBadge";
 import { EmptyState } from "@/src/components/EmptyState";
 import { ButtonLink } from "@/src/components/Button";
 import { CoachMascot } from "@/src/components/coach/CoachMascot";
+import type { CoachEvidence } from "@/src/types/coach";
 import { useIsHydrated, useReport } from "@/src/lib/reports/use-reports";
+import { CoachTranscriptPanel } from "@/src/components/coach/CoachTranscriptPanel";
 import { CallTimeline, CallTimelineLegend } from "@/src/components/coach/CallTimeline";
 import {
   CoachDisclaimer,
@@ -24,6 +26,26 @@ import {
   EvidenceList,
 } from "@/src/components/coach/CoachShared";
 import { DIFFICULTY_LABELS, cx, formatTimer, scoreColor } from "@/src/lib/format";
+
+/**
+ * Extraits d'illustration.
+ *
+ * Utilisés uniquement lorsque le Coach n'a retenu aucune preuve pour la
+ * compétence prioritaire, afin de montrer la forme du bloc. Ils sont toujours
+ * accompagnés d'une mention « Exemple » et ne sont jamais mêlés à une analyse.
+ */
+const EXAMPLE_EVIDENCE: CoachEvidence[] = [
+  {
+    timestampSeconds: 148,
+    speaker: "julie",
+    excerpt: "Franchement, je trouve ça cher pour ce que j'en ferais.",
+  },
+  {
+    timestampSeconds: 159,
+    speaker: "commercial",
+    excerpt: "Je peux vous faire le premier mois offert si vous souscrivez aujourd'hui.",
+  },
+];
 
 /**
  * Conseils du Coach IA pour une simulation donnée.
@@ -159,15 +181,14 @@ export function CoachAdviceScreen({ reportId }: { reportId: string }) {
         {/* 2 — Le schéma : où l'entretien a basculé */}
         <Panel
           title="Chronologie de votre appel"
-          description="Chaque repère est placé à l'horodatage où il s'est réellement produit."
+          description="Chaque repère est placé à l'horodatage où il s'est réellement produit pendant l'appel."
         >
-          <div className="nm-scroll -mx-1 overflow-x-auto px-1 pt-2">
-            <CallTimeline
-              moments={report.keyMoments}
-              missed={report.missedOpportunities}
-              durationSeconds={report.session.durationSeconds}
-            />
-          </div>
+          {/* Le composant gère lui-même son défilement horizontal. */}
+          <CallTimeline
+            moments={report.keyMoments}
+            missed={report.missedOpportunities}
+            durationSeconds={report.session.durationSeconds}
+          />
           <CallTimelineLegend types={report.keyMoments.map((moment) => moment.type)} />
         </Panel>
 
@@ -265,10 +286,31 @@ export function CoachAdviceScreen({ reportId }: { reportId: string }) {
                 <EvidenceList evidence={priorityCompetency.evidence} />
               </>
             ) : (
-              <p className="text-sm leading-relaxed text-graphite">
-                Le Coach n&apos;a retenu aucun extrait pour cette compétence : elle n&apos;a pas pu
-                être observée assez longtemps pendant l&apos;échange.
-              </p>
+              /*
+                Sans extrait, le bloc restait une phrase d'excuse et le
+                commercial ne voyait jamais à quoi cette fiche ressemble. On
+                montre donc un exemple, explicitement marqué comme tel, pour
+                que la mise en forme attendue soit lisible dès la première
+                simulation.
+              */
+              <>
+                <p className="rounded-md bg-warning-soft px-4 py-3 text-sm leading-relaxed text-graphite">
+                  Le Coach n&apos;a retenu aucun extrait pour cette compétence sur cet appel : elle
+                  n&apos;a pas pu être observée assez longtemps. Voici à quoi ressemblera ce bloc
+                  dès qu&apos;un échange en fournira.
+                </p>
+                <div className="mt-4 rounded-md border border-dashed border-line-strong p-4">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <DemoBadge>Exemple — pas votre appel</DemoBadge>
+                  </div>
+                  <p className="mt-3 flex gap-3 text-sm leading-relaxed text-graphite">
+                    <Quote size={16} className="mt-0.5 shrink-0 text-muted" aria-hidden />
+                    La remise arrive onze secondes après l&apos;objection, avant toute question de
+                    compréhension.
+                  </p>
+                  <EvidenceList evidence={EXAMPLE_EVIDENCE} />
+                </div>
+              </>
             )}
           </Panel>
         </div>
@@ -347,6 +389,8 @@ export function CoachAdviceScreen({ reportId }: { reportId: string }) {
             <ArrowRight size={16} aria-hidden />
           </ButtonLink>
         </div>
+
+        <CoachTranscriptPanel report={report} />
 
         <CoachLimitationsPanel report={report} />
         <CoachDisclaimer variant="commercial" />

@@ -460,17 +460,41 @@ export function CoachLimitationsPanel({
         <p className="text-sm text-graphite">Aucune limite particulière signalée.</p>
       )}
 
-      <dl className="mt-5 grid grid-cols-2 gap-3 border-t border-line pt-4 text-sm">
+      {/*
+        « Disponible / Indisponible » seul n'apprenait rien : personne ne sait
+        ce qu'est la perception, ni pourquoi elle manque. Chaque ligne dit
+        maintenant de quoi il s'agit et ce que son absence implique.
+      */}
+      <dl className="mt-5 space-y-4 border-t border-line pt-4 text-sm">
         <div>
-          <dt className="nm-label">Transcript</dt>
-          <dd className="mt-1 font-medium text-ink">
-            {report.transcriptAvailable ? "Disponible" : "Indisponible"}
+          <dt className="flex flex-wrap items-center gap-2">
+            <span className="font-semibold text-ink">Transcript</span>
+            <Badge tone={report.transcriptAvailable ? "positif" : "vigilance"} dot>
+              {report.transcriptAvailable ? "Disponible" : "Indisponible"}
+            </Badge>
+          </dt>
+          <dd className="mt-1.5 leading-relaxed text-graphite">
+            Le dialogue mot à mot de l&apos;échange, horodaté.{" "}
+            {report.transcriptAvailable
+              ? "Il a été récupéré : chaque note s'appuie sur des phrases réellement prononcées."
+              : "Il n'a pas pu être récupéré ; l'analyse repose alors sur des éléments partiels et sa fiabilité est moindre."}
           </dd>
         </div>
         <div>
-          <dt className="nm-label">Perception</dt>
-          <dd className="mt-1 font-medium text-ink">
-            {report.perceptionAvailable ? "Disponible" : "Indisponible"}
+          <dt className="flex flex-wrap items-center gap-2">
+            <span className="font-semibold text-ink">Perception</span>
+            <Badge tone={report.perceptionAvailable ? "positif" : "vigilance"} dot>
+              {report.perceptionAvailable ? "Disponible" : "Indisponible"}
+            </Badge>
+          </dt>
+          <dd className="mt-1.5 leading-relaxed text-graphite">
+            Observations visuelles produites automatiquement pendant l&apos;appel — attitude générale,
+            signes d&apos;attention ou de décrochage. Tout descripteur physique ou démographique en est
+            retiré avant d&apos;atteindre le Coach, et ces observations ne sont que des indices : elles
+            ne suffisent jamais à justifier une note.{" "}
+            {report.perceptionAvailable
+              ? "Elles ont été prises en compte comme contexte."
+              : "Aucune n'a été produite pour cet appel : le plus souvent parce que la caméra est restée éteinte, ou parce que la couche de perception n'est pas activée sur le personnage. L'analyse s'est donc appuyée uniquement sur ce qui a été dit."}
           </dd>
         </div>
       </dl>

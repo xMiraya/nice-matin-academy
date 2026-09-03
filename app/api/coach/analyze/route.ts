@@ -174,6 +174,8 @@ export async function POST(request: Request) {
       selectedObjectiveIds,
       selectedObjectiveLabels,
       transcriptAvailable: true,
+      // Le dialogue est conservé pour que le commercial puisse relire son appel.
+      transcript: conversation.transcript,
       perceptionAvailable: Boolean(conversation.perception),
       extraLimitations,
     });
