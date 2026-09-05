@@ -7,32 +7,33 @@ import { getCompetency } from "@/src/data/qcm/competencies";
 import { cx } from "@/src/lib/format";
 import type { Question, QuestionOutcome, QuestionResult } from "@/src/types/qcm/quiz";
 
+/*
+ * Le repère de tonalité tient déjà en deux endroits : la puce d'icône et le
+ * badge de statut, tous deux colorés. Un troisième signal (un filet de
+ * couleur sur le bord de la carte) serait redondant plutôt qu'utile.
+ */
 const OUTCOME_META: Record<
   QuestionOutcome,
-  { label: string; chip: string; border: string; icon: typeof Check }
+  { label: string; chip: string; icon: typeof Check }
 > = {
   correct: {
     label: "Correct",
     chip: "border-positive-bright/40 bg-positive-soft text-positive",
-    border: "border-l-positive-bright",
     icon: Check,
   },
   partial: {
     label: "Partiel",
     chip: "border-warning-bright/50 bg-warning-soft text-warning",
-    border: "border-l-warning-bright",
     icon: Minus,
   },
   incorrect: {
     label: "À revoir",
     chip: "border-danger-bright/35 bg-danger-soft text-danger",
-    border: "border-l-danger-bright",
     icon: X,
   },
   unanswered: {
     label: "Sans réponse",
     chip: "border-line-strong bg-mist text-graphite",
-    border: "border-l-line-strong",
     icon: Minus,
   },
 };
@@ -134,9 +135,7 @@ export function AssessmentCorrections({ questions, results }: AssessmentCorrecti
                 const Icon = meta.icon;
                 return (
                   <li key={question.id} className="flex">
-                    <details
-                      className={cx("nm-card group w-full overflow-hidden border-l-4", meta.border)}
-                    >
+                    <details className="nm-card group w-full overflow-hidden">
                       <summary className="flex cursor-pointer list-none gap-3.5 p-4 transition-colors hover:bg-mist sm:p-5">
                         <span
                           aria-hidden

@@ -29,7 +29,7 @@ export function RealReportsPanel({
 
   if (!insights.hasReports) {
     return (
-      <div className="flex flex-wrap items-start gap-3 rounded-lg border border-line bg-white px-5 py-4 shadow-card">
+      <div className="flex flex-wrap items-start gap-3 rounded-lg border border-line bg-white px-5 py-4">
         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-sm bg-info-soft text-info">
           <Info size={17} aria-hidden />
         </span>
