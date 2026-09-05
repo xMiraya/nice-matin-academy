@@ -200,7 +200,7 @@ export function MethodologySheetView({ sheet: baseSheet, previous, next }: Metho
                   )}
                 >
                   <dt className="nm-label">{row.term}</dt>
-                  <dd className="mt-2 text-sm leading-relaxed text-graphite">
+                  <dd className="mt-2 whitespace-pre-line text-sm leading-relaxed text-graphite">
                     {sheet.fieldScenario[row.key]}
                   </dd>
                 </div>
@@ -235,7 +235,7 @@ export function MethodologySheetView({ sheet: baseSheet, previous, next }: Metho
           */}
           <Panel title="Conseil du formateur" action={<BlockIndex value={10} />}>
             <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
-              <p className="min-w-0 flex-1 text-[15px] leading-relaxed text-graphite">
+              <p className="min-w-0 flex-1 whitespace-pre-line text-[15px] leading-relaxed text-graphite">
                 {sheet.trainerTip.text}
               </p>
               {sheet.trainerTip.validationStatus === "a-valider" ? (

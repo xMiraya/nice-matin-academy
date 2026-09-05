@@ -163,7 +163,7 @@ export function AssessmentCorrections({ questions, results }: AssessmentCorrecti
                               {getCompetency(question.competency).shortLabel}
                             </span>
                           </span>
-                          <span className="mt-1.5 block text-sm font-medium leading-snug text-ink">
+                          <span className="mt-1.5 block whitespace-pre-line text-sm font-medium leading-snug text-ink">
                             {question.prompt}
                           </span>
                         </span>
@@ -177,7 +177,7 @@ export function AssessmentCorrections({ questions, results }: AssessmentCorrecti
 
                       <div className="border-t border-line px-4 pb-4 sm:px-5 sm:pb-5">
                         {question.scenario ? (
-                          <p className="mt-4 rounded-sm border border-warning-bright/40 bg-warning-soft p-3.5 text-sm leading-relaxed text-ink">
+                          <p className="mt-4 whitespace-pre-line rounded-sm border border-warning-bright/40 bg-warning-soft p-3.5 text-sm leading-relaxed text-ink">
                             {question.scenario}
                           </p>
                         ) : null}

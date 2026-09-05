@@ -115,7 +115,7 @@ export function ReportCommentThread({
                   <span className="text-sm font-semibold text-ink">{comment.authorName}</span>
                   <span className="text-xs text-muted">{formatWhen(comment.createdAt)}</span>
                 </div>
-                <p className="mt-1 text-sm leading-relaxed text-graphite">{comment.text}</p>
+                <p className="mt-1 whitespace-pre-line text-sm leading-relaxed text-graphite">{comment.text}</p>
               </div>
             </li>
           ))}

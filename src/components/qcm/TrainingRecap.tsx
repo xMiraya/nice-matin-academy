@@ -179,7 +179,7 @@ export function TrainingRecap({ questions, results }: TrainingRecapProps) {
                           {meta.label}
                         </span>
                       </span>
-                      <span className="mt-1.5 block text-[13px] font-medium leading-snug text-ink">
+                      <span className="mt-1.5 block whitespace-pre-line text-[13px] font-medium leading-snug text-ink">
                         {question.prompt}
                       </span>
                     </span>
@@ -191,7 +191,7 @@ export function TrainingRecap({ questions, results }: TrainingRecapProps) {
                   </summary>
                   <div className="px-3.5 pb-3.5">
                     {question.scenario ? (
-                      <p className="mt-1 rounded-sm border border-warning-bright/40 bg-warning-soft p-3.5 text-sm leading-relaxed text-ink">
+                      <p className="mt-1 whitespace-pre-line rounded-sm border border-warning-bright/40 bg-warning-soft p-3.5 text-sm leading-relaxed text-ink">
                         {question.scenario}
                       </p>
                     ) : null}

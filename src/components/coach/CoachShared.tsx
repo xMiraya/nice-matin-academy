@@ -181,7 +181,7 @@ export function CoachCompetencyDetail({ report }: { report: CoachReport }) {
                 </summary>
 
                 <div className="border-t border-line p-4 sm:p-5">
-                  <p className="text-sm leading-relaxed text-graphite">{competency.observation}</p>
+                  <p className="whitespace-pre-line text-sm leading-relaxed text-graphite">{competency.observation}</p>
                   {competency.evidence.length > 0 ? (
                     <EvidenceList evidence={competency.evidence} />
                   ) : null}
@@ -379,7 +379,7 @@ export function CoachHighlightsPanel({
                 </span>
               ) : null}
             </div>
-            <p className="mt-1.5 text-sm leading-relaxed text-graphite">{highlight.explanation}</p>
+            <p className="mt-1.5 whitespace-pre-line text-sm leading-relaxed text-graphite">{highlight.explanation}</p>
           </li>
         ))}
       </ul>

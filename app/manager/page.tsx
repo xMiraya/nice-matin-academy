@@ -25,6 +25,7 @@ import {
 } from "@/src/components/TeamMemberList";
 import { CoachFocusHero } from "@/src/components/CoachPriorityCard";
 import { TeamSpotlight } from "@/src/components/TeamSpotlight";
+import { QuickJumpNav } from "@/src/components/QuickJumpNav";
 import { RealReportsPanel } from "@/src/components/coach/RealReportsPanel";
 import {
   ScoreDistributionChart,
@@ -50,6 +51,15 @@ function teamCompetencyAverages(members: typeof DEMO_MANAGER_DASHBOARD.members) 
     };
   });
 }
+
+/** Sections de la page, utilisées à la fois par les ancres et par le fil de repères. */
+const SECTIONS = [
+  { id: "priorites", label: "Priorités" },
+  { id: "tendance", label: "Tendance" },
+  { id: "competences", label: "Compétences" },
+  { id: "equipe", label: "Équipe" },
+  { id: "simulations", label: "Simulations" },
+] as const;
 
 export default function ManagerDashboardPage() {
   const data = DEMO_MANAGER_DASHBOARD;
@@ -108,124 +118,141 @@ export default function ManagerDashboardPage() {
       </SectionTitle>
 
       {/*
+        Raccourcis de section : cette page empile huit blocs assez longs. Un
+        repère de navigation en haut permet de sauter directement à la partie
+        recherchée — utile au clavier, au lecteur d'écran, et tout simplement
+        à qui ne veut pas tout parcourir pour retrouver un bloc déjà vu.
+      */}
+      <QuickJumpNav sections={SECTIONS} />
+
+      {/*
         1 — Ce qui demande une décision cette semaine, en tout premier : ce
         bloc a été remonté de la troisième à la première position. C'est ici
         que le manager doit agir, avant même les indicateurs de tendance.
       */}
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
-        <Panel
-          title="À traiter cette semaine"
-          description="Propositions d'accompagnement, sans notion de sanction."
-          className="lg:col-span-7"
-          action={<Badge tone="critique">{data.alerts.length}</Badge>}
-        >
-          <PedagogicalAlerts alerts={data.alerts} />
-        </Panel>
+      <section id="priorites" aria-label="Priorités de la semaine" className="scroll-mt-20">
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
+          <Panel
+            title="À traiter cette semaine"
+            description="Propositions d'accompagnement, sans notion de sanction."
+            className="lg:col-span-7"
+            action={<Badge tone="critique">{data.alerts.length}</Badge>}
+          >
+            <PedagogicalAlerts alerts={data.alerts} />
+          </Panel>
 
-        <Panel
-          title="À relancer"
-          description="Sans simulation depuis plus de deux semaines."
-          className="lg:col-span-5"
-        >
-          <InactiveMembers members={data.members} />
-        </Panel>
-      </div>
+          <Panel
+            title="À relancer"
+            description="Sans simulation depuis plus de deux semaines."
+            className="lg:col-span-5"
+          >
+            <InactiveMembers members={data.members} />
+          </Panel>
+        </div>
 
-      {/* 2 — La priorité collective et le niveau moyen, côte à côte. */}
-      <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-12">
-        <CoachFocusHero
-          className="lg:col-span-8"
-          eyebrow="Priorité collective"
-          showMascot={false}
-          actionTitle="Ce que vous pouvez engager"
-          priority={{
-            competencyId: weakest.competencyId,
-            title: leadAlert?.title ?? `${weakestCompetency.label} : compétence la plus fragile`,
-            diagnostic: `Moyenne d'équipe de ${weakest.score} / 100 sur cette compétence, soit ${gapToAverage} points sous la moyenne générale (${data.teamAverageScore} / 100) : c'est la plus fragile des huit.`,
-            action: `Ouvrir le détail de la compétence pour repérer les commerciaux concernés, puis programmer un temps collectif : « ${weakestCompetency.description} »`,
-          }}
-          score={weakest.score}
-          actionHref="/manager/competences"
-          actionLabel="Analyser cette compétence"
-          secondaryHref="/manager/commerciaux"
-          secondaryLabel="Voir les commerciaux concernés"
-        />
-
-        <div className="flex flex-col gap-5 lg:col-span-4">
-          <MetricCard
-            label="Score moyen de l'équipe"
-            value={data.teamAverageScore}
-            unit="/ 100"
-            icon={<Gauge size={18} aria-hidden />}
-            delta={data.averageProgress}
-            deltaSuffix="pts sur 30 jours"
-            className="flex-1"
-            footer={
-              <Sparkline
-                values={data.weeklyEvolution.map((week) => week.score)}
-                color={scoreColor(data.teamAverageScore)}
-                label="Évolution hebdomadaire du score moyen"
-              />
-            }
+        {/* La priorité collective et le niveau moyen, côte à côte. */}
+        <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-12">
+          <CoachFocusHero
+            className="lg:col-span-8"
+            eyebrow="Priorité collective"
+            showMascot={false}
+            actionTitle="Ce que vous pouvez engager"
+            priority={{
+              competencyId: weakest.competencyId,
+              title: leadAlert?.title ?? `${weakestCompetency.label} : compétence la plus fragile`,
+              diagnostic: `Moyenne d'équipe de ${weakest.score} / 100 sur cette compétence, soit ${gapToAverage} points sous la moyenne générale (${data.teamAverageScore} / 100) : c'est la plus fragile des huit.`,
+              action: `Ouvrir le détail de la compétence pour repérer les commerciaux concernés, puis programmer un temps collectif : « ${weakestCompetency.description} »`,
+            }}
+            score={weakest.score}
+            actionHref="/manager/competences"
+            actionLabel="Analyser cette compétence"
+            secondaryHref="/manager/commerciaux"
+            secondaryLabel="Voir les commerciaux concernés"
           />
 
+          <div className="flex flex-col gap-5 lg:col-span-4">
+            <MetricCard
+              label="Score moyen de l'équipe"
+              value={data.teamAverageScore}
+              unit="/ 100"
+              icon={<Gauge size={18} aria-hidden />}
+              delta={data.averageProgress}
+              deltaSuffix="pts sur 30 jours"
+              className="flex-1"
+              footer={
+                <Sparkline
+                  values={data.weeklyEvolution.map((week) => week.score)}
+                  color={scoreColor(data.teamAverageScore)}
+                  label="Évolution hebdomadaire du score moyen"
+                />
+              }
+            />
+
+            <MetricCard
+              label="Taux de participation"
+              value={data.participationRate}
+              unit="%"
+              icon={<Activity size={17} aria-hidden />}
+              hint="Commerciaux ayant réalisé au moins une simulation ce mois-ci."
+              tone="ciel"
+            />
+          </div>
+        </div>
+
+        {/* Les repères de volume et de couverture. */}
+        <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
           <MetricCard
-            label="Taux de participation"
-            value={data.participationRate}
-            unit="%"
-            icon={<Activity size={17} aria-hidden />}
-            hint="Commerciaux ayant réalisé au moins une simulation ce mois-ci."
-            tone="ciel"
+            label="Commerciaux"
+            value={data.repsCount}
+            icon={<Users size={17} aria-hidden />}
+            hint="Répartis sur trois équipes terrain."
+          />
+          <MetricCard
+            label="Simulations réalisées"
+            value={data.sessionsCount}
+            icon={<CalendarCheck size={17} aria-hidden />}
+            hint="Depuis le lancement du dispositif."
+          />
+          <MetricCard
+            label="Progression moyenne"
+            value={`+${data.averageProgress}`}
+            unit="pts"
+            icon={<TrendingUp size={17} aria-hidden />}
+            hint="Moyenne des progressions individuelles sur trente jours."
+            tone="positif"
+          />
+          <MetricCard
+            label="Compétences à renforcer"
+            value={toStrengthen}
+            icon={<Radar size={17} aria-hidden />}
+            hint="Compétences dont la moyenne d'équipe reste sous 60."
+            tone="vigilance"
           />
         </div>
-      </div>
-
-      {/* 3 — Les repères de volume et de couverture. */}
-      <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
-        <MetricCard
-          label="Commerciaux"
-          value={data.repsCount}
-          icon={<Users size={17} aria-hidden />}
-          hint="Répartis sur trois équipes terrain."
-        />
-        <MetricCard
-          label="Simulations réalisées"
-          value={data.sessionsCount}
-          icon={<CalendarCheck size={17} aria-hidden />}
-          hint="Depuis le lancement du dispositif."
-        />
-        <MetricCard
-          label="Progression moyenne"
-          value={`+${data.averageProgress}`}
-          unit="pts"
-          icon={<TrendingUp size={17} aria-hidden />}
-          hint="Moyenne des progressions individuelles sur trente jours."
-          tone="positif"
-        />
-        <MetricCard
-          label="Compétences à renforcer"
-          value={toStrengthen}
-          icon={<Radar size={17} aria-hidden />}
-          hint="Compétences dont la moyenne d'équipe reste sous 60."
-          tone="vigilance"
-        />
-      </div>
+      </section>
 
       {/* 4 — La tendance, moins urgente que les deux blocs précédents. */}
-      <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-12">
-        <Panel
-          title="Évolution hebdomadaire"
-          description="Score moyen de l'équipe, semaine par semaine."
-          className="lg:col-span-7"
-          flush
-        >
-          <WeeklyEvolutionChart data={data.weeklyEvolution} height={300} />
-        </Panel>
+      <section id="tendance" aria-label="Tendance" className="mt-5 scroll-mt-20">
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
+          <Panel
+            title="Évolution hebdomadaire"
+            description="Score moyen de l'équipe, semaine par semaine."
+            className="lg:col-span-7"
+            flush
+          >
+            <WeeklyEvolutionChart data={data.weeklyEvolution} height={300} />
+          </Panel>
 
-        <Panel title="Répartition des scores" description="Nombre de commerciaux par tranche." className="lg:col-span-5" flush>
-          <ScoreDistributionChart data={data.scoreDistribution} height={300} />
-        </Panel>
-      </div>
+          <Panel
+            title="Répartition des scores"
+            description="Nombre de commerciaux par tranche."
+            className="lg:col-span-5"
+            flush
+          >
+            <ScoreDistributionChart data={data.scoreDistribution} height={300} />
+          </Panel>
+        </div>
+      </section>
 
       {/* 5 — Qui porte l'équipe, qui a le plus besoin d'accompagnement. */}
       <div className="mt-5">
@@ -233,7 +260,7 @@ export default function ManagerDashboardPage() {
       </div>
 
       {/* 6 — La lecture croisée, pour aller plus loin que les deux profils mis en avant. */}
-      <div className="mt-5">
+      <section id="competences" aria-label="Compétences" className="mt-5 scroll-mt-20">
         <Panel
           title="Commerciaux × compétences"
           description={`Point solide de l'équipe : ${strongest ? getCompetency(strongest.competencyId).label.toLowerCase() : "—"}. Point fragile : ${weakestCompetency.label.toLowerCase()}.`}
@@ -245,10 +272,10 @@ export default function ManagerDashboardPage() {
         >
           <SkillsHeatmap members={data.members} />
         </Panel>
-      </div>
+      </section>
 
       {/* 7 — Le suivi individuel complet, consulté moins souvent que la carte thermique. */}
-      <div className="mt-5">
+      <section id="equipe" aria-label="Équipe" className="mt-5 scroll-mt-20">
         <Panel
           title="Commerciaux"
           description="Score moyen, progression sur trente jours et compétence à travailler."
@@ -260,10 +287,10 @@ export default function ManagerDashboardPage() {
         >
           <TeamMemberList members={data.members} />
         </Panel>
-      </div>
+      </section>
 
       {/* 8 — Le flux d'activité récente, en toute fin de page. */}
-      <div className="mt-5">
+      <section id="simulations" aria-label="Simulations récentes" className="mt-5 scroll-mt-20">
         <Panel
           title="Simulations récentes"
           description="Les derniers entraînements de l'équipe."
@@ -275,7 +302,7 @@ export default function ManagerDashboardPage() {
         >
           <SessionTable sessions={data.recentSessions} showRep />
         </Panel>
-      </div>
+      </section>
     </>
   );
 }

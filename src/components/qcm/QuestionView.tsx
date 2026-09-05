@@ -33,12 +33,12 @@ export function QuestionView({ question, value, onChange, locked = false, index,
       </p>
 
       {question.scenario ? (
-        <p className="mt-3.5 max-w-prose rounded-sm border border-warning-bright/40 bg-warning-soft p-3.5 text-sm leading-relaxed text-ink">
+        <p className="mt-3.5 max-w-prose whitespace-pre-line rounded-sm border border-warning-bright/40 bg-warning-soft p-3.5 text-sm leading-relaxed text-ink">
           {question.scenario}
         </p>
       ) : null}
 
-      <h2 className="mt-3.5 max-w-prose text-lg font-semibold leading-snug tracking-tight text-ink">
+      <h2 className="mt-3.5 max-w-prose whitespace-pre-line text-lg font-semibold leading-snug tracking-tight text-ink">
         {question.prompt}
       </h2>
 
