@@ -111,7 +111,7 @@ export function ProgressDashboard() {
               return (
                 <tr key={assessment.id} className="border-b border-line/70 align-middle">
                   <th scope="row" className="py-3 pr-4 text-left font-medium text-ink">
-                    {assessment.level} — {assessment.title}
+                    {assessment.level} : {assessment.title}
                   </th>
                   <td className="py-3 pr-4">
                     <Badge tone={state.tone} dot>
@@ -194,7 +194,7 @@ export function ProgressDashboard() {
                   Revoir la correction de votre dernière évaluation
                 </Link>
                 <p className="mt-0.5 text-graphite">
-                  Passée le {new Date(latest.completedAt).toLocaleDateString("fr-FR")} — temps
+                  Passée le {new Date(latest.completedAt).toLocaleDateString("fr-FR")}, temps
                   passé : {formatDuration(latest.durationSeconds)}.
                 </p>
               </li>
@@ -206,7 +206,7 @@ export function ProgressDashboard() {
       <Panel title="Données locales">
         <p className="max-w-prose text-sm leading-relaxed text-graphite">
           Toute votre progression sur les QCM est stockée dans ce navigateur. La supprimer est
-          définitif et n’affecte aucun autre appareil — les simulations analysées par le Coach IA ne
+          définitif et n’affecte aucun autre appareil. Les simulations analysées par le Coach IA ne
           sont pas concernées.
         </p>
         {confirmReset ? (

@@ -104,7 +104,7 @@ export function SessionTable({
                   <span className="block font-semibold text-ink">{session.title}</span>
                   <span className="mt-0.5 block text-xs text-graphite">
                     {session.objectiveLabel}
-                    {session.technicalTest ? " — test technique, hors statistiques" : ""}
+                    {session.technicalTest ? " (test technique, hors statistiques)" : ""}
                   </span>
                 </td>
                 {showRep ? (

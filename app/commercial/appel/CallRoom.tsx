@@ -349,7 +349,7 @@ export function CallRoom() {
                       <CharacterAvatar tone="dark" />
                     </span>
                     <p className="mt-5 text-lg font-semibold">Julie Dupont</p>
-                    <p className="mt-1 text-sm text-white/50">Cliente virtuelle — prête à démarrer</p>
+                    <p className="mt-1 text-sm text-white/50">Cliente virtuelle, prête à démarrer</p>
                     <Button
                       onClick={startCall}
                       disabled={status === "starting"}

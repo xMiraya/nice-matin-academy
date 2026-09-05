@@ -8,7 +8,7 @@ import { ButtonLink } from "@/src/components/Button";
 import { formatDate } from "@/src/lib/format";
 
 export const metadata: Metadata = {
-  title: "Compte rendu — Validation voix Julie Français",
+  title: "Compte rendu : Validation voix Julie Français",
   description: "Compte rendu détaillé de l'appel de validation technique réalisé avec Julie Dupont.",
 };
 
@@ -18,7 +18,7 @@ export default function CompteRenduDemoJuliePage() {
   return (
     <>
       <PageHeader
-        eyebrow={`Compte rendu — ${formatDate(report.date)}`}
+        eyebrow={`Compte rendu : ${formatDate(report.date)}`}
         title={report.title}
         description="Analyse produite par le Coach IA à partir du transcript, du comportement observé et des réactions de Julie."
         back={{ href: "/commercial/simulations", label: "Mes simulations" }}

@@ -153,7 +153,7 @@ export function CoachFocusHero({
           <p className="mt-1 text-sm font-semibold text-white">
             {getCompetencyLabel(priority.competencyId)}
             {typeof score === "number" ? (
-              <span className="text-white/60"> — {score} / 100</span>
+              <span className="text-white/60"> ({score} / 100)</span>
             ) : null}
           </p>
         </div>

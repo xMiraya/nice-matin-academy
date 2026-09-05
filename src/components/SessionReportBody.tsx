@@ -112,11 +112,11 @@ export function SessionReportBody({
           <ScoreGauge score={report.globalScore} label="" caption="sur 100" />
           <p className="mt-2 text-center text-sm leading-relaxed text-graphite">
             {report.outcome}
-            {report.outcomeReason ? ` — ${report.outcomeReason.toLowerCase()}.` : "."}
+            {report.outcomeReason ? `, ${report.outcomeReason.toLowerCase()}.` : "."}
           </p>
           {report.technicalTest ? (
             <Badge tone="vigilance" className="mt-4">
-              Test technique — exclu des statistiques
+              Test technique : exclu des statistiques
             </Badge>
           ) : null}
         </Panel>

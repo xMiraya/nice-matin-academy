@@ -69,7 +69,7 @@ export function StatusBadge({ status, className }: { status: SessionStatus; clas
 export function TechnicalTestBadge({ className }: { className?: string }) {
   return (
     <Badge tone="vigilance" className={className}>
-      Test technique — exclu des statistiques
+      Test technique : exclu des statistiques
     </Badge>
   );
 }

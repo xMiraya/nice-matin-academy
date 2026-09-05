@@ -90,7 +90,7 @@ export function MethodologySheetView({ sheet: baseSheet, previous, next }: Metho
             </span>
             <div className="min-w-0">
               <p className="nm-label mb-2 text-white/60">
-                Compétence {sheet.number} sur 8 — Fiche méthodologique
+                Compétence {sheet.number} sur 8, fiche méthodologique
               </p>
               <h1 className="nm-display text-[1.75rem] leading-[1.15] text-white sm:text-[2.125rem]">
                 {sheet.title}
@@ -113,7 +113,7 @@ export function MethodologySheetView({ sheet: baseSheet, previous, next }: Metho
 
       <div className="mb-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px] text-graphite">
         <span>
-          <span className="text-muted">Objectif — </span>
+          <span className="text-muted">Objectif : </span>
           {sheet.objective}
         </span>
         <span className="text-muted">Mise à jour : {formatDate(sheet.updatedAt)}</span>

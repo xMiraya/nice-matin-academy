@@ -23,7 +23,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: {
     default: "Nice-Matin Academy",
-    template: "%s — Nice-Matin Academy",
+    template: "%s - Nice-Matin Academy",
   },
   description:
     "Plateforme d'entraînement commercial Nice-Matin : simulations avec un client virtuel et analyse détaillée par le Coach IA.",

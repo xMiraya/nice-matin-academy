@@ -33,7 +33,7 @@ export default function FichesPage() {
         meta={
           toValidate > 0 ? (
             <Badge tone="vigilance">
-              {toValidate} fiche{toValidate > 1 ? "s" : ""} sur {methodologySheets.length} —{" "}
+              {toValidate} fiche{toValidate > 1 ? "s" : ""} sur {methodologySheets.length} :{" "}
               {VALIDATION_LABEL}
             </Badge>
           ) : null

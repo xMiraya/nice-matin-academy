@@ -63,7 +63,7 @@ export function CoachReportScreen({ reportId }: { reportId: string }) {
   return (
     <>
       <PageHeader
-        eyebrow={`Compte rendu — ${formatDate(report.session.date.slice(0, 10))}`}
+        eyebrow={`Compte rendu : ${formatDate(report.session.date.slice(0, 10))}`}
         title="Votre entretien avec Julie Dupont"
         description={report.commercialSummary}
         back={{ href: "/commercial/simulations", label: "Mes simulations" }}

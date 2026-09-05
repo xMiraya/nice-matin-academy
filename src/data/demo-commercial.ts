@@ -17,7 +17,7 @@ export const DEMO_COMMERCIAL_PROFILE: UserProfile = {
 export const DEMO_COMMERCIAL_SESSIONS: SessionSummary[] = [
   {
     id: "s-2026-08-04",
-    title: "Objection prix — abonnement numérique",
+    title: "Objection prix : abonnement numérique",
     date: "2026-08-04",
     objectiveLabel: "Gestion de l'objection prix",
     difficulty: "difficile",
@@ -57,7 +57,7 @@ export const DEMO_COMMERCIAL_SESSIONS: SessionSummary[] = [
   },
   {
     id: "s-2026-07-21",
-    title: "Écoute active — lectrice fidèle",
+    title: "Écoute active : lectrice fidèle",
     date: "2026-07-21",
     objectiveLabel: "Écoute active",
     difficulty: "facile",
@@ -67,7 +67,7 @@ export const DEMO_COMMERCIAL_SESSIONS: SessionSummary[] = [
   },
   {
     id: "s-2026-07-17",
-    title: "Présentation de la valeur — offre week-end",
+    title: "Présentation de la valeur : offre week-end",
     date: "2026-07-17",
     objectiveLabel: "Présentation de la valeur",
     difficulty: "intermediaire",

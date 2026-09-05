@@ -16,7 +16,7 @@ export function MobileNavigation({ role }: { role: WorkspaceRole }) {
 
   return (
     <nav data-app-chrome
-      aria-label={`${WORKSPACE_LABEL[role]} — navigation mobile`}
+      aria-label={`${WORKSPACE_LABEL[role]}, navigation mobile`}
       className="sticky bottom-0 z-20 border-t border-line bg-white/95 px-2 pb-[env(safe-area-inset-bottom)] backdrop-blur-md lg:hidden"
     >
       {/* Le nombre de colonnes suit le nombre de rubriques de l'espace courant. */}

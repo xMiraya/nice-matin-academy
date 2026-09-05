@@ -123,7 +123,7 @@ export function TrainingRecap({ questions, results }: TrainingRecapProps) {
                   "flex h-10 w-10 flex-col items-center justify-center rounded-sm border",
                   meta.chip,
                 )}
-                title={`Question ${index + 1} — ${meta.label}`}
+                title={`Question ${index + 1}, ${meta.label}`}
               >
                 <span className="sr-only">
                   Question {index + 1} : {meta.label}

@@ -256,7 +256,7 @@ export function CoachAdviceScreen({ reportId }: { reportId: string }) {
                         {formatTimer(moment.timestampSeconds)}
                       </span>
                       <span>
-                        <span className="font-medium text-ink">{moment.title}</span> —{" "}
+                        <span className="font-medium text-ink">{moment.title}</span> :{" "}
                         {moment.explanation}
                       </span>
                     </li>
@@ -301,7 +301,7 @@ export function CoachAdviceScreen({ reportId }: { reportId: string }) {
                 </p>
                 <div className="mt-4 rounded-md border border-dashed border-line-strong p-4">
                   <div className="flex flex-wrap items-center gap-2">
-                    <DemoBadge>Exemple — pas votre appel</DemoBadge>
+                    <DemoBadge>Exemple : pas votre appel</DemoBadge>
                   </div>
                   <p className="mt-3 flex gap-3 text-sm leading-relaxed text-graphite">
                     <Quote size={16} className="mt-0.5 shrink-0 text-muted" aria-hidden />
