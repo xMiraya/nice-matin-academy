@@ -269,7 +269,7 @@ export function SkillsHeatmap({ members }: { members: TeamMember[] }) {
         <button
           type="button"
           onClick={() => setExpanded(true)}
-          className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-sm border border-dashed border-line-strong py-2.5 text-sm font-semibold text-brand transition-colors hover:border-brand-accent hover:bg-brand-soft"
+          className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-sm bg-brand-soft py-2.5 text-sm font-semibold text-brand transition-colors hover:bg-brand-sky"
         >
           Afficher les {sorted.length - INITIAL_ROWS} autres commerciaux
           <ChevronDown size={15} aria-hidden />

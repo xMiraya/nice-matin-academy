@@ -20,7 +20,7 @@ export function QuickJumpNav({ sections }: { sections: readonly Section[] }) {
           <li key={section.id}>
             <a
               href={`#${section.id}`}
-              className="inline-flex items-center rounded-full border border-line bg-white px-3.5 py-1.5 text-[13px] font-medium text-graphite transition-colors hover:border-brand-sky hover:bg-brand-soft hover:text-brand"
+              className="inline-flex items-center rounded-full bg-line px-3.5 py-1.5 text-[13px] font-medium text-ink transition-colors hover:bg-brand-sky hover:text-brand"
             >
               {section.label}
             </a>
