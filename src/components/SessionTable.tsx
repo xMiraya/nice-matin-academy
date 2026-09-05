@@ -4,6 +4,7 @@ import type { SessionSummary } from "@/src/types";
 import { StatusBadge } from "@/src/components/StatusBadge";
 import { EmptyState } from "@/src/components/EmptyState";
 import { Avatar } from "@/src/components/Avatar";
+import { photoForName } from "@/src/data/team-photos";
 import {
   DIFFICULTY_LABELS,
   cx,
@@ -56,7 +57,11 @@ export function SessionTable({
   emptyDescription = "Les comptes rendus apparaîtront ici dès la première simulation terminée.",
 }: SessionTableProps) {
   if (sessions.length === 0) {
-    return <EmptyState title={emptyTitle} description={emptyDescription} />;
+    return <EmptyState
+        image="/images/etats/aucune-simulation.jpg"
+        title={emptyTitle}
+        description={emptyDescription}
+      />;
   }
 
   return (
@@ -111,7 +116,11 @@ export function SessionTable({
                   <td className="py-3 pr-4">
                     {session.repName ? (
                       <span className="flex items-center gap-2">
-                        <Avatar initials={initialsOf(session.repName)} size="xs" />
+                        <Avatar
+                          initials={initialsOf(session.repName)}
+                          photo={photoForName(session.repName)}
+                          size="xs"
+                        />
                         <span className="text-graphite">{session.repName}</span>
                       </span>
                     ) : (

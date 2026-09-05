@@ -11,6 +11,7 @@ export const DEMO_COMMERCIAL_PROFILE: UserProfile = {
   team: "Équipe Nice",
   level: "intermediaire",
   initials: "AJ",
+  photo: "/images/equipe/alexandre-jego.jpg",
 };
 
 /** Historique fictif servant uniquement à illustrer l'interface. */

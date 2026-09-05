@@ -78,7 +78,7 @@ function LeaderChip({
 
   const inner = (
     <span className="flex items-center gap-2">
-      <Avatar initials={entry.member.profile.initials} size="xs" />
+      <Avatar initials={entry.member.profile.initials} photo={entry.member.profile.photo} size="xs" />
       <span className="min-w-0">
         <span className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-muted">
           {label}

@@ -48,7 +48,7 @@ function SpotlightCard({ title, member, tone }: SpotlightCardProps) {
       </div>
 
       <div className="relative mt-4 flex items-center gap-3">
-        <Avatar initials={member.profile.initials} size="lg" />
+        <Avatar initials={member.profile.initials} photo={member.profile.photo} size="lg" />
         <div className="min-w-0">
           <p className="truncate text-base font-semibold text-ink">{name}</p>
           <p className="truncate text-xs text-graphite">{member.profile.team}</p>

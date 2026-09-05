@@ -24,7 +24,7 @@ export function TeamMemberList({ members }: { members: TeamMember[] }) {
         const content = (
           <>
             <div className="flex min-w-0 items-center gap-3">
-              <Avatar initials={member.profile.initials} size="md" />
+              <Avatar initials={member.profile.initials} photo={member.profile.photo} size="md" />
               <span className="min-w-0">
                 <span className="block truncate text-sm font-semibold text-ink">{name}</span>
                 <span className="block truncate text-xs text-graphite">

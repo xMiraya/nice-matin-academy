@@ -24,6 +24,7 @@ import { ButtonLink } from "@/src/components/Button";
 import { Badge, DemoBadge } from "@/src/components/StatusBadge";
 import { CoachFocusHero } from "@/src/components/CoachPriorityCard";
 import { SessionTable } from "@/src/components/SessionTable";
+import { TrainingShortcuts } from "@/src/components/TrainingShortcuts";
 import { Sparkline } from "@/src/components/Sparkline";
 import { CompetencyRadar } from "@/src/components/charts/CompetencyRadar";
 import { ProgressChart } from "@/src/components/charts/ProgressChart";
@@ -92,6 +93,7 @@ export function DashboardScreen() {
   return (
     <>
       <PageHeader
+        image="/images/hero/commercial.jpg"
         eyebrow="Espace commercial"
         title={`Bonjour ${profile.firstName}`}
         description={
@@ -319,7 +321,15 @@ export function DashboardScreen() {
         </Panel>
       </div>
 
-      {/* 5 — L'historique, en fin de page : on le consulte, on n'en part pas. */}
+      {/* 5 — Et maintenant, je fais quoi : les trois portes d'entrée. */}
+      <section className="mt-5" aria-labelledby="poursuivre">
+        <h2 id="poursuivre" className="nm-display mb-4 text-xl text-ink">
+          Poursuivre l&apos;entraînement
+        </h2>
+        <TrainingShortcuts />
+      </section>
+
+      {/* 6 — L'historique, en fin de page : on le consulte, on n'en part pas. */}
       <div className="mt-5">
         <Panel
           title={useReal ? "Vos analyses" : "Dernières simulations"}

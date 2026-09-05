@@ -11,6 +11,7 @@ export default function NouvelleSimulationPage() {
   return (
     <>
       <PageHeader
+        image="/images/hero/simulation.jpg"
         eyebrow="Espace commercial"
         title="Préparer une simulation"
         description="Choisissez un niveau et un objectif pédagogique, vérifiez votre matériel, puis lancez l'entretien."

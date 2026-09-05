@@ -41,6 +41,7 @@ export function ManagerReportScreen({ reportId }: { reportId: string }) {
           back={{ href: "/manager/simulations", label: "Simulations" }}
         />
         <EmptyState
+          image="/images/etats/aucun-resultat.jpg"
           icon={<FileSearch size={20} aria-hidden />}
           title="Ce compte rendu n'est pas disponible sur cet appareil"
           description="Les analyses de ce prototype sont enregistrées localement dans le navigateur qui a réalisé la simulation. Elles ne circulent pas encore entre postes."
