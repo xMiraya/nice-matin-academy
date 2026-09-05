@@ -185,7 +185,7 @@ export function CoachFocusHero({
         {secondaryHref ? (
           <Link
             href={secondaryHref}
-            className="inline-flex items-center gap-2 rounded-sm border border-white/25 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+            className="inline-flex items-center gap-2 rounded-sm bg-brand-accent px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-mid"
           >
             {secondaryLabel}
           </Link>

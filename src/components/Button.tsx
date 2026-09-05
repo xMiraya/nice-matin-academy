@@ -6,27 +6,24 @@ type Variant = "primary" | "secondary" | "ghost" | "danger" | "inverse";
 type Size = "sm" | "md";
 
 /*
- * Hiérarchie visuelle des boutons.
+ * Boutons en aplats pleins.
  *
- * Avant cette révision, `secondary` (fond blanc + bordure fine + ombre douce)
- * était visuellement identique aux cartes non cliquables (`nm-card` utilise
- * exactly la même recette). Un bouton secondaire posé à côté d'un panneau
- * ordinaire ne se distinguait donc que par son contenu, jamais par sa forme —
- * on ne pouvait pas deviner au premier coup d'œil ce qui réagissait au clic.
+ * Aucune variante n'est en contour : chacune porte un fond opaque, et c'est
+ * l'intensité de ce fond qui donne la hiérarchie. Un bouton bordé au fond
+ * blanc se confondait avec les cartes et les champs de saisie, qui utilisent
+ * la même recette ; un aplat, lui, ne ressemble à rien d'autre sur la page.
  *
- * Chaque variante porte maintenant une couleur de marque bien à elle, visible
- * même sans lire le texte : bordure teintée + fond légèrement teinté pour le
- * secondaire, puce visible pour le fantôme. Le survol accentue toujours la
- * teinte plutôt que de simplement foncer un gris neutre.
+ * Du plus fort au plus discret : marine plein, bleu ciel, gris. Le survol
+ * fonce toujours d'un cran dans la même famille, de sorte que le changement
+ * d'état se lise même sans percevoir finement la couleur.
  */
 const VARIANTS: Record<Variant, string> = {
-  primary: "bg-brand text-white shadow-card hover:bg-brand-accent",
-  secondary:
-    "border-[1.5px] border-brand-sky bg-brand-soft text-brand transition-shadow hover:border-brand-accent hover:bg-white hover:shadow-card",
-  ghost:
-    "border border-transparent bg-mist text-graphite hover:border-line-strong hover:bg-white hover:text-ink",
+  primary: "bg-brand text-white hover:bg-brand-accent",
+  secondary: "bg-brand-sky text-brand hover:bg-brand-accent hover:text-white",
+  ghost: "bg-line text-ink hover:bg-line-strong",
   danger: "bg-danger text-white hover:bg-danger-bright",
-  inverse: "bg-white text-brand shadow-card hover:bg-brand-sky",
+  /** Pour les fonds marine, où le blanc devient la teinte la plus forte. */
+  inverse: "bg-white text-brand hover:bg-brand-sky",
 };
 
 const SIZES: Record<Size, string> = {
