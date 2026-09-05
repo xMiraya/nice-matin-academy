@@ -93,7 +93,7 @@ export function Topbar({ role, profile }: TopbarProps) {
           />
 
           <div className="flex items-center gap-2.5 rounded-sm border border-line bg-white p-1 pr-3">
-            <Avatar initials={profile.initials} size="sm" />
+            <Avatar initials={profile.initials} photo={profile.photo} size="sm" />
             <span className="hidden leading-tight sm:block">
               <span className="block text-xs font-semibold text-ink">
                 {profile.firstName} {profile.lastName}

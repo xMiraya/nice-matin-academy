@@ -154,8 +154,10 @@ export interface UserProfile {
   role: string;
   team: string;
   level?: ExperienceLevel;
-  /** Initiales affichées à la place d'une photographie. */
+  /** Initiales, affichées quand aucune photographie n'est disponible. */
   initials: string;
+  /** Photographie de profil, sous `/images/equipe/`. */
+  photo?: string;
 }
 
 export interface CommercialDashboard {

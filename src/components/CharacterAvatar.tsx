@@ -11,31 +11,58 @@ import { cx } from "@/src/lib/format";
  * obligatoire — tant qu'aucun n'existe, on retombe sur une illustration
  * dessinée localement en SVG, sans jamais afficher d'image cassée.
  */
+/**
+ * Trois expressions de Julie, une par niveau de difficulté.
+ *
+ * Le niveau change réellement son comportement pendant l'appel : montrer
+ * l'expression correspondante avant de commencer évite de promettre un
+ * entretien détendu là où l'on va en trouver un tendu.
+ */
+const PORTRAITS = {
+  ouverte: "/images/julie/julie-dupont-ouverte.jpg",
+  serein: "/images/julie/julie-dupont.jpg",
+  sceptique: "/images/julie/julie-dupont-sceptique.jpg",
+} as const;
+
+export type CharacterMood = keyof typeof PORTRAITS;
+
+/**
+ * Candidats testés dans l'ordre, du plus spécifique au plus général.
+ *
+ * Seuls des noms au nom du personnage sont acceptés : un visuel portant le
+ * nom de quelqu'un d'autre a déjà été affiché ici à la place de Julie. La
+ * source de vérité est la réplique Tavus utilisée pendant l'appel. Le dernier
+ * candidat est le portrait vectoriel livré avec le projet ; au-delà, on
+ * retombe sur l'illustration dessinée en SVG, jamais sur une image cassée.
+ */
 export const PORTRAIT_CANDIDATES = [
-  /*
-    Une photographie déposée sous l'un de ces noms passe devant l'illustration.
-    Seuls des noms au nom du personnage sont acceptés : un visuel portant le
-    nom de quelqu'un d'autre a déjà été affiché ici à la place de Julie.
-    La source de vérité est la réplique Tavus utilisée pendant l'appel.
-  */
+  PORTRAITS.serein,
   "/images/julie-dupont.png",
   "/images/julie-dupont.jpg",
   "/images/julie-dupont.webp",
-  // Portrait vectoriel livré avec le projet, d'après l'avatar de la simulation.
   "/images/julie-dupont.svg",
 ] as const;
+
+function candidatesFor(mood: CharacterMood | undefined): readonly string[] {
+  if (!mood || mood === "serein") return PORTRAIT_CANDIDATES;
+  return [PORTRAITS[mood], ...PORTRAIT_CANDIDATES];
+}
 
 export function CharacterAvatar({
   className,
   tone = "light",
+  mood,
 }: {
   className?: string;
   tone?: "light" | "dark";
+  /** Expression affichée. Par défaut, le portrait neutre. */
+  mood?: CharacterMood;
 }) {
   // Index du candidat testé : on passe au suivant à chaque échec, et au-delà
   // du dernier on bascule sur l'illustration.
   const [candidate, setCandidate] = useState(0);
-  const src = PORTRAIT_CANDIDATES[candidate];
+  const candidates = candidatesFor(mood);
+  const src = candidates[candidate];
 
   const skipToNext = useCallback(() => setCandidate((index) => index + 1), []);
 

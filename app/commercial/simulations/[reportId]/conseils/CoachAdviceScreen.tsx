@@ -72,6 +72,7 @@ export function CoachAdviceScreen({ reportId }: { reportId: string }) {
           back={{ href: "/commercial/simulations", label: "Mes simulations" }}
         />
         <EmptyState
+          image="/images/etats/aucun-resultat.jpg"
           icon={<FileSearch size={20} aria-hidden />}
           title="Ce compte rendu n'est pas disponible sur cet appareil"
           description="Les analyses de ce prototype sont enregistrées localement dans le navigateur. Elles ne sont pas partagées entre appareils ni entre navigateurs."

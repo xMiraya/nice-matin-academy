@@ -81,6 +81,7 @@ export default function ManagerDashboardPage() {
   return (
     <>
       <PageHeader
+        image="/images/hero/manager.jpg"
         eyebrow="Espace manager"
         title={`Bonjour ${data.profile.firstName}`}
         description="Où en est l'entraînement de vos équipes : engagement, niveau et priorités d'accompagnement."

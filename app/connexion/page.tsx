@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowRight, BarChart3, MessageSquare, Video } from "lucide-react";
 import { Logo, NiceMatinMark } from "@/src/components/Logo";
 import { ButtonLink } from "@/src/components/Button";
@@ -35,6 +36,20 @@ export default function ConnexionPage() {
     <div className="flex min-h-screen flex-col bg-canvas lg:flex-row">
       {/* Colonne éditoriale */}
       <section className="nm-navy relative flex flex-col justify-between overflow-hidden px-6 py-10 sm:px-10 lg:w-[48%] lg:px-14 lg:py-14">
+        {/*
+          Salle de rédaction en fond, très assombrie : elle donne une matière
+          et un lieu à la colonne éditoriale sans jamais disputer la lisibilité
+          au texte blanc posé dessus.
+        */}
+        <Image
+          src="/images/hero/connexion.jpg"
+          alt=""
+          fill
+          priority
+          sizes="(min-width: 1024px) 48vw, 100vw"
+          className="pointer-events-none select-none object-cover"
+        />
+        <span aria-hidden className="pointer-events-none absolute inset-0 bg-brand-dark/88" />
         <span
           aria-hidden
           className="pointer-events-none absolute -right-24 top-10 h-80 w-80 rounded-full bg-brand-sky/12 blur-3xl"

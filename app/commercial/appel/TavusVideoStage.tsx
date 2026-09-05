@@ -1,6 +1,7 @@
 "use client";
 
 import { memo, useCallback, useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import Daily, {
   type DailyCall,
   type DailyEventObjectAppMessage,
@@ -285,10 +286,22 @@ function TavusVideoStageComponent({
 
       {!isJulieVisible ? (
         <div className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center">
-          <span className="h-24 w-24 overflow-hidden rounded-full border border-white/10 sm:h-32 sm:w-32">
+          {/*
+            Le décor de Julie pendant que la liaison s'établit : très assombri,
+            il occupe l'attente sans laisser croire que l'appel a commencé.
+          */}
+          <Image
+            src="/images/julie/julie-dupont-contexte.jpg"
+            alt=""
+            fill
+            sizes="100vw"
+            className="pointer-events-none select-none object-cover"
+          />
+          <span aria-hidden className="pointer-events-none absolute inset-0 bg-brand-dark/90" />
+          <span className="relative h-24 w-24 overflow-hidden rounded-full border border-white/10 sm:h-32 sm:w-32">
             <CharacterAvatar tone="dark" />
           </span>
-          <p className="mt-4 flex items-center gap-2 text-sm text-white/70">
+          <p className="relative mt-4 flex items-center gap-2 text-sm text-white/70">
             {connection === "error" ? null : (
               <Loader2 size={15} className="animate-spin" aria-hidden />
             )}

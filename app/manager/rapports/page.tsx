@@ -53,6 +53,7 @@ export default function ManagerRapportsPage() {
 
       <div className="mt-5">
         <EmptyState
+          image="/images/etats/aucune-notification.jpg"
           icon={<FileBarChart size={20} aria-hidden />}
           title="Rapports exportables en préparation"
           description="La génération de synthèses mensuelles au format document sera ajoutée après la connexion des données réelles."

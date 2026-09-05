@@ -68,6 +68,13 @@ export function SimulationSetup() {
 
   const selectedDifficulty = DIFFICULTIES.find((d) => d.id === difficulty) ?? DIFFICULTIES[1];
 
+  /*
+    Le portrait suit le niveau : Julie ouverte en facile, neutre en
+    intermédiaire, sceptique en difficile. C'est la seule promesse visuelle
+    faite avant l'appel, elle doit correspondre à ce qui va se passer.
+  */
+  const mood = difficulty === "facile" ? "ouverte" : difficulty === "difficile" ? "sceptique" : "serein";
+
   const selectedObjectives = useMemo(
     () => OBJECTIVES.filter((objective) => selectedObjectiveIds.includes(objective.id)),
     [selectedObjectiveIds],
@@ -255,7 +262,7 @@ export function SimulationSetup() {
           >
             {/* Portrait pleine largeur : on voit qui on va avoir en face. */}
             <div className="relative aspect-[4/3] w-full overflow-hidden border-y border-line">
-              <CharacterAvatar />
+              <CharacterAvatar mood={mood} />
               <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/85 to-transparent px-4 pb-3.5 pt-10">
                 <p className="text-base font-semibold text-white">Julie Dupont</p>
                 <p className="mt-0.5 text-sm text-white/75">

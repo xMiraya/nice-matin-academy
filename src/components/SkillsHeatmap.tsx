@@ -220,12 +220,12 @@ export function SkillsHeatmap({ members }: { members: TeamMember[] }) {
                           href={member.href}
                           className="flex items-center gap-2 rounded-sm py-1 pr-2 text-sm font-semibold text-ink transition-colors hover:text-brand"
                         >
-                          <Avatar initials={member.profile.initials} size="xs" />
+                          <Avatar initials={member.profile.initials} photo={member.profile.photo} size="xs" />
                           <span className="truncate">{name}</span>
                         </Link>
                       ) : (
                         <span className="flex items-center gap-2 py-1 text-sm font-medium text-ink">
-                          <Avatar initials={member.profile.initials} size="xs" />
+                          <Avatar initials={member.profile.initials} photo={member.profile.photo} size="xs" />
                           <span className="truncate">{name}</span>
                         </span>
                       )}

@@ -70,6 +70,7 @@ export function NotificationsScreen() {
 
       {notifications.length === 0 ? (
         <EmptyState
+          image="/images/etats/aucune-notification.jpg"
           icon={<Bell size={20} aria-hidden />}
           title="Aucune notification pour le moment"
           description="Dès qu'un manager laissera un commentaire sur l'une de vos simulations, il apparaîtra ici."

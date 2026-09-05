@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { ChevronLeft, ChevronRight, Clock3, Quote } from "lucide-react";
 import { Panel } from "@/src/components/Panel";
 import { Badge } from "@/src/components/StatusBadge";
@@ -79,8 +80,26 @@ export function MethodologySheetView({ sheet: baseSheet, previous, next }: Metho
   return (
     <article>
       {/* ------------------------------ En-tête ------------------------------ */}
-      <header className="nm-card nm-navy mb-6 overflow-hidden px-5 py-6 sm:px-7 sm:py-7">
-        <div className="flex flex-wrap items-start justify-between gap-5">
+      <header className="nm-card nm-navy relative mb-6 overflow-hidden px-5 py-6 sm:px-7 sm:py-7">
+        {/*
+          Photographie de la compétence, posée sous le titre. Le voile marine
+          reste opaque à gauche, là où le texte se trouve, et s'ouvre vers la
+          droite où la photographie a été cadrée avec de l'espace libre.
+        */}
+        <Image
+          src={`/images/fiches/${sheet.slug}.jpg`}
+          alt=""
+          fill
+          priority
+          sizes="(min-width: 1024px) 960px, 100vw"
+          className="pointer-events-none select-none object-cover object-right"
+        />
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-0 bg-gradient-to-r from-brand-dark via-brand-dark/95 to-brand-dark/60"
+        />
+
+        <div className="relative flex flex-wrap items-start justify-between gap-5">
           <div className="flex min-w-0 items-start gap-4">
             <span
               aria-hidden

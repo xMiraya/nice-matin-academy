@@ -5,6 +5,7 @@ import { CheckCircle2, Send } from "lucide-react";
 import { Panel } from "@/src/components/Panel";
 import { Button } from "@/src/components/Button";
 import { Avatar } from "@/src/components/Avatar";
+import { photoForName } from "@/src/data/team-photos";
 import { addComment } from "@/src/lib/comments/comment-repository";
 import { useReportComments } from "@/src/lib/comments/use-comments";
 import { pushNotification } from "@/src/lib/notifications/notification-repository";
@@ -101,6 +102,7 @@ export function ReportCommentThread({
           {comments.map((comment) => (
             <li key={comment.id} className="flex gap-3">
               <Avatar
+                photo={photoForName(comment.authorName)}
                 initials={comment.authorName
                   .split(" ")
                   .map((part) => part[0])
