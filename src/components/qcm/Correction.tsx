@@ -72,8 +72,8 @@ export function Correction({ question, result }: Props) {
                   </Badge>
                   {chosen ? <Badge tone="information">Votre réponse</Badge> : null}
                 </p>
-                <p className="mt-2 font-medium leading-relaxed text-ink">{option.label}</p>
-                <p className="mt-1 leading-relaxed text-graphite">{option.rationale}</p>
+                <p className="mt-2 whitespace-pre-line font-medium leading-relaxed text-ink">{option.label}</p>
+                <p className="mt-1 whitespace-pre-line leading-relaxed text-graphite">{option.rationale}</p>
               </li>
             );
           })}
@@ -85,11 +85,11 @@ export function Correction({ question, result }: Props) {
         colonne étroite, la moitié droite du bloc de correction restait vide.
       */}
       <div className="mt-4 grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
-        <p className="rounded-sm bg-white/60 p-3.5 leading-relaxed text-graphite">
+        <p className="whitespace-pre-line rounded-sm bg-white/60 p-3.5 leading-relaxed text-graphite">
           <span className="font-semibold text-ink">Pourquoi : </span>
           {question.explanation}
         </p>
-        <p className="rounded-sm bg-white/60 p-3.5 leading-relaxed text-graphite">
+        <p className="whitespace-pre-line rounded-sm bg-white/60 p-3.5 leading-relaxed text-graphite">
           <span className="font-semibold text-ink">Sur le terrain : </span>
           {question.fieldTip}
         </p>

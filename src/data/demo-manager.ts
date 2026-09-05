@@ -2,13 +2,13 @@ import type { ManagerDashboard, SessionSummary, TeamMember, UserProfile } from "
 import { DEMO_COMMERCIAL_DASHBOARD, DEMO_COMMERCIAL_PROFILE } from "@/src/data/demo-commercial";
 import { DEMO_SESSION_JULIE } from "@/src/data/demo-session-julie";
 
-/** Profil de démonstration de la directrice commerciale. */
+/** Profil de démonstration du responsable commercial. */
 export const DEMO_MANAGER_PROFILE: UserProfile = {
   id: "u-virginie-ballote",
   slug: "virginie-ballote",
   firstName: "Virginie",
   lastName: "Ballote",
-  role: "Directrice commerciale",
+  role: "Responsable commercial",
   team: "Nice-Matin",
   initials: "VB",
 };

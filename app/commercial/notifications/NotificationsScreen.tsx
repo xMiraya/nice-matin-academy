@@ -109,7 +109,7 @@ export function NotificationsScreen() {
                     <span
                       className={cx(
                         "mt-2 block text-sm leading-relaxed text-graphite",
-                        !expanded && "line-clamp-2",
+                        expanded ? "whitespace-pre-line" : "line-clamp-2",
                       )}
                     >
                       {notification.message}
