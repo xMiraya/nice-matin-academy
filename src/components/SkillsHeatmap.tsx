@@ -239,7 +239,7 @@ export function SkillsHeatmap({ members }: { members: TeamMember[] }) {
                               "flex h-10 items-center justify-center rounded-xs text-xs font-semibold tabular-nums",
                               cellClasses(score),
                             )}
-                            title={`${name} — ${competency.label} : ${score} sur 100`}
+                            title={`${name}, ${competency.label} : ${score} sur 100`}
                           >
                             {score}
                           </span>
@@ -252,7 +252,7 @@ export function SkillsHeatmap({ members }: { members: TeamMember[] }) {
                           "flex h-10 items-center justify-center rounded-xs text-xs font-bold tabular-nums ring-1 ring-inset ring-brand-sky",
                           cellClasses(average),
                         )}
-                        title={`${name} — moyenne : ${average} sur 100`}
+                        title={`${name}, moyenne : ${average} sur 100`}
                       >
                         {average}
                       </span>

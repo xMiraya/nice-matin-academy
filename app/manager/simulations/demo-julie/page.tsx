@@ -8,7 +8,7 @@ import { ButtonLink } from "@/src/components/Button";
 import { formatDate } from "@/src/lib/format";
 
 export const metadata: Metadata = {
-  title: "Simulation — Validation voix Julie Français",
+  title: "Simulation : Validation voix Julie Français",
   description: "Vue manager du compte rendu de l'appel de validation technique.",
 };
 
@@ -20,7 +20,7 @@ export default function ManagerCompteRenduDemoJuliePage() {
   return (
     <>
       <PageHeader
-        eyebrow={`Compte rendu — ${formatDate(report.date)}`}
+        eyebrow={`Compte rendu : ${formatDate(report.date)}`}
         title={report.title}
         description={`Simulation réalisée par ${REP_NAME}. Vue managériale du compte rendu produit par le Coach IA.`}
         back={{ href: "/manager/simulations", label: "Simulations" }}

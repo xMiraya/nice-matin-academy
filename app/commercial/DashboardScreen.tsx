@@ -350,7 +350,7 @@ export function DashboardScreen() {
           >
             <span className="font-semibold text-ink">Appel de validation technique</span>
             <span className="text-graphite">
-              Voix française de Julie — exclu de vos statistiques.
+              Voix française de Julie : exclu de vos statistiques.
             </span>
             <span className="ml-auto inline-flex items-center gap-1 font-semibold text-brand">
               Voir le compte rendu

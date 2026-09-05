@@ -159,7 +159,7 @@ export const DEMO_TEAM_MEMBERS: TeamMember[] = [
 const TEAM_RECENT_SESSIONS: SessionSummary[] = [
   {
     id: "m-1",
-    title: "Objection prix — abonnement numérique",
+    title: "Objection prix : abonnement numérique",
     date: "2026-08-05",
     objectiveLabel: "Gestion de l'objection prix",
     difficulty: "difficile",
@@ -170,7 +170,7 @@ const TEAM_RECENT_SESSIONS: SessionSummary[] = [
   },
   {
     id: "m-2",
-    title: "Premier contact — lectrice occasionnelle",
+    title: "Premier contact : lectrice occasionnelle",
     date: "2026-08-05",
     objectiveLabel: "Premier contact",
     difficulty: "facile",
@@ -181,7 +181,7 @@ const TEAM_RECENT_SESSIONS: SessionSummary[] = [
   },
   {
     id: "m-3",
-    title: "Objection prix — abonnement numérique",
+    title: "Objection prix : abonnement numérique",
     date: "2026-08-04",
     objectiveLabel: "Gestion de l'objection prix",
     difficulty: "difficile",
@@ -192,7 +192,7 @@ const TEAM_RECENT_SESSIONS: SessionSummary[] = [
   },
   {
     id: "m-4",
-    title: "Découverte des besoins — famille abonnée",
+    title: "Découverte des besoins : famille abonnée",
     date: "2026-08-03",
     objectiveLabel: "Découverte des besoins",
     difficulty: "intermediaire",
@@ -235,11 +235,11 @@ export const DEMO_MANAGER_DASHBOARD: ManagerDashboard = {
     { week: "S30", score: 67, sessions: 5 },
   ],
   scoreDistribution: [
-    { range: "0 – 40", count: 1 },
-    { range: "41 – 55", count: 1 },
-    { range: "56 – 70", count: 2 },
-    { range: "71 – 85", count: 2 },
-    { range: "86 – 100", count: 0 },
+    { range: "0-40", count: 1 },
+    { range: "41-55", count: 1 },
+    { range: "56-70", count: 2 },
+    { range: "71-85", count: 2 },
+    { range: "86-100", count: 0 },
   ],
   members: DEMO_TEAM_MEMBERS,
   alerts: [

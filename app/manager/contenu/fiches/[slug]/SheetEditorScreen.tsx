@@ -75,7 +75,7 @@ export function SheetEditorScreen({ sheet }: { sheet: MethodologySheet }) {
 
   function handleSaveDraft() {
     saveDraft("sheet", sheet.slug, buildPatch(), AUTHOR);
-    setSavedMessage("Brouillon enregistré — invisible des commerciaux.");
+    setSavedMessage("Brouillon enregistré, invisible des commerciaux.");
   }
 
   function handlePublish() {
@@ -126,7 +126,7 @@ export function SheetEditorScreen({ sheet }: { sheet: MethodologySheet }) {
           />
         </Panel>
 
-        <Panel title="Enjeu de la compétence" description="Bloc 01 — trois puces maximum.">
+        <Panel title="Enjeu de la compétence" description="Bloc 01 : trois puces maximum.">
           <EditableList
             label="Puces"
             items={fields.stakes}
@@ -134,7 +134,7 @@ export function SheetEditorScreen({ sheet }: { sheet: MethodologySheet }) {
           />
         </Panel>
 
-        <Panel title="Les bons réflexes" description="Bloc 03 — quatre à six réflexes.">
+        <Panel title="Les bons réflexes" description="Bloc 03 : quatre à six réflexes.">
           <EditableList
             label="Réflexes"
             items={fields.goodReflexes}
@@ -142,7 +142,7 @@ export function SheetEditorScreen({ sheet }: { sheet: MethodologySheet }) {
           />
         </Panel>
 
-        <Panel title="À dire" description="Bloc 04 — trois à cinq formulations, sans les guillemets.">
+        <Panel title="À dire" description="Bloc 04 : trois à cinq formulations, sans les guillemets.">
           <EditableList
             label="Formulations"
             items={fields.phrasesToUse}
@@ -150,7 +150,7 @@ export function SheetEditorScreen({ sheet }: { sheet: MethodologySheet }) {
           />
         </Panel>
 
-        <Panel title="À éviter" description="Bloc 05 — quatre à six erreurs fréquentes.">
+        <Panel title="À éviter" description="Bloc 05 : quatre à six erreurs fréquentes.">
           <EditableList
             label="Erreurs"
             items={fields.phrasesToAvoid}
@@ -158,7 +158,7 @@ export function SheetEditorScreen({ sheet }: { sheet: MethodologySheet }) {
           />
         </Panel>
 
-        <Panel title="Questions utiles" description="Bloc 07 — trois à cinq questions.">
+        <Panel title="Questions utiles" description="Bloc 07 : trois à cinq questions.">
           <EditableList
             label="Questions"
             items={fields.usefulQuestions}
@@ -166,7 +166,7 @@ export function SheetEditorScreen({ sheet }: { sheet: MethodologySheet }) {
           />
         </Panel>
 
-        <Panel title="Checklist avant de poursuivre" description="Bloc 09 — trois à cinq items.">
+        <Panel title="Checklist avant de poursuivre" description="Bloc 09 : trois à cinq items.">
           <EditableList
             label="Items"
             items={fields.checklist}

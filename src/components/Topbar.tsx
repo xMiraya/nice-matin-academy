@@ -67,7 +67,7 @@ export function Topbar({ role, profile }: TopbarProps) {
     >
       <div className="flex items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
         <div className="flex min-w-0 items-center gap-4">
-          <Link href="/connexion" className="lg:hidden" aria-label="Nice-Matin Academy — accueil">
+          <Link href="/connexion" className="lg:hidden" aria-label="Nice-Matin Academy, accueil">
             <Logo size="sm" />
           </Link>
 

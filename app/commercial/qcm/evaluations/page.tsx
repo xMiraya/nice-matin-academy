@@ -24,7 +24,7 @@ export default function AssessmentsIndexPage() {
         meta={
           PROGRESSION_MODE === "libre" ? (
             <Badge tone="information">
-              Progression libre — les cinq niveaux sont accessibles dès maintenant
+              Progression libre : les cinq niveaux sont accessibles dès maintenant
             </Badge>
           ) : null
         }

@@ -488,7 +488,7 @@ export function CoachLimitationsPanel({
             </Badge>
           </dt>
           <dd className="mt-1.5 leading-relaxed text-graphite">
-            Observations visuelles produites automatiquement pendant l&apos;appel — attitude générale,
+            Observations visuelles produites automatiquement pendant l&apos;appel : attitude générale,
             signes d&apos;attention ou de décrochage. Tout descripteur physique ou démographique en est
             retiré avant d&apos;atteindre le Coach, et ces observations ne sont que des indices : elles
             ne suffisent jamais à justifier une note.{" "}

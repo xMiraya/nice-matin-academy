@@ -20,7 +20,7 @@ export default function ManagerContentHubPage() {
       icon: BookOpen,
       title: "Fiches méthodologiques",
       description:
-        "Objectif, enjeux, bons réflexes, formulations et conseil du formateur — modifiables fiche par fiche.",
+        "Objectif, enjeux, bons réflexes, formulations et conseil du formateur, modifiables fiche par fiche.",
       count: `${methodologySheets.length} fiches`,
     },
     {

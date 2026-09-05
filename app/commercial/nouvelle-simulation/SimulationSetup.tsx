@@ -291,7 +291,7 @@ export function SimulationSetup() {
                 {isFullInterview
                   ? "Entretien commercial complet"
                   : selectedObjectiveIds.length === 1
-                    ? "Objectif unique — l’analyse se concentre dessus"
+                    ? "Objectif unique : l’analyse se concentre dessus"
                     : "Objectifs"}
               </p>
               {hasSelection ? (
@@ -347,7 +347,7 @@ export function SimulationSetup() {
             ) : null}
 
             <div className="mt-auto border-t border-line pt-4">
-              <Badge tone="marque">Tavus — intégration à venir</Badge>
+              <Badge tone="marque">Tavus : intégration à venir</Badge>
             </div>
           </Panel>
         </div>

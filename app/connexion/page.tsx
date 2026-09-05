@@ -82,7 +82,7 @@ export default function ConnexionPage() {
         </div>
 
         <p className="relative text-xs leading-relaxed text-white/60">
-          Prototype interne — données de démonstration. Aucun service externe n&apos;est connecté à
+          Prototype interne : données de démonstration. Aucun service externe n&apos;est connecté à
           ce stade.
         </p>
       </section>
@@ -92,7 +92,7 @@ export default function ConnexionPage() {
         <div className="nm-card w-full max-w-md p-7 sm:p-9">
           <div className="flex items-center justify-between gap-3">
             <NiceMatinMark className="h-11 w-11" />
-            <DemoBadge>Maquette — sans authentification</DemoBadge>
+            <DemoBadge>Maquette : sans authentification</DemoBadge>
           </div>
 
           <h2 className="nm-display mt-6 text-2xl text-ink">Accéder à votre espace</h2>

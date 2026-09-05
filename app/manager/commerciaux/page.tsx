@@ -29,7 +29,7 @@ export default function CommerciauxPage() {
       <div className="space-y-5">
         <Panel
           title="Vue par compétence"
-          description="Carte thermique commerciaux × compétences — recherchez, triez une colonne."
+          description="Carte thermique commerciaux × compétences : recherchez, triez une colonne."
         >
           <SkillsHeatmap members={data.members} />
         </Panel>

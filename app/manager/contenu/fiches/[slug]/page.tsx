@@ -15,7 +15,7 @@ export async function generateMetadata({
 }: PageProps<"/manager/contenu/fiches/[slug]">): Promise<Metadata> {
   const { slug } = await params;
   const sheet = getSheet(slug);
-  return { title: sheet ? `Modifier — ${sheet.title}` : "Fiche introuvable" };
+  return { title: sheet ? `Modifier : ${sheet.title}` : "Fiche introuvable" };
 }
 
 export default async function ManagerSheetEditorPage({

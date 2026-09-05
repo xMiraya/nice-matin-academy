@@ -39,7 +39,7 @@ export function TranscriptViewer({
             {open ? "Masquer le transcript" : "Afficher le transcript"}
           </span>
           <span className="mt-0.5 block text-xs text-graphite">
-            {lines.length} répliques — extrait de l&apos;échange
+            {lines.length} répliques, extrait de l&apos;échange
           </span>
         </span>
         <ChevronDown

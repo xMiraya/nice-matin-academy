@@ -129,7 +129,7 @@ function OrderingCorrection({
               return (
                 <li key={id} className={placed ? undefined : "text-danger"}>
                   {labelOf(id)}
-                  {placed ? "" : " — position à revoir"}
+                  {placed ? "" : " (position à revoir)"}
                 </li>
               );
             })}

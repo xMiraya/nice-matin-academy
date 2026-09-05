@@ -53,7 +53,7 @@ export function AppSidebar({ role, profile }: AppSidebarProps) {
   return (
     <aside data-app-chrome className="sticky top-0 hidden h-screen w-[264px] shrink-0 flex-col border-r border-line bg-white lg:flex">
       <div className="px-5 py-6">
-        <Link href="/connexion" aria-label="Nice-Matin Academy — accueil">
+        <Link href="/connexion" aria-label="Nice-Matin Academy, accueil">
           <Logo size="sm" />
         </Link>
       </div>

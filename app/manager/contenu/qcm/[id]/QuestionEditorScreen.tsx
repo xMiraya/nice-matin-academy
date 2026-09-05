@@ -76,7 +76,7 @@ export function QuestionEditorScreen({ question }: { question: ChoiceQuestion })
 
   function handleSaveDraft() {
     saveDraft("question", question.id, buildPatch(), AUTHOR);
-    setSavedMessage("Brouillon enregistré — invisible des commerciaux.");
+    setSavedMessage("Brouillon enregistré, invisible des commerciaux.");
   }
 
   function handlePublish() {

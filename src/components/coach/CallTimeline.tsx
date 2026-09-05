@@ -136,7 +136,7 @@ export function CallTimeline({
                   type="button"
                   onClick={() => setSelectedKey(marker.key)}
                   aria-pressed={active}
-                  title={`${formatTimer(marker.seconds)} — ${marker.title}`}
+                  title={`${formatTimer(marker.seconds)}, ${marker.title}`}
                   className={cx(
                     "absolute top-0 flex h-8 w-8 -translate-x-1/2 items-center justify-center rounded-full text-xs font-semibold tabular-nums transition-all",
                     active

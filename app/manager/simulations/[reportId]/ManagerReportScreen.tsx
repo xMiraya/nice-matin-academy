@@ -64,7 +64,7 @@ export function ManagerReportScreen({ reportId }: { reportId: string }) {
   return (
     <>
       <PageHeader
-        eyebrow={`Compte rendu — ${formatDate(report.session.date.slice(0, 10))}`}
+        eyebrow={`Compte rendu : ${formatDate(report.session.date.slice(0, 10))}`}
         title={`Simulation de ${report.commercial.name}`}
         description={report.managerSummary}
         back={{ href: "/manager/simulations", label: "Simulations" }}

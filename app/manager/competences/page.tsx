@@ -114,7 +114,7 @@ export default function ManagerCompetencesPage() {
       <div className="mt-5">
         <Panel
           title="Commerciaux × compétences"
-          description="Carte thermique complète — recherchez, triez une colonne."
+          description="Carte thermique complète : recherchez, triez une colonne."
         >
           <SkillsHeatmap members={members} />
         </Panel>

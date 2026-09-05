@@ -24,7 +24,7 @@ export function allQuestionsIndexed(): IndexedQuestion[] {
   for (const assessment of ASSESSMENTS) {
     for (const question of assessment.questions) {
       if (!seen.has(question.id)) {
-        seen.set(question.id, { question, source: `Évaluation — ${assessment.levelLabel}` });
+        seen.set(question.id, { question, source: `Évaluation : ${assessment.levelLabel}` });
       }
     }
   }

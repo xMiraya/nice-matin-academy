@@ -31,7 +31,7 @@ export function managerSearchIndex(): SearchItem[] {
     const name = `${member.profile.firstName} ${member.profile.lastName}`;
     items.push({
       label: name,
-      description: `${member.profile.team} — ${member.averageScore} / 100 en moyenne`,
+      description: `${member.profile.team}, ${member.averageScore} / 100 en moyenne`,
       href: member.href ?? "/manager/commerciaux",
       group: "Commerciaux",
     });
