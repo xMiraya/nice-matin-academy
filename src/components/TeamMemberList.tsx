@@ -119,12 +119,6 @@ const ALERT_LABEL = {
   information: "Information",
 } as const;
 
-const ALERT_ACCENT = {
-  priorite: "border-l-danger-bright",
-  vigilance: "border-l-warning-bright",
-  information: "border-l-info",
-} as const;
-
 /** Alertes pédagogiques, formulées comme des propositions d'accompagnement. */
 export function PedagogicalAlerts({ alerts }: { alerts: PedagogicalAlert[] }) {
   if (alerts.length === 0) {
@@ -140,10 +134,7 @@ export function PedagogicalAlerts({ alerts }: { alerts: PedagogicalAlert[] }) {
       {alerts.map((alert) => (
         <li
           key={alert.id}
-          className={cx(
-            "rounded-md border-l-[3px] bg-mist/70 p-4 transition-colors hover:bg-mist",
-            ALERT_ACCENT[alert.level],
-          )}
+          className="rounded-md bg-mist/70 p-4 transition-colors hover:bg-mist"
         >
           <div className="flex flex-wrap items-center gap-2">
             <Badge tone={ALERT_TONE[alert.level]} dot>

@@ -108,54 +108,46 @@
   }
 }
 
-/* Carte standard : fond blanc posé sur le canevas, ombre très douce. */
+/*
+ * Carte standard : fond blanc posé sur le canevas.
+ *
+ * Élévation déclarée une seule fois — la bordure. Superposer une bordure fine
+ * ET une ombre large et diffuse est la « carte fantôme » : les deux
+ * revendiquent la même profondeur sans qu'aucune ne soit nécessaire. Une
+ * carte au repos est à plat sur la page, pas suspendue au-dessus.
+ */
 @utility nm-card {
   border-radius: var(--radius-lg);
   border: 1px solid color-mix(in oklab, var(--color-line) 70%, white);
   background-color: #ffffff;
-  box-shadow: var(--shadow-card);
 }
 
 /*
  * Carte cliquable.
  *
- * La distinction avec une carte informative doit se voir AVANT le survol :
- * bord bleu clair au repos, filet de marque sur l'arête gauche, puis fond bleu
- * tres clair et legere elevation au survol. Une carte `.nm-card` reste, elle,
- * strictement plate et neutre.
+ * Au repos, même traitement à plat qu'une carte informative, seule la
+ * bordure changeant de teinte (bleu clair au lieu de gris) pour signaler
+ * qu'elle réagit au clic. L'ombre n'apparaît qu'au survol : c'est le seul
+ * moment où l'élévation représente un vrai changement d'état, pas une
+ * décoration permanente.
  */
 @utility nm-card-link {
   position: relative;
-  overflow: hidden;
   border-radius: var(--radius-lg);
   border: 1px solid var(--color-brand-sky);
   background-color: #ffffff;
-  box-shadow: var(--shadow-card);
   cursor: pointer;
   transition:
     border-color 150ms ease,
     background-color 150ms ease,
-    box-shadow 150ms ease;
-
-  &::before {
-    content: "";
-    position: absolute;
-    inset-block: 0;
-    inset-inline-start: 0;
-    width: 3px;
-    background-color: var(--color-brand-accent);
-    opacity: 0.45;
-    transition: opacity 150ms ease;
-  }
+    box-shadow 150ms ease,
+    transform 150ms ease;
 
   &:hover {
     border-color: var(--color-brand-accent);
     background-color: var(--color-brand-soft);
     box-shadow: var(--shadow-lift);
-  }
-
-  &:hover::before {
-    opacity: 1;
+    transform: translateY(-1px);
   }
 }
 

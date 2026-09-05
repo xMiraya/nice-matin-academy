@@ -195,10 +195,8 @@ export function CallTimeline({
       {selected ? (
         <div
           className={cx(
-            "mt-5 rounded-md border-l-[3px] p-4",
-            selected.kind === "missed"
-              ? "border-l-warning-bright bg-warning-soft"
-              : "border-l-brand bg-brand-soft",
+            "mt-5 rounded-md p-4",
+            selected.kind === "missed" ? "bg-warning-soft" : "bg-brand-soft",
           )}
           aria-live="polite"
         >

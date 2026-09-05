@@ -137,9 +137,10 @@ export function CoachReportScreen({ reportId }: { reportId: string }) {
               {/*
                 Conseil principal. Présenté comme une citation et non comme un
                 encadré plein largeur : un bloc bordé se lisait comme un champ
-                de saisie alors que rien n'est modifiable ici.
+                de saisie alors que rien n'est modifiable ici. L'icône et la
+                couleur suffisent à le distinguer, sans filet vertical.
               */}
-              <p className="mt-3.5 flex gap-3 border-l-[3px] border-brand pl-4 text-[15px] font-semibold leading-relaxed text-brand">
+              <p className="mt-3.5 flex gap-3 rounded-md bg-brand-soft p-3.5 text-[15px] font-semibold leading-relaxed text-brand">
                 <Lightbulb size={17} className="mt-0.5 shrink-0" aria-hidden />
                 {report.nextActions[0]?.title ?? "Poursuivez l'entraînement sur cette compétence."}
               </p>

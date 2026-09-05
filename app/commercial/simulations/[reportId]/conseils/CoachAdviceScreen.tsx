@@ -227,7 +227,7 @@ export function CoachAdviceScreen({ reportId }: { reportId: string }) {
               {report.improvements.map((item, index) => (
                 <li
                   key={`${item.title}-${index}`}
-                  className="rounded-md border-l-[3px] border-l-warning-bright bg-mist/70 p-4"
+                  className="rounded-md bg-mist/70 p-4"
                 >
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                     <CircleAlert size={15} className="shrink-0 text-warning" aria-hidden />

@@ -119,7 +119,7 @@ export function ManagerSimulationsExplorer({ sessions }: { sessions: SessionSumm
               className={cx(
                 "rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors",
                 active
-                  ? "border-brand bg-brand text-white shadow-card"
+                  ? "border-brand bg-brand text-white"
                   : "border-line bg-white text-graphite hover:border-brand-sky hover:text-brand",
               )}
             >
