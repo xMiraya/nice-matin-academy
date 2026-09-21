@@ -1,6 +1,6 @@
-import { PROGRESSION_MODE, STORAGE_NAMESPACE, UNLOCK_THRESHOLD_PERCENT } from '@/src/data/qcm/config';
+import { PROGRESSION_MODE, UNLOCK_THRESHOLD_PERCENT } from '@/src/data/qcm/config';
 import type { CompetencyId } from '@/src/types/qcm/competency';
-import type { AssessmentSession, ProgressStore, TrainingRecord, UserProgress } from '@/src/types/qcm/progress';
+import type { AssessmentSession, TrainingRecord, UserProgress } from '@/src/types/qcm/progress';
 import type { AssessmentResult, LevelId } from '@/src/types/qcm/quiz';
 
 export const EMPTY_PROGRESS: UserProgress = {
@@ -9,47 +9,6 @@ export const EMPTY_PROGRESS: UserProgress = {
   results: [],
   openSessions: {},
 };
-
-const STORAGE_KEY = `${STORAGE_NAMESPACE}.progress`;
-
-/** Implementation localStorage de l'abstraction de persistance. */
-export function createLocalProgressStore(): ProgressStore {
-  const available = typeof window !== 'undefined' && typeof window.localStorage !== 'undefined';
-
-  return {
-    load() {
-      if (!available) return EMPTY_PROGRESS;
-      try {
-        const raw = window.localStorage.getItem(STORAGE_KEY);
-        if (!raw) return EMPTY_PROGRESS;
-        const parsed = JSON.parse(raw) as Partial<UserProgress>;
-        if (parsed.version !== 1) return EMPTY_PROGRESS;
-        return {
-          version: 1,
-          trainings: parsed.trainings ?? [],
-          results: parsed.results ?? [],
-          openSessions: parsed.openSessions ?? {},
-        };
-      } catch {
-        // Donnees corrompues : on repart d'une progression vierge plutot que
-        // de bloquer l'utilisateur.
-        return EMPTY_PROGRESS;
-      }
-    },
-    save(progress) {
-      if (!available) return;
-      try {
-        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
-      } catch {
-        /* quota depasse ou mode prive : la session continue sans persistance. */
-      }
-    },
-    clear() {
-      if (!available) return;
-      window.localStorage.removeItem(STORAGE_KEY);
-    },
-  };
-}
 
 export function addTraining(progress: UserProgress, record: TrainingRecord): UserProgress {
   return { ...progress, trainings: [...progress.trainings, record] };

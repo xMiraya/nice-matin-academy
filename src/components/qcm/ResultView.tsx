@@ -42,8 +42,8 @@ export function ResultView({ resultId }: { readonly resultId: string }) {
         />
         <EmptyState
           image="/images/etats/aucun-resultat.jpg"
-          title="Ce résultat n’est pas disponible sur cet appareil"
-          description="Les résultats sont enregistrés localement, dans le navigateur utilisé pour passer l’évaluation. Ils ne sont ni transmis ni partagés."
+          title="Ce résultat est introuvable"
+          description="Il a peut-être été supprimé avec votre progression, ou le lien est incorrect."
           action={<ButtonLink href={qcmRoutes.assessments}>Revenir aux évaluations</ButtonLink>}
         />
       </>

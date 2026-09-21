@@ -10,49 +10,11 @@ import { GlobalSearch } from "@/src/components/search/GlobalSearch";
 import { NotificationBell } from "@/src/components/notifications/NotificationBell";
 import { WORKSPACE_LABEL, currentNavLabel } from "@/src/components/navigation";
 import type { WorkspaceRole } from "@/src/components/navigation";
-import { cx } from "@/src/lib/format";
+import { LogoutButton } from "@/src/components/LogoutButton";
 
 interface TopbarProps {
   role: WorkspaceRole;
   profile: UserProfile;
-}
-
-const WORKSPACES: { role: WorkspaceRole; href: string; label: string }[] = [
-  { role: "commercial", href: "/commercial", label: "Commercial" },
-  { role: "manager", href: "/manager", label: "Manager" },
-];
-
-/**
- * Bascule entre les deux espaces de la maquette.
- *
- * Elle remplace le passage obligé par l'écran de connexion : en démonstration,
- * on compare très souvent la vue du commercial et celle de sa direction.
- */
-function WorkspaceSwitch({ role }: { role: WorkspaceRole }) {
-  return (
-    <div
-      className="hidden items-center gap-0.5 rounded-sm bg-mist p-1 md:flex"
-      role="group"
-      aria-label="Changer d'espace"
-    >
-      {WORKSPACES.map((workspace) => {
-        const active = workspace.role === role;
-        return (
-          <Link
-            key={workspace.role}
-            href={workspace.href}
-            aria-current={active ? "true" : undefined}
-            className={cx(
-              "rounded-xs px-3 py-1.5 text-xs font-semibold transition-colors",
-              active ? "bg-white text-brand shadow-card" : "text-graphite hover:text-ink",
-            )}
-          >
-            {workspace.label}
-          </Link>
-        );
-      })}
-    </div>
-  );
 }
 
 /** Bandeau supérieur : repère de navigation, recherche, espace courant, profil. */
@@ -85,8 +47,6 @@ export function Topbar({ role, profile }: TopbarProps) {
         <div className="flex shrink-0 items-center gap-2 sm:gap-3">
           <GlobalSearch role={role} />
 
-          <WorkspaceSwitch role={role} />
-
           <NotificationBell
             recipientId={profile.id}
             fullPageHref={role === "commercial" ? "/commercial/notifications" : undefined}
@@ -101,6 +61,7 @@ export function Topbar({ role, profile }: TopbarProps) {
               <span className="block text-[11px] text-graphite">{profile.team}</span>
             </span>
           </div>
+          <LogoutButton className="lg:hidden" />
         </div>
       </div>
     </header>

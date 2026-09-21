@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LogOut, Sparkles, Video } from "lucide-react";
+import { Sparkles, Video } from "lucide-react";
 import type { UserProfile } from "@/src/types";
 import { Logo } from "@/src/components/Logo";
+import { LogoutButton } from "@/src/components/LogoutButton";
 import { Avatar } from "@/src/components/Avatar";
 import {
   NAVIGATION_GROUPS,
@@ -107,14 +108,7 @@ export function AppSidebar({ role, profile }: AppSidebarProps) {
             </span>
             <span className="block truncate text-xs text-graphite">{profile.role}</span>
           </span>
-          <Link
-            href="/connexion"
-            aria-label="Déconnexion (démonstration)"
-            title="Déconnexion (démonstration)"
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-sm text-muted transition-colors hover:bg-white hover:text-brand"
-          >
-            <LogOut size={15} aria-hidden />
-          </Link>
+          <LogoutButton />
         </div>
       </div>
     </aside>

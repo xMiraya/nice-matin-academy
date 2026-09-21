@@ -3,17 +3,14 @@
 import { useMemo, useSyncExternalStore } from "react";
 import type { CoachReport } from "@/src/types/coach";
 import {
+  getReportsLoaded,
   getReportsSnapshot,
+  getServerReportsLoaded,
   getServerReportsSnapshot,
   subscribeToReports,
 } from "@/src/lib/reports/report-repository";
 
-/**
- * Accès en lecture aux comptes rendus du Coach depuis les composants client.
- *
- * Passe par `useSyncExternalStore` : le rendu serveur voit une liste vide, puis
- * le client se synchronise sans provoquer d'écart d'hydratation.
- */
+/** Comptes rendus de l'utilisateur connecté (toute l'équipe pour un manager). */
 export function useReports(): CoachReport[] {
   return useSyncExternalStore(
     subscribeToReports,
@@ -30,16 +27,10 @@ export function useReport(reportId: string): CoachReport | null {
   );
 }
 
-const subscribeToNothing = () => () => {};
-
 /**
- * Indique si le composant est déjà passé côté client.
- * Permet de distinguer « chargement en cours » de « rapport introuvable ».
+ * Indique si la première lecture du serveur est terminée.
+ * Permet de distinguer « chargement en cours » de « compte rendu introuvable ».
  */
 export function useIsHydrated(): boolean {
-  return useSyncExternalStore(
-    subscribeToNothing,
-    () => true,
-    () => false,
-  );
+  return useSyncExternalStore(subscribeToReports, getReportsLoaded, getServerReportsLoaded);
 }

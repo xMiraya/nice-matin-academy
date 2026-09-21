@@ -2,22 +2,22 @@
 
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import {
-  DEMO_COMMERCIAL_SESSIONS,
-  DEMO_COMMERCIAL_TECHNICAL_SESSION,
-} from "@/src/data/demo-commercial";
 import { PageHeader } from "@/src/components/PageHeader";
 import { Panel } from "@/src/components/Panel";
+import { PageLoading } from "@/src/components/PageLoading";
 import { SessionTable } from "@/src/components/SessionTable";
 import { ButtonLink } from "@/src/components/Button";
-import { Badge, DemoBadge, TechnicalTestBadge } from "@/src/components/StatusBadge";
-import { useReports } from "@/src/lib/reports/use-reports";
+import { Badge } from "@/src/components/StatusBadge";
+import { useIsHydrated, useReports } from "@/src/lib/reports/use-reports";
 import { computeReportInsights } from "@/src/lib/reports/report-insights";
 
-/** Historique des simulations : analyses réelles d'abord, démonstration ensuite. */
+/** Historique des simulations analysées du commercial connecté. */
 export function SimulationsScreen() {
   const reports = useReports();
+  const loaded = useIsHydrated();
   const insights = computeReportInsights(reports, "/commercial/simulations");
+  if (!loaded) return <PageLoading />;
+
   // Le compte rendu le plus récent, mis en avant pour éviter de le chercher
   // dans le tableau après chaque simulation.
   const latest = insights.sessions[0];
@@ -27,7 +27,7 @@ export function SimulationsScreen() {
       <PageHeader
         eyebrow="Espace commercial"
         title="Mes simulations"
-        description="Vos analyses réelles, puis l'historique de démonstration conservé pour illustrer l'interface."
+        description="Toutes vos simulations analysées par le Coach IA, de la plus récente à la plus ancienne."
         actions={<ButtonLink href="/commercial/nouvelle-simulation">Nouvelle simulation</ButtonLink>}
         meta={
           insights.hasReports ? (
@@ -64,41 +64,18 @@ export function SimulationsScreen() {
         {insights.hasReports ? (
           <Panel
             title="Analyses du Coach IA"
-            description={`Moyenne de vos analyses réelles : ${insights.averageScore} / 100.`}
+            description={`Moyenne de vos analyses : ${insights.averageScore} / 100.`}
           >
             <SessionTable sessions={insights.sessions} />
           </Panel>
         ) : (
           <Panel title="Analyses du Coach IA">
             <p className="text-sm leading-relaxed text-graphite">
-              Aucune analyse réelle n&apos;est encore enregistrée sur cet appareil. Lancez une
-              simulation : le compte rendu apparaîtra ici dès la fin de l&apos;analyse.
+              Aucune analyse n&apos;est encore enregistrée. Lancez une simulation : le compte rendu
+              apparaîtra ici dès la fin de l&apos;analyse.
             </p>
           </Panel>
         )}
-
-        <Panel
-          title="Historique de démonstration"
-          description="Données fictives conservées pour la présentation de l'interface."
-          action={<DemoBadge />}
-        >
-          <SessionTable sessions={DEMO_COMMERCIAL_SESSIONS} />
-        </Panel>
-
-        {/*
-          Séparé du reste par un trait : c'est une vérification d'ingénierie,
-          pas un repère de progression, et la page ne doit pas s'arrêter net
-          juste après le tableau.
-        */}
-        <div className="border-t border-line pt-5">
-          <Panel
-            title="Appel de validation technique"
-            description="Exclu du calcul de votre score moyen et de votre progression."
-            action={<TechnicalTestBadge />}
-          >
-            <SessionTable sessions={[DEMO_COMMERCIAL_TECHNICAL_SESSION]} />
-          </Panel>
-        </div>
       </div>
     </>
   );

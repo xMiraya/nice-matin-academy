@@ -1,9 +1,10 @@
 import { AppShell } from "@/src/components/AppShell";
-import { DEMO_MANAGER_PROFILE } from "@/src/data/demo-manager";
+import { requireRole } from "@/src/server/auth";
 
-export default function ManagerLayout({ children }: LayoutProps<"/manager">) {
+export default async function ManagerLayout({ children }: LayoutProps<"/manager">) {
+  const user = await requireRole("manager");
   return (
-    <AppShell role="manager" profile={DEMO_MANAGER_PROFILE}>
+    <AppShell role="manager" profile={user.profile}>
       {children}
     </AppShell>
   );

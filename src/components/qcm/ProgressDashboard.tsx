@@ -61,7 +61,7 @@ export function ProgressDashboard() {
       {progress.results.length > 0 ? (
         <Panel
           title="Moyenne par compétence"
-          description="Toutes évaluations confondues, sur cet appareil."
+          description="Toutes évaluations confondues."
         >
           <CompetencyChart scores={scores} />
         </Panel>
@@ -203,10 +203,10 @@ export function ProgressDashboard() {
         </Panel>
       ) : null}
 
-      <Panel title="Données locales">
+      <Panel title="Mes données">
         <p className="max-w-prose text-sm leading-relaxed text-graphite">
-          Toute votre progression sur les QCM est stockée dans ce navigateur. La supprimer est
-          définitif et n’affecte aucun autre appareil. Les simulations analysées par le Coach IA ne
+          Toute votre progression sur les QCM est enregistrée sur votre compte. La supprimer est
+          définitif, sur tous vos appareils. Les simulations analysées par le Coach IA ne
           sont pas concernées.
         </p>
         {confirmReset ? (

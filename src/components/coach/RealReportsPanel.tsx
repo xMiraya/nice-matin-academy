@@ -10,9 +10,8 @@ import { computeReportInsights } from "@/src/lib/reports/report-insights";
 /**
  * Bloc « analyses réelles » réutilisé dans l'espace manager.
  *
- * Les comptes rendus proviennent du poste sur lequel la simulation a été
- * réalisée : en prototype, ils ne circulent pas encore entre appareils. Tant
- * qu'aucune analyse n'existe, le bloc reste un simple bandeau d'information et
+ * Les comptes rendus sont lus en base, quel que soit le poste qui a réalisé la
+ * simulation. Tant qu'aucune analyse n'existe, le bloc reste un simple bandeau d'information et
  * ne prend pas la place d'un tableau de bord.
  */
 export function RealReportsPanel({
@@ -36,9 +35,8 @@ export function RealReportsPanel({
         <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold text-ink">{title}</p>
           <p className="mt-1 text-sm leading-relaxed text-graphite">
-            Aucune analyse réelle n&apos;est enregistrée sur cet appareil. Les comptes rendus
-            produits par le Coach IA sont stockés localement sur le poste qui a réalisé la
-            simulation ; ils apparaîtront ici dès qu&apos;une analyse y aura été effectuée.
+            Aucune analyse n&apos;est encore enregistrée. Les comptes rendus produits par le
+            Coach IA apparaîtront ici dès qu&apos;une simulation aura été analysée.
           </p>
         </div>
       </div>
@@ -48,7 +46,7 @@ export function RealReportsPanel({
   return (
     <Panel
       title={title}
-      description="Comptes rendus réellement produits, hors données de démonstration."
+      description="Comptes rendus produits par le Coach IA."
       action={
         <div className="flex flex-wrap items-center gap-2">
           <Badge tone="positif" dot>

@@ -39,31 +39,41 @@ export function TeamMemberList({ members }: { members: TeamMember[] }) {
             <div className="flex shrink-0 items-center gap-3 sm:gap-5">
               <span className="hidden w-40 md:block">
                 <span className="nm-label block">À travailler</span>
-                <span className="mt-1 block truncate text-xs font-medium text-graphite">
-                  {getCompetencyLabel(focus.competencyId)}
-                </span>
-                <span
-                  className="mt-1.5 block h-1 w-full overflow-hidden rounded-full bg-line"
-                  aria-hidden
-                >
-                  <span
-                    className="block h-full rounded-full"
-                    style={{
-                      width: `${focus.score}%`,
-                      backgroundColor: scoreColor(focus.score),
-                    }}
-                  />
-                </span>
+                {focus ? (
+                  <>
+                    <span className="mt-1 block truncate text-xs font-medium text-graphite">
+                      {getCompetencyLabel(focus.competencyId)}
+                    </span>
+                    <span
+                      className="mt-1.5 block h-1 w-full overflow-hidden rounded-full bg-line"
+                      aria-hidden
+                    >
+                      <span
+                        className="block h-full rounded-full"
+                        style={{
+                          width: `${focus.score}%`,
+                          backgroundColor: scoreColor(focus.score),
+                        }}
+                      />
+                    </span>
+                  </>
+                ) : (
+                  <span className="mt-1 block truncate text-xs text-muted">Pas encore de donnée</span>
+                )}
               </span>
 
-              <span
-                className={cx(
-                  "min-w-12 rounded-full px-2.5 py-1.5 text-center text-sm font-semibold tabular-nums",
-                  scoreToneClasses(member.averageScore),
-                )}
-              >
-                {member.averageScore}
-              </span>
+              {member.sessionsCount > 0 ? (
+                <span
+                  className={cx(
+                    "min-w-12 rounded-full px-2.5 py-1.5 text-center text-sm font-semibold tabular-nums",
+                    scoreToneClasses(member.averageScore),
+                  )}
+                >
+                  {member.averageScore}
+                </span>
+              ) : (
+                <span className="min-w-12 text-center text-sm text-muted">n/a</span>
+              )}
               <span
                 className={cx(
                   "min-w-11 text-right text-sm font-semibold tabular-nums",

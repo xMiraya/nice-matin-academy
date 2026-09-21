@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import type { UserProfile } from "@/src/types";
+import { CurrentUserProvider } from "@/src/components/CurrentUser";
 import { AppSidebar } from "@/src/components/AppSidebar";
 import { MobileNavigation } from "@/src/components/MobileNavigation";
 import { Topbar } from "@/src/components/Topbar";
@@ -22,10 +23,11 @@ export function AppShell({ role, profile, children }: AppShellProps) {
   const pathname = usePathname();
 
   if (IMMERSIVE_ROUTES.includes(pathname)) {
-    return <>{children}</>;
+    return <CurrentUserProvider profile={profile}>{children}</CurrentUserProvider>;
   }
 
   return (
+    <CurrentUserProvider profile={profile}>
     <div className="flex min-h-screen bg-canvas">
       <AppSidebar role={role} profile={profile} />
       <div className="flex min-w-0 flex-1 flex-col">
@@ -36,5 +38,6 @@ export function AppShell({ role, profile, children }: AppShellProps) {
         <MobileNavigation role={role} />
       </div>
     </div>
+    </CurrentUserProvider>
   );
 }

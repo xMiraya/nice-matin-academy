@@ -2,13 +2,15 @@
 
 import { useMemo, useSyncExternalStore } from "react";
 import {
+  getNotificationsLoaded,
+  getServerNotificationsLoaded,
   getNotificationsSnapshot,
   getServerNotificationsSnapshot,
   subscribeToNotifications,
 } from "@/src/lib/notifications/notification-repository";
 import type { AppNotification } from "@/src/lib/notifications/notification-repository";
 
-/** Toutes les notifications enregistrées sur cet appareil, tous destinataires confondus. */
+/** Notifications de l'utilisateur connecté, telles que renvoyées par le serveur. */
 function useAllNotifications(): AppNotification[] {
   return useSyncExternalStore(
     subscribeToNotifications,
@@ -30,4 +32,13 @@ export function useNotifications(recipientId: string): AppNotification[] {
 export function useUnreadCount(recipientId: string): number {
   const notifications = useNotifications(recipientId);
   return notifications.filter((notification) => !notification.read).length;
+}
+
+/** Vrai une fois la première lecture des notifications terminée. */
+export function useNotificationsLoaded(): boolean {
+  return useSyncExternalStore(
+    subscribeToNotifications,
+    getNotificationsLoaded,
+    getServerNotificationsLoaded,
+  );
 }

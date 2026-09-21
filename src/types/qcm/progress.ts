@@ -28,14 +28,3 @@ export interface UserProgress {
   /** Sessions non terminees, indexees par identifiant d'evaluation. */
   readonly openSessions: Readonly<Record<string, AssessmentSession>>;
 }
-
-/**
- * Abstraction de persistance. La V1 fournit une implementation localStorage.
- * Une V2 pourra brancher une base de donnees INDEPENDANTE derriere la meme
- * interface, sans toucher a l'interface utilisateur.
- */
-export interface ProgressStore {
-  load(): UserProgress;
-  save(progress: UserProgress): void;
-  clear(): void;
-}

@@ -8,7 +8,6 @@ import { ProcessingSteps } from "@/src/components/ProcessingSteps";
 import type { ProcessingStep, ProcessingStepStatus } from "@/src/components/ProcessingSteps";
 import { Button, ButtonLink } from "@/src/components/Button";
 import { Badge } from "@/src/components/StatusBadge";
-import { DEMO_COMMERCIAL_PROFILE } from "@/src/data/demo-commercial";
 import { OBJECTIVES } from "@/src/data/competencies";
 import { reportRepository } from "@/src/lib/reports/report-repository";
 import {
@@ -139,10 +138,6 @@ async function performAnalysis(options: PerformAnalysisOptions): Promise<void> {
           difficulty: readSelectedDifficulty(),
           selectedObjectiveIds: objectiveIds,
           selectedObjectiveLabels: objectiveLabels,
-          commercial: {
-            id: DEMO_COMMERCIAL_PROFILE.slug,
-            name: `${DEMO_COMMERCIAL_PROFILE.firstName} ${DEMO_COMMERCIAL_PROFILE.lastName}`,
-          },
         }),
         signal: controller.signal,
       });
@@ -231,11 +226,13 @@ export function AnalysisProgress() {
       },
       onSuccess: (report) => {
         setPhase("saving");
-        // Enregistrement via la couche dédiée, jamais localStorage en direct.
-        reportRepository.saveReport(report);
+        // Le serveur a déjà enregistré le compte rendu : on relit la liste
+        // avant d'ouvrir la page, pour qu'elle ne le trouve pas « introuvable ».
         storeLastReportId(report.reportId);
-        setPhase("done");
-        router.push(`/commercial/simulations/${report.reportId}`);
+        void reportRepository.saveReport(report).then(() => {
+          setPhase("done");
+          router.push(`/commercial/simulations/${report.reportId}`);
+        });
       },
     }).finally(() => {
       runningRef.current = false;
@@ -322,7 +319,7 @@ export function AnalysisProgress() {
       {phase === "idle" ? (
         <div className="mt-8 border-t border-line pt-6">
           <p className="text-sm leading-relaxed text-graphite">
-            Aucune simulation récente n&apos;a été détectée sur cet appareil. Lancez une simulation
+            Aucune simulation récente n&apos;a été détectée dans cette session. Lancez une simulation
             pour obtenir une analyse.
           </p>
           <div className="mt-4 flex flex-wrap gap-3">

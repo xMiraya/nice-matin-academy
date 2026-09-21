@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import type { CoachAnalysisResponse, CoachApiError, CoachPendingResponse } from "@/src/types/coach";
+import type { CoachAnalysisResponse, CoachApiError, CoachPendingResponse, CoachReport } from "@/src/types/coach";
 import { getTavusConversation, isValidConversationId } from "@/src/lib/tavus/get-conversation";
 import { OBJECTIVES } from "@/src/data/competencies";
+import { getDb } from "@/src/server/db";
+import { getCurrentUser } from "@/src/server/auth";
 import {
   analyzeConversation,
   buildCoachReport,
@@ -11,9 +13,10 @@ import {
 /**
  * POST /api/coach/analyze — déclenche l'analyse d'une simulation par le Coach IA.
  *
- * TODO sécurité : ajouter authentification, autorisation, limitation de débit et
- * stockage interne avant production. En l'état, la route est destinée à un
- * usage local de prototypage uniquement.
+ * Réservée aux commerciaux connectés : l'identité du commercial vient de la
+ * session (jamais du corps de la requête) et le compte rendu est enregistré en
+ * base avant d'être renvoyé. Une conversation déjà analysée renvoie son compte
+ * rendu existant, sans nouvel appel au Coach.
  *
  * Aucune clé, aucun prompt système et aucun payload fournisseur brut n'est
  * renvoyé au client.
@@ -27,10 +30,6 @@ const RequestSchema = z.object({
   difficulty: z.enum(["facile", "intermediaire", "difficile"]).optional(),
   selectedObjectiveIds: z.array(z.string().max(64)).max(20),
   selectedObjectiveLabels: z.array(z.string().max(120)).max(20),
-  commercial: z.object({
-    id: z.string().min(1).max(64),
-    name: z.string().min(1).max(120),
-  }),
 });
 
 /**
@@ -55,6 +54,14 @@ function failure(error: string, status: number, code?: string): NextResponse<Coa
 }
 
 export async function POST(request: Request) {
+  const user = await getCurrentUser();
+  if (!user) return failure("Authentification requise.", 401);
+  if (user.role !== "commercial") return failure("Réservé aux commerciaux.", 403);
+  const commercial = {
+    id: user.profile.id,
+    name: `${user.profile.firstName} ${user.profile.lastName}`,
+  };
+
   // 1. Lecture bornée puis validation stricte du corps.
   const rawBody = await request.text();
   if (rawBody.length > MAX_BODY_BYTES) {
@@ -73,7 +80,7 @@ export async function POST(request: Request) {
     return failure("Requête invalide.", 400);
   }
 
-  const { conversationId, difficulty, selectedObjectiveIds, selectedObjectiveLabels, commercial } =
+  const { conversationId, difficulty, selectedObjectiveIds, selectedObjectiveLabels } =
     validation.data;
 
   if (!isValidConversationId(conversationId)) {
@@ -85,6 +92,19 @@ export async function POST(request: Request) {
       "Une analyse est déjà en cours pour cette conversation.",
       409,
       "ANALYSIS_ALREADY_RUNNING",
+    );
+  }
+
+  const db = await getDb();
+  const existing = await db.query<{ user_id: string; data: CoachReport }>(
+    "SELECT user_id, data FROM reports WHERE conversation_id = $1",
+    [conversationId],
+  );
+  if (existing.rows[0]) {
+    if (existing.rows[0].user_id !== user.profile.id) return failure("Conversation introuvable.", 404);
+    return NextResponse.json<CoachAnalysisResponse>(
+      { status: "ready", report: existing.rows[0].data },
+      { status: 200 },
     );
   }
 
@@ -179,6 +199,12 @@ export async function POST(request: Request) {
       perceptionAvailable: Boolean(conversation.perception),
       extraLimitations,
     });
+
+    await db.query(
+      `INSERT INTO reports (report_id,user_id,conversation_id,generated_at,data)
+       VALUES ($1,$2,$3,$4,$5) ON CONFLICT (conversation_id) DO NOTHING`,
+      [report.reportId, user.profile.id, conversationId, report.generatedAt, JSON.stringify(report)],
+    );
 
     return NextResponse.json<CoachAnalysisResponse>({ status: "ready", report }, { status: 200 });
   } finally {

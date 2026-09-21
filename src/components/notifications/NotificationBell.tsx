@@ -23,12 +23,11 @@ function relativeTime(iso: string): string {
 }
 
 /**
- * Cloche de notifications, réellement alimentée par le stockage local.
+ * Cloche de notifications, alimentée par la base.
  *
- * Le compte affiché n'est jamais un chiffre de démonstration : il reflète le
- * nombre de notifications non lues du profil courant. Vide la plupart du
- * temps côté manager, puisque c'est le commercial qui en reçoit dans cette
- * maquette — c'est le comportement honnête plutôt qu'un badge factice.
+ * Le compte affiché reflète le nombre de notifications non lues du profil
+ * connecté : commentaires du manager côté commercial, réponses du commercial
+ * côté manager.
  */
 export function NotificationBell({
   recipientId,

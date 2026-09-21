@@ -8,7 +8,6 @@ import { Avatar } from "@/src/components/Avatar";
 import { photoForName } from "@/src/data/team-photos";
 import { addComment } from "@/src/lib/comments/comment-repository";
 import { useReportComments } from "@/src/lib/comments/use-comments";
-import { pushNotification } from "@/src/lib/notifications/notification-repository";
 import { cx } from "@/src/lib/format";
 
 /** « il y a 5 min », « le 12 août à 14:32 ». */
@@ -28,15 +27,6 @@ interface ReportCommentThreadProps {
   reportId: string;
   /** Peut écrire un commentaire : le manager sur la fiche du commercial. */
   canWrite: boolean;
-  authorName: string;
-  authorRole: "manager" | "commercial";
-  /**
-   * Notification envoyée à l'auteur d'un nouveau commentaire, côté commercial
-   * uniquement — le manager n'a pas de page de notifications dans cette
-   * maquette.
-   */
-  notifyRecipientId?: string;
-  notifyHref?: string;
 }
 
 /**
@@ -50,32 +40,29 @@ interface ReportCommentThreadProps {
 export function ReportCommentThread({
   reportId,
   canWrite,
-  authorName,
-  authorRole,
-  notifyRecipientId,
-  notifyHref,
 }: ReportCommentThreadProps) {
   const comments = useReportComments(reportId);
   const [draft, setDraft] = useState("");
   const [sent, setSent] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [sending, setSending] = useState(false);
 
-  function handleSubmit(event: React.FormEvent) {
+  async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     const text = draft.trim();
-    if (!text) return;
+    if (!text || sending) return;
 
-    addComment({ reportId, authorName, authorRole, text });
-
-    if (notifyRecipientId) {
-      pushNotification({
-        kind: "coach-comment",
-        recipientId: notifyRecipientId,
-        authorName,
-        title: "Nouveau commentaire sur votre simulation",
-        message: text,
-        href: notifyHref ?? `/commercial/simulations/${reportId}`,
-      });
+    setSending(true);
+    setError(null);
+    try {
+      // L'auteur vient de la session, et le serveur notifie le commercial.
+      await addComment({ reportId, text });
+    } catch (failure) {
+      setError(failure instanceof Error ? failure.message : "L'envoi a échoué.");
+      setSending(false);
+      return;
     }
+    setSending(false);
 
     setDraft("");
     setSent(true);
@@ -138,7 +125,7 @@ export function ReportCommentThread({
             className="w-full resize-none rounded-sm border border-line bg-white px-3.5 py-3 text-sm text-ink transition-colors placeholder:text-muted focus:border-brand-accent"
           />
           <div className="mt-3 flex items-center gap-3">
-            <Button type="submit" size="sm" disabled={draft.trim().length === 0}>
+            <Button type="submit" size="sm" disabled={draft.trim().length === 0 || sending}>
               <Send size={14} aria-hidden />
               Envoyer au commercial
             </Button>
@@ -148,6 +135,7 @@ export function ReportCommentThread({
                 Commentaire envoyé, notification transmise.
               </span>
             ) : null}
+            {error ? <span className="text-xs font-medium text-danger">{error}</span> : null}
           </div>
         </form>
       ) : null}
