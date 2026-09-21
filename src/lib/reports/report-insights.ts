@@ -116,3 +116,44 @@ function formatShortLabel(isoDate: string): string {
   if (Number.isNaN(date.getTime())) return "—";
   return new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "short" }).format(date);
 }
+
+/** Numéro de semaine calendaire, pour comparer des semaines entre elles. */
+function weekIndex(timestamp: number): number {
+  const monday = new Date(timestamp);
+  monday.setHours(0, 0, 0, 0);
+  monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
+  return Math.round(monday.getTime() / (7 * 86_400_000));
+}
+
+/**
+ * Semaines consécutives avec au moins une simulation, en remontant depuis la
+ * semaine en cours (ou la précédente, pour ne pas casser la série un lundi).
+ */
+export function weeklyStreak(reports: CoachReport[], now = Date.now()): number {
+  const weeks = new Set(reports.map((report) => weekIndex(Date.parse(report.generatedAt))));
+  let cursor = weekIndex(now);
+  if (!weeks.has(cursor)) cursor -= 1;
+  let streak = 0;
+  while (weeks.has(cursor)) {
+    streak += 1;
+    cursor -= 1;
+  }
+  return streak;
+}
+
+/** Variation de chaque compétence entre l'avant-dernier et le dernier compte rendu (sur 100). */
+export function competencyDeltas(reports: CoachReport[]): Record<string, number> {
+  const ordered = [...reports].sort((a, b) => Date.parse(a.generatedAt) - Date.parse(b.generatedAt));
+  if (ordered.length < 2) return {};
+  const previous = ordered.at(-2);
+  const latest = ordered.at(-1);
+  const deltas: Record<string, number> = {};
+  for (const entry of COACH_COMPETENCY_SCALE) {
+    const before = previous?.competencies.find((item) => item.id === entry.id)?.score;
+    const after = latest?.competencies.find((item) => item.id === entry.id)?.score;
+    if (typeof before === "number" && typeof after === "number") {
+      deltas[entry.id] = Math.round((after - before) * 10);
+    }
+  }
+  return deltas;
+}

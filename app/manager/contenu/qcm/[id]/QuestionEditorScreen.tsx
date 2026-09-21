@@ -7,7 +7,6 @@ import { PageHeader } from "@/src/components/PageHeader";
 import { Panel } from "@/src/components/Panel";
 import { Button } from "@/src/components/Button";
 import { Badge } from "@/src/components/StatusBadge";
-import { DEMO_MANAGER_DASHBOARD } from "@/src/data/demo-manager";
 import {
   getOverride,
   publish,
@@ -15,7 +14,7 @@ import {
   saveDraft,
 } from "@/src/lib/content/content-overrides-repository";
 import type { QuestionOptionPatch, QuestionPatch } from "@/src/lib/content/content-overrides-repository";
-import { useContentStatus } from "@/src/lib/content/use-effective-content";
+import { useContentStatus, useOverridesLoaded } from "@/src/lib/content/use-effective-content";
 import { cx } from "@/src/lib/format";
 
 interface EditableFields {
@@ -36,8 +35,6 @@ function fieldsFromQuestion(question: ChoiceQuestion): EditableFields {
   };
 }
 
-const AUTHOR = `${DEMO_MANAGER_DASHBOARD.profile.firstName} ${DEMO_MANAGER_DASHBOARD.profile.lastName}`;
-
 /**
  * Éditeur d'une question de QCM à choix (unique, multiple, ou vrai/faux).
  *
@@ -45,7 +42,7 @@ const AUTHOR = `${DEMO_MANAGER_DASHBOARD.profile.firstName} ${DEMO_MANAGER_DASHB
  * correcte décoche automatiquement les autres — la logique de notation exige
  * exactement une bonne réponse dans ces deux formats.
  */
-export function QuestionEditorScreen({ question }: { question: ChoiceQuestion }) {
+function QuestionEditorForm({ question }: { question: ChoiceQuestion }) {
   const status = useContentStatus("question", question.id);
   const [fields, setFields] = useState<EditableFields>(() => fieldsFromQuestion(question));
   const [savedMessage, setSavedMessage] = useState<string | null>(null);
@@ -74,9 +71,20 @@ export function QuestionEditorScreen({ question }: { question: ChoiceQuestion })
 
   const hasCorrectAnswer = fields.options.some((option) => option.correct);
 
+  async function run(action: () => Promise<void>, message: string) {
+    try {
+      await action();
+      setSavedMessage(message);
+    } catch (error) {
+      setSavedMessage(error instanceof Error ? error.message : "L'enregistrement a échoué.");
+    }
+  }
+
   function handleSaveDraft() {
-    saveDraft("question", question.id, buildPatch(), AUTHOR);
-    setSavedMessage("Brouillon enregistré, invisible des commerciaux.");
+    return run(
+      () => saveDraft("question", question.id, buildPatch()),
+      "Brouillon enregistré, invisible des commerciaux.",
+    );
   }
 
   function handlePublish() {
@@ -84,14 +92,17 @@ export function QuestionEditorScreen({ question }: { question: ChoiceQuestion })
       setSavedMessage("Cochez au moins une bonne réponse avant de publier.");
       return;
     }
-    publish("question", question.id, buildPatch(), AUTHOR);
-    setSavedMessage("Publié : les commerciaux voient désormais cette version, notation comprise.");
+    return run(
+      () => publish("question", question.id, buildPatch()),
+      "Publié : les commerciaux voient désormais cette version, notation comprise.",
+    );
   }
 
-  function handleRevert() {
-    revertToOriginal("question", question.id);
-    setFields(fieldsFromQuestion(question));
-    setSavedMessage("Contenu d'origine restauré.");
+  async function handleRevert() {
+    await run(async () => {
+      await revertToOriginal("question", question.id);
+      setFields(fieldsFromQuestion(question));
+    }, "Contenu d'origine restauré.");
   }
 
   return (
@@ -222,4 +233,11 @@ export function QuestionEditorScreen({ question }: { question: ChoiceQuestion })
       </div>
     </>
   );
+}
+
+/** Attend la lecture des écarts en base : sinon le formulaire s'ouvrirait sur le contenu d'origine. */
+export function QuestionEditorScreen({ question }: { question: ChoiceQuestion }) {
+  const loaded = useOverridesLoaded();
+  if (!loaded) return <p className="py-10 text-sm text-graphite">Chargement de la question…</p>;
+  return <QuestionEditorForm question={question} />;
 }

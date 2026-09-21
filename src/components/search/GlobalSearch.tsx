@@ -10,6 +10,10 @@ import {
 } from "@/src/lib/search/build-index";
 import type { WorkspaceRole } from "@/src/components/navigation";
 import { cx } from "@/src/lib/format";
+import { useReports } from "@/src/lib/reports/use-reports";
+import { computeReportInsights } from "@/src/lib/reports/report-insights";
+import { buildTeamMember } from "@/src/lib/team/team-insights";
+import { useTeamAccounts } from "@/src/lib/team/use-manager-dashboard";
 
 /**
  * Recherche instantanée sur l'espace courant.
@@ -26,10 +30,17 @@ export function GlobalSearch({ role }: { role: WorkspaceRole }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const index = useMemo(
-    () => (role === "manager" ? managerSearchIndex() : commercialSearchIndex()),
-    [role],
-  );
+  const reports = useReports();
+  const accounts = useTeamAccounts();
+  const index = useMemo(() => {
+    if (role !== "manager") {
+      return commercialSearchIndex(computeReportInsights(reports, "/commercial/simulations").sessions);
+    }
+    const members = accounts
+      .filter((account) => account.active)
+      .map((account) => buildTeamMember(account.profile, reports));
+    return managerSearchIndex(members, computeReportInsights(reports, "/manager/simulations").sessions);
+  }, [role, reports, accounts]);
   const results = useMemo(() => filterSearchIndex(index, query), [index, query]);
 
   useEffect(() => {

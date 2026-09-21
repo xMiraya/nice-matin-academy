@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getCurrentUser } from "@/src/server/auth";
 import type { SessionDifficulty } from "@/src/types";
 import type {
   TavusApiErrorResponse,
@@ -12,8 +13,7 @@ import type {
 /**
  * POST /api/tavus/conversations — crée la visioconférence avec Julie.
  *
- * TODO sécurité : ajouter authentification, autorisation, limitation de débit et
- * stockage interne avant production.
+ * Réservée aux commerciaux connectés.
  *
  * `TAVUS_API_KEY`, `TAVUS_FACE_ID` et `TAVUS_PAL_ID` sont lus depuis
  * l'environnement serveur. Ils ne sont jamais renvoyés au navigateur, jamais
@@ -132,6 +132,12 @@ async function classifyTavusFailure(response: Response): Promise<TavusErrorCode>
 }
 
 export async function POST(request: Request) {
+  if (!(await getCurrentUser())) {
+    return NextResponse.json<TavusApiErrorResponse>(
+      { error: "Authentification requise." },
+      { status: 401 },
+    );
+  }
   const difficulty = await readDifficulty(request);
   const apiKey = process.env.TAVUS_API_KEY;
   const faceId = process.env.TAVUS_FACE_ID;

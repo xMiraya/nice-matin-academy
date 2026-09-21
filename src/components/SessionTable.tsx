@@ -151,7 +151,7 @@ export function SessionTable({
                       <ChevronRight size={15} aria-hidden />
                     </Link>
                   ) : (
-                    <span className="text-xs text-muted">Démonstration</span>
+                    <span className="text-xs text-muted">Non disponible</span>
                   )}
                 </td>
               </tr>

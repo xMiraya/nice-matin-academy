@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { createRemoteStore, sendJson } from "@/src/lib/remote-store";
 
 /**
  * Surcouche de contenu pédagogique modifiable par le manager.
@@ -14,10 +14,9 @@ import { z } from "zod";
  * `getPublishedOverride`, que les écrans commerciaux appliquent par-dessus le
  * contenu statique.
  *
- * ⚠️ Même avertissement que le reste du stockage local du prototype : ceci
- * vit uniquement dans le navigateur courant. Un déploiement réel a besoin
- * d'un stockage serveur partagé entre le poste du manager et celui des
- * commerciaux.
+ * Persistance : les écarts sont stockés en base. Le manager publie, les
+ * commerciaux voient la version publiée à leur prochain chargement (ou dans la
+ * minute qui suit).
  */
 
 export type ContentKind = "sheet" | "question";
@@ -58,119 +57,22 @@ export interface ContentOverride {
   updatedBy: string;
 }
 
-const SheetPatchSchema = z.object({
-  objective: z.string().optional(),
-  stakes: z.array(z.string()).optional(),
-  goodReflexes: z.array(z.string()).optional(),
-  phrasesToUse: z.array(z.string()).optional(),
-  phrasesToAvoid: z.array(z.string()).optional(),
-  usefulQuestions: z.array(z.string()).optional(),
-  checklist: z.array(z.string()).optional(),
-  trainerTip: z.string().optional(),
-});
-
-const QuestionPatchSchema = z.object({
-  prompt: z.string().optional(),
-  explanation: z.string().optional(),
-  fieldTip: z.string().optional(),
-  options: z
-    .array(
-      z.object({
-        id: z.string(),
-        label: z.string(),
-        correct: z.boolean(),
-        rationale: z.string(),
-      }),
-    )
-    .optional(),
-});
-
-const OverrideSchema = z.object({
-  key: z.string(),
-  kind: z.enum(["sheet", "question"]),
-  targetId: z.string(),
-  status: z.enum(["draft", "published"]),
-  patch: z.union([SheetPatchSchema, QuestionPatchSchema]),
-  updatedAt: z.string(),
-  updatedBy: z.string(),
-});
-
-const STORAGE_KEY = "niceMatinContentOverrides";
-const CHANGE_EVENT = "nicematin:content-overrides-changed";
 const EMPTY: ContentOverride[] = [];
 
-let cachedRaw: string | null = null;
-let cachedOverrides: ContentOverride[] = EMPTY;
-const listeners = new Set<() => void>();
+const store = createRemoteStore<ContentOverride[]>({
+  url: "/api/content",
+  empty: EMPTY,
+  select: (json) => (json as { overrides?: ContentOverride[] }).overrides ?? EMPTY,
+});
 
-function isBrowser(): boolean {
-  return typeof window !== "undefined" && typeof window.localStorage !== "undefined";
-}
+export const getOverridesSnapshot = store.getSnapshot;
+export const getServerOverridesSnapshot = store.getServerSnapshot;
+export const subscribeToOverrides = store.subscribe;
+export const getOverridesLoaded = store.getLoaded;
+export const getServerOverridesLoaded = store.getServerLoaded;
 
 function keyOf(kind: ContentKind, targetId: string): string {
   return `${kind}:${targetId}`;
-}
-
-function parse(raw: string | null): ContentOverride[] {
-  if (!raw) return EMPTY;
-  let parsedJson: unknown;
-  try {
-    parsedJson = JSON.parse(raw);
-  } catch {
-    return EMPTY;
-  }
-  if (!Array.isArray(parsedJson)) return EMPTY;
-  const overrides: ContentOverride[] = [];
-  for (const item of parsedJson) {
-    const result = OverrideSchema.safeParse(item);
-    if (result.success) overrides.push(result.data as ContentOverride);
-  }
-  return overrides;
-}
-
-function notifyChange(): void {
-  cachedRaw = null;
-  for (const listener of listeners) listener();
-}
-
-export function getOverridesSnapshot(): ContentOverride[] {
-  if (!isBrowser()) return EMPTY;
-  const raw = window.localStorage.getItem(STORAGE_KEY);
-  if (raw !== cachedRaw) {
-    cachedRaw = raw;
-    cachedOverrides = parse(raw);
-  }
-  return cachedOverrides;
-}
-
-export function getServerOverridesSnapshot(): ContentOverride[] {
-  return EMPTY;
-}
-
-export function subscribeToOverrides(listener: () => void): () => void {
-  listeners.add(listener);
-  const onStorage = (event: StorageEvent) => {
-    if (event.key === null || event.key === STORAGE_KEY) notifyChange();
-  };
-  const onLocalChange = () => listener();
-  if (isBrowser()) {
-    window.addEventListener("storage", onStorage);
-    window.addEventListener(CHANGE_EVENT, onLocalChange);
-  }
-  return () => {
-    listeners.delete(listener);
-    if (isBrowser()) {
-      window.removeEventListener("storage", onStorage);
-      window.removeEventListener(CHANGE_EVENT, onLocalChange);
-    }
-  };
-}
-
-function persist(next: ContentOverride[]): void {
-  if (!isBrowser()) return;
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-  notifyChange();
-  window.dispatchEvent(new Event(CHANGE_EVENT));
 }
 
 export function getOverride(kind: ContentKind, targetId: string): ContentOverride | null {
@@ -183,25 +85,23 @@ export function getPublishedOverride(kind: ContentKind, targetId: string): Conte
   return found && found.status === "published" ? found : null;
 }
 
+async function write(
+  status: "draft" | "published",
+  kind: ContentKind,
+  targetId: string,
+  patch: SheetPatch | QuestionPatch,
+): Promise<void> {
+  await sendJson("/api/content", "PUT", { kind, targetId, status, patch });
+  await store.refresh();
+}
+
 /** Enregistre un brouillon, sans le rendre visible côté commercial. */
 export function saveDraft(
   kind: ContentKind,
   targetId: string,
   patch: SheetPatch | QuestionPatch,
-  updatedBy: string,
-): void {
-  const key = keyOf(kind, targetId);
-  const next = getOverridesSnapshot().filter((item) => item.key !== key);
-  next.push({
-    key,
-    kind,
-    targetId,
-    status: "draft",
-    patch,
-    updatedAt: new Date().toISOString(),
-    updatedBy,
-  });
-  persist(next);
+): Promise<void> {
+  return write("draft", kind, targetId, patch);
 }
 
 /** Publie le contenu : c'est ce que les commerciaux verront désormais. */
@@ -209,24 +109,15 @@ export function publish(
   kind: ContentKind,
   targetId: string,
   patch: SheetPatch | QuestionPatch,
-  updatedBy: string,
-): void {
-  const key = keyOf(kind, targetId);
-  const next = getOverridesSnapshot().filter((item) => item.key !== key);
-  next.push({
-    key,
-    kind,
-    targetId,
-    status: "published",
-    patch,
-    updatedAt: new Date().toISOString(),
-    updatedBy,
-  });
-  persist(next);
+): Promise<void> {
+  return write("published", kind, targetId, patch);
 }
 
 /** Supprime l'écart : revient au contenu d'origine, brouillon compris. */
-export function revertToOriginal(kind: ContentKind, targetId: string): void {
-  const key = keyOf(kind, targetId);
-  persist(getOverridesSnapshot().filter((item) => item.key !== key));
+export async function revertToOriginal(kind: ContentKind, targetId: string): Promise<void> {
+  await sendJson(
+    `/api/content?kind=${encodeURIComponent(kind)}&targetId=${encodeURIComponent(targetId)}`,
+    "DELETE",
+  );
+  await store.refresh();
 }

@@ -8,7 +8,6 @@ import { Panel } from "@/src/components/Panel";
 import { Button, ButtonLink } from "@/src/components/Button";
 import { Badge } from "@/src/components/StatusBadge";
 import { EditableList } from "@/src/components/content/EditableList";
-import { DEMO_MANAGER_DASHBOARD } from "@/src/data/demo-manager";
 import {
   getOverride,
   publish,
@@ -16,7 +15,7 @@ import {
   saveDraft,
 } from "@/src/lib/content/content-overrides-repository";
 import type { SheetPatch } from "@/src/lib/content/content-overrides-repository";
-import { useContentStatus } from "@/src/lib/content/use-effective-content";
+import { useContentStatus, useOverridesLoaded } from "@/src/lib/content/use-effective-content";
 
 interface EditableFields {
   objective: string;
@@ -44,8 +43,6 @@ function fieldsFromSheetAndOverride(base: MethodologySheet): EditableFields {
   };
 }
 
-const AUTHOR = `${DEMO_MANAGER_DASHBOARD.profile.firstName} ${DEMO_MANAGER_DASHBOARD.profile.lastName}`;
-
 /**
  * Éditeur d'une fiche méthodologique.
  *
@@ -55,7 +52,7 @@ const AUTHOR = `${DEMO_MANAGER_DASHBOARD.profile.firstName} ${DEMO_MANAGER_DASHB
  * au contenu d'origine dans cette version — ce sont des structures à champs
  * multiples qui demanderaient un éditeur dédié à chacune.
  */
-export function SheetEditorScreen({ sheet }: { sheet: MethodologySheet }) {
+function SheetEditorForm({ sheet }: { sheet: MethodologySheet }) {
   const status = useContentStatus("sheet", sheet.slug);
   const [fields, setFields] = useState<EditableFields>(() => fieldsFromSheetAndOverride(sheet));
   const [savedMessage, setSavedMessage] = useState<string | null>(null);
@@ -73,20 +70,34 @@ export function SheetEditorScreen({ sheet }: { sheet: MethodologySheet }) {
     };
   }
 
+  async function run(action: () => Promise<void>, message: string) {
+    try {
+      await action();
+      setSavedMessage(message);
+    } catch (error) {
+      setSavedMessage(error instanceof Error ? error.message : "L'enregistrement a échoué.");
+    }
+  }
+
   function handleSaveDraft() {
-    saveDraft("sheet", sheet.slug, buildPatch(), AUTHOR);
-    setSavedMessage("Brouillon enregistré, invisible des commerciaux.");
+    return run(
+      () => saveDraft("sheet", sheet.slug, buildPatch()),
+      "Brouillon enregistré, invisible des commerciaux.",
+    );
   }
 
   function handlePublish() {
-    publish("sheet", sheet.slug, buildPatch(), AUTHOR);
-    setSavedMessage("Publié : les commerciaux voient désormais cette version.");
+    return run(
+      () => publish("sheet", sheet.slug, buildPatch()),
+      "Publié : les commerciaux voient désormais cette version.",
+    );
   }
 
-  function handleRevert() {
-    revertToOriginal("sheet", sheet.slug);
-    setFields(fieldsFromSheetAndOverride(sheet));
-    setSavedMessage("Contenu d'origine restauré.");
+  async function handleRevert() {
+    await run(async () => {
+      await revertToOriginal("sheet", sheet.slug);
+      setFields(fieldsFromSheetAndOverride(sheet));
+    }, "Contenu d'origine restauré.");
   }
 
   return (
@@ -208,4 +219,11 @@ export function SheetEditorScreen({ sheet }: { sheet: MethodologySheet }) {
       </div>
     </>
   );
+}
+
+/** Attend la lecture des écarts en base : sinon le formulaire s'ouvrirait sur le contenu d'origine. */
+export function SheetEditorScreen({ sheet }: { sheet: MethodologySheet }) {
+  const loaded = useOverridesLoaded();
+  if (!loaded) return <p className="py-10 text-sm text-graphite">Chargement de la fiche…</p>;
+  return <SheetEditorForm sheet={sheet} />;
 }

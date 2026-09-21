@@ -7,8 +7,8 @@ export const metadata: Metadata = {
 };
 
 /**
- * Les résultats sont stockés localement sur le poste de l'utilisateur : la page
- * est donc rendue côté client à partir de l'identifiant présent dans l'URL.
+ * Les résultats sont lus sur le compte de l'utilisateur : la page est donc
+ * rendue côté client à partir de l'identifiant présent dans l'URL.
  */
 export default async function ResultPage({
   params,

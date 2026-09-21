@@ -15,9 +15,9 @@ export default function QcmProgressionPage() {
       <PageHeader
         eyebrow="Entraînement QCM"
         title="Ma progression sur les QCM"
-        description="Ces informations sont enregistrées uniquement dans ce navigateur. Elles ne sont ni transmises, ni partagées, et aucune comparaison entre commerciaux n’est effectuée."
+        description="Ces informations sont enregistrées sur votre compte : vous les retrouvez depuis n’importe quel appareil. Aucune comparaison entre commerciaux n’est effectuée."
         back={{ href: qcmRoutes.home, label: "Entraînement QCM" }}
-        meta={<Badge tone="neutre">Données locales à cet appareil</Badge>}
+        meta={<Badge tone="neutre">Rattaché à votre compte</Badge>}
       />
       <ProgressDashboard />
     </>

@@ -4,6 +4,8 @@ import { useMemo, useSyncExternalStore } from "react";
 import type { MethodologySheet } from "@/src/types/methodology";
 import type { Question } from "@/src/types/qcm/quiz";
 import {
+  getOverridesLoaded,
+  getServerOverridesLoaded,
   getOverridesSnapshot,
   getServerOverridesSnapshot,
   subscribeToOverrides,
@@ -90,4 +92,9 @@ export function useContentStatus(kind: "sheet" | "question", targetId: string) {
     const found = overrides.find((item) => item.kind === kind && item.targetId === targetId);
     return found?.status ?? "original";
   }, [overrides, kind, targetId]);
+}
+
+/** Vrai une fois les écarts de contenu relus depuis le serveur. */
+export function useOverridesLoaded(): boolean {
+  return useSyncExternalStore(subscribeToOverrides, getOverridesLoaded, getServerOverridesLoaded);
 }

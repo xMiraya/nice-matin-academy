@@ -3,12 +3,11 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Bell, CheckCheck, MessageSquareText } from "lucide-react";
-import { DEMO_COMMERCIAL_PROFILE } from "@/src/data/demo-commercial";
+import { useCurrentUser } from "@/src/components/CurrentUser";
 import { PageHeader } from "@/src/components/PageHeader";
 import { Button } from "@/src/components/Button";
 import { EmptyState } from "@/src/components/EmptyState";
-import { useIsHydrated } from "@/src/lib/reports/use-reports";
-import { useNotifications } from "@/src/lib/notifications/use-notifications";
+import { useNotifications, useNotificationsLoaded } from "@/src/lib/notifications/use-notifications";
 import {
   markAllNotificationsRead,
   markNotificationRead,
@@ -33,8 +32,9 @@ function formatFull(iso: string): string {
  * comme destination de lecture.
  */
 export function NotificationsScreen() {
-  const hydrated = useIsHydrated();
-  const notifications = useNotifications(DEMO_COMMERCIAL_PROFILE.id);
+  const profile = useCurrentUser();
+  const hydrated = useNotificationsLoaded();
+  const notifications = useNotifications(profile.id);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const unread = notifications.filter((notification) => !notification.read).length;
@@ -59,7 +59,7 @@ export function NotificationsScreen() {
             <Button
               variant="secondary"
               size="sm"
-              onClick={() => markAllNotificationsRead(DEMO_COMMERCIAL_PROFILE.id)}
+              onClick={() => markAllNotificationsRead(profile.id)}
             >
               <CheckCheck size={15} aria-hidden />
               Tout marquer comme lu

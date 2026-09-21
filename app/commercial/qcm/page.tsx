@@ -39,7 +39,7 @@ const ENTRY_POINTS = [
     label: "Suivi",
     title: "Voir ma progression",
     description:
-      "Moyenne par compétence, historique des passages et recommandations, enregistrés dans ce navigateur.",
+      "Moyenne par compétence, historique des passages et recommandations, enregistrés sur votre compte.",
   },
 ] as const;
 

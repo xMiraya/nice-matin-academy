@@ -1,9 +1,10 @@
 import { AppShell } from "@/src/components/AppShell";
-import { DEMO_COMMERCIAL_PROFILE } from "@/src/data/demo-commercial";
+import { requireRole } from "@/src/server/auth";
 
-export default function CommercialLayout({ children }: LayoutProps<"/commercial">) {
+export default async function CommercialLayout({ children }: LayoutProps<"/commercial">) {
+  const user = await requireRole("commercial");
   return (
-    <AppShell role="commercial" profile={DEMO_COMMERCIAL_PROFILE}>
+    <AppShell role="commercial" profile={user.profile}>
       {children}
     </AppShell>
   );

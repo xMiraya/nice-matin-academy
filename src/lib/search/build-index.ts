@@ -1,5 +1,4 @@
-import { DEMO_MANAGER_DASHBOARD } from "@/src/data/demo-manager";
-import { DEMO_COMMERCIAL_DASHBOARD } from "@/src/data/demo-commercial";
+import type { TeamMember, SessionSummary } from "@/src/types";
 import { COMPETENCIES } from "@/src/data/competencies";
 import { methodologySheets } from "@/src/data/methodology/sheets";
 import { COMPETENCIES as QCM_COMPETENCIES } from "@/src/data/qcm/competencies";
@@ -20,18 +19,24 @@ export interface SearchItem {
  * compétences, navigation) : aucune requête réseau, la recherche répond
  * instantanément à chaque frappe.
  */
-export function managerSearchIndex(): SearchItem[] {
+export function managerSearchIndex(
+  members: TeamMember[] = [],
+  sessions: SessionSummary[] = [],
+): SearchItem[] {
   const items: SearchItem[] = [];
 
   for (const item of NAVIGATION.manager) {
     items.push({ label: item.label, href: item.href, group: "Pages" });
   }
 
-  for (const member of DEMO_MANAGER_DASHBOARD.members) {
+  for (const member of members) {
     const name = `${member.profile.firstName} ${member.profile.lastName}`;
     items.push({
       label: name,
-      description: `${member.profile.team}, ${member.averageScore} / 100 en moyenne`,
+      description:
+        member.sessionsCount > 0
+          ? `${member.profile.team}, ${member.averageScore} / 100 en moyenne`
+          : `${member.profile.team}, aucune simulation`,
       href: member.href ?? "/manager/commerciaux",
       group: "Commerciaux",
     });
@@ -46,11 +51,11 @@ export function managerSearchIndex(): SearchItem[] {
     });
   }
 
-  for (const session of DEMO_MANAGER_DASHBOARD.recentSessions) {
+  for (const session of sessions.slice(0, 30)) {
     items.push({
       label: session.title,
       description: session.repName ? `Simulation de ${session.repName}` : "Simulation",
-      href: "/manager/simulations",
+      href: session.href ?? "/manager/simulations",
       group: "Simulations",
     });
   }
@@ -59,7 +64,7 @@ export function managerSearchIndex(): SearchItem[] {
 }
 
 /** Index de recherche de l'espace commercial. */
-export function commercialSearchIndex(): SearchItem[] {
+export function commercialSearchIndex(sessions: SessionSummary[] = []): SearchItem[] {
   const items: SearchItem[] = [];
 
   for (const item of NAVIGATION.commercial) {
@@ -84,11 +89,11 @@ export function commercialSearchIndex(): SearchItem[] {
     });
   }
 
-  for (const session of DEMO_COMMERCIAL_DASHBOARD.recentSessions) {
+  for (const session of sessions.slice(0, 30)) {
     items.push({
       label: session.title,
       description: "Votre historique de simulations",
-      href: "/commercial/simulations",
+      href: session.href ?? "/commercial/simulations",
       group: "Mes simulations",
     });
   }

@@ -93,8 +93,8 @@ export function CoachTranscriptPanel({
 
       <p className="mt-4 flex gap-3 rounded-md bg-mist/70 px-4 py-3 text-xs leading-relaxed text-graphite">
         <MessageSquareText size={15} className="mt-0.5 shrink-0 text-brand" aria-hidden />
-        Le transcript est enregistré localement dans ce navigateur, avec le reste du compte rendu.
-        Il n&apos;est pas transmis à un service externe après l&apos;analyse.
+        Le transcript est enregistré avec le reste du compte rendu, sur votre compte. Il est visible de
+        vous et de votre manager.
       </p>
     </Panel>
   );

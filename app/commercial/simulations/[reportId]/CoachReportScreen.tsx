@@ -49,8 +49,8 @@ export function CoachReportScreen({ reportId }: { reportId: string }) {
         <EmptyState
           image="/images/etats/aucun-resultat.jpg"
           icon={<FileSearch size={20} aria-hidden />}
-          title="Ce compte rendu n'est pas disponible sur cet appareil"
-          description="Les analyses de ce prototype sont enregistrées localement dans le navigateur. Elles ne sont pas partagées entre appareils ni entre navigateurs."
+          title="Ce compte rendu est introuvable"
+          description="Il a peut-être été supprimé, ou le lien est incorrect. Retrouvez toutes vos simulations dans l'historique."
           action={
             <ButtonLink href="/commercial/nouvelle-simulation" variant="secondary">
               Lancer une nouvelle simulation
@@ -204,12 +204,7 @@ export function CoachReportScreen({ reportId }: { reportId: string }) {
         <CoachTranscriptPanel report={report} />
 
         {/* Lecture seule côté commercial : seul le manager peut écrire ici. */}
-        <ReportCommentThread
-          reportId={report.reportId}
-          canWrite={false}
-          authorName={report.commercial.name}
-          authorRole="commercial"
-        />
+        <ReportCommentThread reportId={report.reportId} canWrite={false} />
 
         <CoachLimitationsPanel report={report} />
 

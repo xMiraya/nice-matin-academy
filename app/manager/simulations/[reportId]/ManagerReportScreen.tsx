@@ -3,7 +3,7 @@
 import { FileSearch } from "lucide-react";
 import { PageHeader } from "@/src/components/PageHeader";
 import { Panel } from "@/src/components/Panel";
-import { Badge, DemoBadge } from "@/src/components/StatusBadge";
+import { Badge } from "@/src/components/StatusBadge";
 import { EmptyState } from "@/src/components/EmptyState";
 import { ButtonLink } from "@/src/components/Button";
 import { CompetencyRadar } from "@/src/components/charts/CompetencyRadar";
@@ -19,7 +19,8 @@ import {
   CoachScorePanel,
   toCompetencyScores,
 } from "@/src/components/coach/CoachShared";
-import { DEMO_MANAGER_DASHBOARD } from "@/src/data/demo-manager";
+import { useManagerDashboard } from "@/src/lib/team/use-manager-dashboard";
+import { teamCompetencyAverages } from "@/src/lib/team/team-insights";
 import { ReportCommentThread } from "@/src/components/coach/ReportCommentThread";
 import { formatDate, formatDuration } from "@/src/lib/format";
 
@@ -27,6 +28,7 @@ import { formatDate, formatDuration } from "@/src/lib/format";
 export function ManagerReportScreen({ reportId }: { reportId: string }) {
   const report = useReport(reportId);
   const hydrated = useIsHydrated();
+  const { dashboard } = useManagerDashboard();
 
   if (!hydrated) {
     return <div className="py-16 text-center text-sm text-graphite">Chargement du compte rendu…</div>;
@@ -43,8 +45,8 @@ export function ManagerReportScreen({ reportId }: { reportId: string }) {
         <EmptyState
           image="/images/etats/aucun-resultat.jpg"
           icon={<FileSearch size={20} aria-hidden />}
-          title="Ce compte rendu n'est pas disponible sur cet appareil"
-          description="Les analyses de ce prototype sont enregistrées localement dans le navigateur qui a réalisé la simulation. Elles ne circulent pas encore entre postes."
+          title="Ce compte rendu n'existe pas ou a été supprimé"
+          description="Il a peut-être été supprimé, ou le lien est incorrect. Retrouvez toutes les simulations de l'équipe dans la liste."
           action={
             <ButtonLink href="/manager/simulations" variant="secondary">
               Retour aux simulations
@@ -55,12 +57,9 @@ export function ManagerReportScreen({ reportId }: { reportId: string }) {
     );
   }
 
-  // Repère visuel : moyenne d'équipe issue des données de démonstration,
-  // clairement identifiée comme telle et jamais fondue dans les chiffres réels.
-  const demoTeamReference = report.competencies.map((competency) => ({
-    competencyId: competency.id,
-    score: DEMO_MANAGER_DASHBOARD.teamAverageScore,
-  }));
+  // Repère visuel : moyenne d'équipe par compétence, calculée sur les analyses réelles.
+  const teamReference = dashboard ? teamCompetencyAverages(dashboard.members) : [];
+  const hasTeamReference = dashboard !== null && dashboard.members.some((m) => m.sessionsCount > 1);
 
   return (
     <>
@@ -114,22 +113,18 @@ export function ManagerReportScreen({ reportId }: { reportId: string }) {
 
           <Panel
             title="Compétences et repère d'équipe"
-            description="La moyenne d'équipe affichée provient des données de démonstration."
+            description="Comparaison avec la moyenne de l'équipe sur chaque compétence."
             className="lg:col-span-3"
-            action={<DemoBadge>Repère fictif</DemoBadge>}
           >
             <CompetencyRadar
               scores={toCompetencyScores(report)}
-              seriesLabel="Analyse réelle"
-              comparison={{
-                label: "Moyenne d'équipe (démonstration)",
-                scores: demoTeamReference,
-              }}
+              seriesLabel="Cette simulation"
+              comparison={
+                hasTeamReference
+                  ? { label: "Moyenne d'équipe", scores: teamReference }
+                  : undefined
+              }
             />
-            <p className="mt-3 text-xs leading-relaxed text-graphite">
-              Seule la série « Analyse réelle » provient du Coach IA. La moyenne d&apos;équipe est
-              une donnée de démonstration, conservée uniquement comme repère visuel.
-            </p>
           </Panel>
         </div>
 
@@ -185,14 +180,7 @@ export function ManagerReportScreen({ reportId }: { reportId: string }) {
           cette maquette mono-appareil, le commercial la retrouve dans son
           propre espace, sur ce même navigateur.
         */}
-        <ReportCommentThread
-          reportId={report.reportId}
-          canWrite
-          authorName={DEMO_MANAGER_DASHBOARD.profile.firstName + " " + DEMO_MANAGER_DASHBOARD.profile.lastName}
-          authorRole="manager"
-          notifyRecipientId={report.commercial.id}
-          notifyHref={`/commercial/simulations/${report.reportId}`}
-        />
+        <ReportCommentThread reportId={report.reportId} canWrite />
 
         <CoachDisclaimer variant="manager" />
       </div>
