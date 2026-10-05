@@ -12,5 +12,5 @@ export default defineConfig({
       "server-only": path.join(root, "tests/stubs/server-only.ts"),
     },
   },
-  test: { environment: "node", include: ["tests/**/*.test.ts"] },
+  test: { environment: "node", include: ["tests/**/*.test.{ts,tsx}"] },
 });

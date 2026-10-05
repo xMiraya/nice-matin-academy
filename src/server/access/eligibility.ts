@@ -61,9 +61,9 @@ export interface EligibilityResult {
 }
 
 export const MESSAGE_LOCKED =
-  "Vous devez valider tous les prérequis avant d’accéder à Julie.";
+  "Vous devez obtenir au moins {seuil}/100 à chaque QCM et évaluation obligatoire avant de pouvoir vous entraîner avec Julie.";
 export const MESSAGE_UNLOCKED =
-  "Julie est débloquée. Vous maîtrisez les prérequis et pouvez maintenant vous entraîner en situation réelle.";
+  "Vous avez validé tous les prérequis. Vous pouvez maintenant commencer votre simulation.";
 
 /** Une dérogation vaut tant qu'elle n'est ni annulée ni expirée. */
 export function isOverrideActive(override: AccessOverride, now: Date): boolean {
@@ -120,7 +120,7 @@ export function evaluate(input: EvaluateInput): EligibilityResult {
   return {
     eligible,
     requiredScore: threshold,
-    message: eligible ? MESSAGE_UNLOCKED : MESSAGE_LOCKED,
+    message: eligible ? MESSAGE_UNLOCKED : MESSAGE_LOCKED.replace("{seuil}", String(threshold)),
     requirements: statuses,
     passedCount,
     totalCount: statuses.length,

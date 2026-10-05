@@ -1,14 +1,14 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Check, Clock, ListChecks, Mic, Play, Video, XCircle } from "lucide-react";
+import { Check, Clock, Lock, ListChecks, Mic, Play, Video, XCircle } from "lucide-react";
 import type { SessionDifficulty } from "@/src/types";
 import { FULL_INTERVIEW_OPTION, OBJECTIVES } from "@/src/data/competencies";
 import { Panel } from "@/src/components/Panel";
 import { Badge, DemoBadge } from "@/src/components/StatusBadge";
 import { Button, ButtonLink } from "@/src/components/Button";
 import { CharacterAvatar } from "@/src/components/CharacterAvatar";
-import { JulieAccessPanel } from "@/src/components/access/JulieAccessPanel";
+import { JulieAccessPanel, hrefFor } from "@/src/components/access/JulieAccessPanel";
 import { useJulieAccess } from "@/src/lib/access/julie-access";
 import { cx } from "@/src/lib/format";
 import { storeSelectedDifficulty, storeSelectedObjectiveIds } from "@/src/lib/session-storage";
@@ -334,14 +334,24 @@ export function SimulationSetup() {
                 }}
               >
                 <Play size={17} aria-hidden />
-                Lancer la simulation
+                Démarrer la simulation
               </ButtonLink>
             ) : (
               <>
-                <Button disabled className="mt-5 w-full">
-                  <Play size={17} aria-hidden />
-                  Lancer la simulation
-                </Button>
+                {hasSelection && julie.status === "ready" && !julie.access.eligible ? (
+                  <ButtonLink
+                    href={hrefFor(julie.access.requirements.find((r) => !r.passed) ?? julie.access.requirements[0])}
+                    className="mt-5 w-full"
+                  >
+                    <Lock size={17} aria-hidden />
+                    Terminer les prérequis
+                  </ButtonLink>
+                ) : (
+                  <Button disabled className="mt-5 w-full">
+                    <Play size={17} aria-hidden />
+                    Démarrer la simulation
+                  </Button>
+                )}
                 <p className="mt-2 text-xs font-medium text-danger">
                   {!hasSelection
                     ? "Sélectionnez au moins un objectif pédagogique."

@@ -10,7 +10,7 @@ import type { LevelId } from "@/src/types/qcm/quiz";
 import type { CompetencyId } from "@/src/types/qcm/competency";
 
 /** Lien vers le QCM ou l'évaluation concernés. */
-function hrefFor(requirement: RequirementStatus): string {
+export function hrefFor(requirement: RequirementStatus): string {
   if (requirement.type === "ASSESSMENT") {
     const level = Number(requirement.targetId.replace(/\D/g, "")) as LevelId;
     return level >= 1 && level <= 5 ? qcmRoutes.assessmentFor(level) : qcmRoutes.assessments;
@@ -33,10 +33,10 @@ function RequirementRow({ requirement }: { requirement: RequirementStatus }) {
           <span className="block text-sm font-semibold text-ink">{requirement.title}</span>
           <span className="block text-xs text-graphite">
             {!requirement.completed
-              ? `Pas encore terminé · score requis : ${requirement.requiredScore}/100`
+              ? `Non réalisé · score requis : ${requirement.requiredScore}/100`
               : requirement.passed
-                ? `Validé · meilleur résultat : ${best}/100`
-                : `Votre meilleur résultat : ${best}/100 · score requis : ${requirement.requiredScore}/100`}
+                ? `${best}/100 — Validé`
+                : `${best}/100 — À recommencer (score requis : ${requirement.requiredScore}/100)`}
           </span>
         </span>
       </span>
@@ -95,10 +95,11 @@ export function JulieAccessPanel({ state, onRetry }: Props) {
           </Badge>
         }
       >
-        <p className="flex items-start gap-2.5 text-sm leading-relaxed text-ink">
-          <LockOpen size={17} aria-hidden className="mt-0.5 shrink-0 text-positive" />
-          {access.message}
-        </p>
+        <h3 className="flex items-center gap-2 text-base font-semibold text-ink">
+          <LockOpen size={17} aria-hidden className="shrink-0 text-positive" />
+          Julie est débloquée
+        </h3>
+        <p className="mt-2 text-sm leading-relaxed text-ink">{access.message}</p>
         {access.viaOverride && access.override ? (
           <p className="mt-2 text-xs text-graphite">
             Accès accordé à titre exceptionnel par votre manager
@@ -121,15 +122,16 @@ export function JulieAccessPanel({ state, onRetry }: Props) {
         </Badge>
       }
     >
-      <p className="flex items-start gap-2.5 text-sm leading-relaxed text-ink">
-        <Lock size={17} aria-hidden className="mt-0.5 shrink-0 text-brand" />
-        Obtenez au moins {access.requiredScore}/100 à chaque QCM et évaluation obligatoire pour accéder à
-        l’entraînement avec Julie.
-      </p>
+      <h3 className="flex items-center gap-2 text-base font-semibold text-ink">
+        <Lock size={17} aria-hidden className="shrink-0 text-brand" />
+        Simulation avec Julie verrouillée
+      </h3>
+      <p className="mt-2 text-sm leading-relaxed text-ink">{access.message}</p>
       {access.totalCount > 0 ? (
         <>
           <p className="mt-3 text-sm font-semibold text-ink">
-            {access.passedCount} prérequis validé{access.passedCount > 1 ? "s" : ""} sur {access.totalCount}
+            Progression : {access.passedCount} prérequis validé{access.passedCount > 1 ? "s" : ""} sur{" "}
+            {access.totalCount}
           </p>
           <ul className="mt-3 space-y-2">
             {access.requirements.map((requirement) => (

@@ -1,6 +1,8 @@
 import "server-only";
 import { Pool } from "pg";
 import { hashPassword } from "@/src/server/password";
+import { ASSESSMENTS } from "@/src/data/qcm/assessments";
+import { COMPETENCY_IDS } from "@/src/data/qcm/competencies";
 
 /**
  * Accès PostgreSQL du serveur.
@@ -207,6 +209,30 @@ async function seedUsers(pool: Pool): Promise<void> {
   }
 }
 
+/**
+ * Prérequis de Julie par défaut : les cinq évaluations et les huit QCM par
+ * compétence. Posés une seule fois (repère dans app_settings) : si le manager
+ * les modifie ou les vide ensuite, ils ne sont jamais recréés.
+ */
+async function seedRequirements(pool: Pool): Promise<void> {
+  const marker = await pool.query(
+    `INSERT INTO app_settings (key, value) VALUES ('julie_requirements_seeded', 'true'::jsonb)
+     ON CONFLICT (key) DO NOTHING`,
+  );
+  if ((marker.rowCount ?? 0) === 0) return;
+  const rows: [string, string][] = [
+    ...ASSESSMENTS.map((a): [string, string] => ["ASSESSMENT", a.id]),
+    ...COMPETENCY_IDS.map((id): [string, string] => ["QUIZ", id]),
+  ];
+  for (const [kind, targetId] of rows) {
+    await pool.query(
+      `INSERT INTO simulation_requirements (id,simulation_id,kind,target_id,required_score,active)
+       VALUES ($1,'julie',$2,$3,NULL,TRUE) ON CONFLICT DO NOTHING`,
+      [`req-default-${kind.toLowerCase()}-${targetId}`, kind, targetId],
+    );
+  }
+}
+
 async function init(pool: Pool): Promise<void> {
   const client = await pool.connect();
   try {
@@ -214,6 +240,7 @@ async function init(pool: Pool): Promise<void> {
     await client.query("SELECT pg_advisory_lock(727101)");
     await client.query(SCHEMA);
     await seedUsers(pool);
+    await seedRequirements(pool);
     await client.query("SELECT pg_advisory_unlock(727101)");
   } finally {
     client.release();
