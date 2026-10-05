@@ -36,8 +36,10 @@ type State =
   | { status: "ready"; access: JulieAccess };
 
 /** État de déverrouillage de Julie, relu à l'affichage, au retour sur l'onglet et après chaque tentative. */
-export function useJulieAccess(): State & { reload: () => void } {
-  const [state, setState] = useState<State>({ status: "loading" });
+export function useJulieAccess(initial?: JulieAccess): State & { reload: () => void } {
+  const [state, setState] = useState<State>(
+    initial ? { status: "ready", access: initial } : { status: "loading" },
+  );
 
   const load = useCallback(async () => {
     try {

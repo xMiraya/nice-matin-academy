@@ -14,12 +14,13 @@ export default async function AppelPage() {
   const user = await getCurrentUser();
   // Garde d'affichage : la vraie barrière reste la route de création Tavus.
   if (user?.role === "commercial") {
+    // En cas d'erreur de vérification, on refuse : jamais de salle d'appel par défaut.
     const eligibility = await checkSimulationEligibility(
       user.profile.id,
       JULIE_SIMULATION_ID,
       pgAccessStore,
-    );
-    if (!eligibility.eligible) redirect("/commercial/nouvelle-simulation");
+    ).catch(() => null);
+    if (!eligibility?.eligible) redirect("/commercial/nouvelle-simulation?acces=verrouille");
   }
   return <CallRoom />;
 }

@@ -53,7 +53,7 @@ l'arborescence indiquée.
 ## Priorité 1 : Julie Dupont, la cliente virtuelle
 
 Julie est le personnage que le commercial affronte en visioconférence. Elle est
-décrite dans l'application comme **42 ans, cadre à Nice, lectrice
+décrite dans l'application comme **une trentaine d'années, cadre à Nice, lectrice
 occasionnelle**. Son portrait est aujourd'hui un dessin vectoriel de repli.
 
 **Contrainte de cohérence** : les quatre images doivent montrer la même
@@ -65,7 +65,7 @@ première, puis demandez les suivantes en référence explicite à celle-ci
 Portrait 3:4, 1200 × 1600 minimum.
 
 ```
-Portrait photographique d'une femme française de 42 ans, cadre urbaine,
+Portrait photographique d'une femme française d'une trentaine d'années, cadre urbaine,
 cheveux châtains mi-longs, chemisier bleu marine sobre. Cadrage buste, regard
 vers l'objectif, expression neutre et attentive, ni souriante ni fermée.
 Arrière-plan d'intérieur contemporain flou, tons gris et bleus. Lumière

@@ -8,6 +8,7 @@ import { Panel } from "@/src/components/Panel";
 import { Badge, DemoBadge } from "@/src/components/StatusBadge";
 import { Button, ButtonLink } from "@/src/components/Button";
 import { CharacterAvatar } from "@/src/components/CharacterAvatar";
+import type { JulieAccess } from "@/src/lib/access/julie-access";
 import { JulieAccessPanel, hrefFor } from "@/src/components/access/JulieAccessPanel";
 import { useJulieAccess } from "@/src/lib/access/julie-access";
 import { cx } from "@/src/lib/format";
@@ -61,8 +62,14 @@ function CardCheckbox({ checked }: { checked: boolean }) {
   );
 }
 
-export function SimulationSetup() {
-  const julie = useJulieAccess();
+export function SimulationSetup({
+  initialAccess,
+  notice,
+}: {
+  initialAccess?: JulieAccess;
+  notice?: string;
+}) {
+  const julie = useJulieAccess(initialAccess);
   const unlocked = julie.status === "ready" && julie.access.eligible;
   const [difficulty, setDifficulty] = useState<SessionDifficulty>("intermediaire");
   // Sélection multiple : prête à être transmise au Coach IA et enregistrée dans Supabase.
@@ -114,6 +121,11 @@ export function SimulationSetup() {
 
   return (
     <>
+      {notice ? (
+        <p role="alert" className="mb-4 rounded-md bg-warning-soft px-4 py-3 text-sm font-medium text-ink">
+          {notice}
+        </p>
+      ) : null}
       <div className="mb-6">
         <JulieAccessPanel state={julie} onRetry={julie.reload} />
       </div>
@@ -273,7 +285,7 @@ export function SimulationSetup() {
               <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/85 to-transparent px-4 pb-3.5 pt-10">
                 <p className="text-base font-semibold text-white">Julie Dupont</p>
                 <p className="mt-0.5 text-sm text-white/75">
-                  42 ans, cadre à Nice, lectrice occasionnelle
+                  Une trentaine d&apos;années, cadre à Nice, lectrice occasionnelle
                 </p>
               </div>
             </div>
@@ -371,10 +383,6 @@ export function SimulationSetup() {
                 Matériel vérifié.
               </p>
             ) : null}
-
-            <div className="mt-auto border-t border-line pt-4">
-              <Badge tone="marque">Tavus : intégration à venir</Badge>
-            </div>
           </Panel>
         </div>
       </div>
