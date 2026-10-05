@@ -3,6 +3,8 @@
 import { useMemo, useSyncExternalStore } from "react";
 import type { MethodologySheet } from "@/src/types/methodology";
 import type { Question } from "@/src/types/qcm/quiz";
+import { applyQuestionPatch } from "@/src/lib/qcm/effective";
+import type { QuestionPatchLike } from "@/src/lib/qcm/effective";
 import {
   getOverridesLoaded,
   getServerOverridesLoaded,
@@ -10,7 +12,7 @@ import {
   getServerOverridesSnapshot,
   subscribeToOverrides,
 } from "@/src/lib/content/content-overrides-repository";
-import type { QuestionPatch, SheetPatch } from "@/src/lib/content/content-overrides-repository";
+import type { SheetPatch } from "@/src/lib/content/content-overrides-repository";
 
 function usePublishedOverrides() {
   return useSyncExternalStore(
@@ -60,27 +62,7 @@ export function useEffectiveQuestions<T extends readonly Question[]>(base: T): Q
       const found = overrides.find(
         (item) => item.kind === "question" && item.targetId === question.id && item.status === "published",
       );
-      if (!found) return question;
-      const patch = found.patch as QuestionPatch;
-
-      if (question.kind === "ordering") {
-        // Les questions de réordonnancement ne sont pas éditables dans cette
-        // version : seuls l'énoncé, l'explication et le conseil terrain le sont.
-        return {
-          ...question,
-          prompt: patch.prompt ?? question.prompt,
-          explanation: patch.explanation ?? question.explanation,
-          fieldTip: patch.fieldTip ?? question.fieldTip,
-        };
-      }
-
-      return {
-        ...question,
-        prompt: patch.prompt ?? question.prompt,
-        explanation: patch.explanation ?? question.explanation,
-        fieldTip: patch.fieldTip ?? question.fieldTip,
-        options: patch.options ?? question.options,
-      };
+      return applyQuestionPatch(question, found?.patch as QuestionPatchLike | undefined);
     });
   }, [base, overrides]);
 }

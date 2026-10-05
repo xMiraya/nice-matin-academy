@@ -5,6 +5,7 @@ import { getTavusConversation, isValidConversationId } from "@/src/lib/tavus/get
 import { OBJECTIVES } from "@/src/data/competencies";
 import { getDb } from "@/src/server/db";
 import { getCurrentUser } from "@/src/server/auth";
+import { isConversationOwner } from "@/src/server/access/conversations";
 import {
   analyzeConversation,
   buildCoachReport,
@@ -93,6 +94,11 @@ export async function POST(request: Request) {
       409,
       "ANALYSIS_ALREADY_RUNNING",
     );
+  }
+
+  // Une conversation ne peut être analysée que par le commercial qui l'a lancée.
+  if (!(await isConversationOwner(user.profile.id, conversationId))) {
+    return failure("Conversation introuvable.", 404);
   }
 
   const db = await getDb();

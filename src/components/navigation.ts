@@ -7,6 +7,7 @@ import {
   LibraryBig,
   FileBarChart,
   LayoutDashboard,
+  Lock,
   Radar,
   TrendingUp,
   Users,
@@ -70,6 +71,7 @@ export const NAVIGATION_GROUPS: Record<WorkspaceRole, NavGroup[]> = {
       items: [
         { href: "/manager/commerciaux", label: "Commerciaux", icon: Users },
         { href: "/manager/competences", label: "Compétences", icon: Radar },
+        { href: "/manager/acces-julie", label: "Accès à Julie", icon: Lock },
       ],
     },
     {

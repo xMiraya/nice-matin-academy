@@ -74,6 +74,67 @@ CREATE TABLE IF NOT EXISTS qcm_progress (
   data       JSONB NOT NULL,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+CREATE TABLE IF NOT EXISTS app_settings (
+  key        TEXT PRIMARY KEY,
+  value      JSONB NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_by TEXT
+);
+INSERT INTO app_settings (key, value) VALUES ('julie_unlock_threshold', '90'::jsonb)
+  ON CONFLICT (key) DO NOTHING;
+CREATE TABLE IF NOT EXISTS qcm_attempts (
+  id               TEXT PRIMARY KEY,
+  user_id          TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  kind             TEXT NOT NULL CHECK (kind IN ('QUIZ','ASSESSMENT')),
+  target_id        TEXT NOT NULL,
+  score            NUMERIC(5,2) NOT NULL,
+  earned           NUMERIC(6,2) NOT NULL,
+  max_points       INTEGER NOT NULL,
+  duration_seconds INTEGER NOT NULL DEFAULT 0,
+  answers          JSONB NOT NULL,
+  created_at       TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS qcm_attempts_user_idx ON qcm_attempts (user_id, kind, target_id);
+CREATE TABLE IF NOT EXISTS simulation_requirements (
+  id             TEXT PRIMARY KEY,
+  simulation_id  TEXT NOT NULL,
+  kind           TEXT NOT NULL CHECK (kind IN ('QUIZ','ASSESSMENT')),
+  target_id      TEXT NOT NULL,
+  required_score NUMERIC(5,2) CHECK (required_score IS NULL OR (required_score >= 0 AND required_score <= 100)),
+  active         BOOLEAN NOT NULL DEFAULT TRUE,
+  UNIQUE (simulation_id, kind, target_id)
+);
+CREATE TABLE IF NOT EXISTS simulation_overrides (
+  id            TEXT PRIMARY KEY,
+  user_id       TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  simulation_id TEXT NOT NULL,
+  reason        TEXT NOT NULL,
+  granted_by    TEXT NOT NULL REFERENCES users(id),
+  granted_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+  expires_at    TIMESTAMPTZ,
+  revoked_at    TIMESTAMPTZ,
+  revoked_by    TEXT REFERENCES users(id)
+);
+CREATE INDEX IF NOT EXISTS simulation_overrides_user_idx ON simulation_overrides (user_id, simulation_id);
+CREATE TABLE IF NOT EXISTS access_events (
+  id            TEXT PRIMARY KEY,
+  user_id       TEXT REFERENCES users(id) ON DELETE SET NULL,
+  actor_id      TEXT REFERENCES users(id) ON DELETE SET NULL,
+  simulation_id TEXT NOT NULL,
+  type          TEXT NOT NULL,
+  details       JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS access_events_idx ON access_events (created_at DESC);
+CREATE UNIQUE INDEX IF NOT EXISTS access_events_once_idx
+  ON access_events (user_id, simulation_id, type) WHERE type IN ('UNLOCKED','FIRST_ACCESS');
+CREATE TABLE IF NOT EXISTS tavus_conversations (
+  conversation_id TEXT PRIMARY KEY,
+  user_id         TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  simulation_id   TEXT NOT NULL,
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+);
 `;
 
 interface Globals {

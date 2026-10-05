@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/src/server/auth";
+import { isConversationOwner } from "@/src/server/access/conversations";
 import type { TavusApiErrorResponse } from "@/src/types/tavus";
 
 /**
@@ -11,13 +12,17 @@ export async function POST(
   _request: Request,
   ctx: RouteContext<"/api/tavus/conversations/[conversationId]/end">,
 ) {
-  if (!(await getCurrentUser())) {
+  const user = await getCurrentUser();
+  if (!user) {
     return NextResponse.json<TavusApiErrorResponse>(
       { error: "Authentification requise." },
       { status: 401 },
     );
   }
   const { conversationId } = await ctx.params;
+  if (user.role === "commercial" && !(await isConversationOwner(user.profile.id, conversationId))) {
+    return NextResponse.json<TavusApiErrorResponse>({ error: "Accès refusé." }, { status: 403 });
+  }
 
   if (!conversationId) {
     return NextResponse.json<TavusApiErrorResponse>(

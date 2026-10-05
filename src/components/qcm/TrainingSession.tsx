@@ -13,6 +13,7 @@ import { addTraining } from "@/src/lib/qcm/progression";
 import { gradeQuestion } from "@/src/lib/qcm/scoring";
 import { createRng, sample } from "@/src/lib/qcm/shuffle";
 import { useProgress } from "@/src/lib/qcm/useProgress";
+import { submitAttemptToServer } from "@/src/lib/access/julie-access";
 import { useEffectiveQuestions } from "@/src/lib/content/use-effective-content";
 import type { Competency } from "@/src/types/qcm/competency";
 import type { AnswerValue, Question, QuestionResult } from "@/src/types/qcm/quiz";
@@ -126,6 +127,12 @@ export function TrainingSession({ competency, pool: basePool }: Props) {
           total: questions.length,
         }),
       );
+      void submitAttemptToServer({
+        kind: "QUIZ",
+        targetId: competency.id,
+        answers: Object.fromEntries(answered.map((r) => [r.questionId, r.given])),
+        durationSeconds: 0,
+      });
       setFinished(true);
       return;
     }
