@@ -1,5 +1,13 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/src/server/auth";
+import { pgAccessStore } from "@/src/server/access/pg-store";
+import { recordConversation } from "@/src/server/access/conversations";
+import {
+  JULIE_SIMULATION_ID,
+  checkSimulationEligibility,
+  recordDenied,
+  recordFirstAccess,
+} from "@/src/server/access/service";
 import type { SessionDifficulty } from "@/src/types";
 import type {
   TavusApiErrorResponse,
@@ -13,7 +21,8 @@ import type {
 /**
  * POST /api/tavus/conversations — crée la visioconférence avec Julie.
  *
- * Réservée aux commerciaux connectés.
+ * Réservée aux commerciaux connectés ET éligibles : le déverrouillage
+ * pédagogique est vérifié ici, en base, avant tout appel à Tavus.
  *
  * `TAVUS_API_KEY`, `TAVUS_FACE_ID` et `TAVUS_PAL_ID` sont lus depuis
  * l'environnement serveur. Ils ne sont jamais renvoyés au navigateur, jamais
@@ -132,12 +141,47 @@ async function classifyTavusFailure(response: Response): Promise<TavusErrorCode>
 }
 
 export async function POST(request: Request) {
-  if (!(await getCurrentUser())) {
+  const user = await getCurrentUser();
+  if (!user) {
     return NextResponse.json<TavusApiErrorResponse>(
       { error: "Authentification requise." },
       { status: 401 },
     );
   }
+
+  // Garde pédagogique, relue en base : aucun score n'est reçu du navigateur.
+  // Les managers (qui testent la plateforme) ne sont pas soumis aux prérequis.
+  if (user.role === "commercial") {
+    let eligibility;
+    try {
+      eligibility = await checkSimulationEligibility(
+        user.profile.id,
+        JULIE_SIMULATION_ID,
+        pgAccessStore,
+      );
+    } catch {
+      // En cas de doute, on refuse : jamais d'appel payant sans vérification.
+      return NextResponse.json<TavusApiErrorResponse>(
+        { error: "Le déverrouillage n'a pas pu être vérifié. Réessayez dans un instant." },
+        { status: 503 },
+      );
+    }
+    if (!eligibility.eligible) {
+      await recordDenied(user.profile.id, JULIE_SIMULATION_ID, eligibility, pgAccessStore).catch(
+        () => undefined,
+      );
+      return NextResponse.json(
+        {
+          eligible: false,
+          requiredScore: eligibility.requiredScore,
+          message: eligibility.message,
+          requirements: eligibility.requirements,
+        },
+        { status: 403 },
+      );
+    }
+  }
+
   const difficulty = await readDifficulty(request);
   const apiKey = process.env.TAVUS_API_KEY;
   const faceId = process.env.TAVUS_FACE_ID;
@@ -190,6 +234,14 @@ export async function POST(request: Request) {
 
   if (!payload.conversation_id || !payload.conversation_url) {
     return failure("TAVUS_CONVERSATION_CREATION_FAILED");
+  }
+
+  // Premier accès et rattachement de la conversation : seulement après le succès Tavus.
+  if (user.role === "commercial") {
+    await recordConversation(user.profile.id, JULIE_SIMULATION_ID, payload.conversation_id).catch(
+      () => undefined,
+    );
+    await recordFirstAccess(user.profile.id, JULIE_SIMULATION_ID, pgAccessStore).catch(() => undefined);
   }
 
   // Seuls ces trois champs quittent le serveur.

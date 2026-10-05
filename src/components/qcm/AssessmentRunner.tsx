@@ -11,6 +11,7 @@ import { qcmRoutes } from "@/src/data/qcm/routes";
 import { addResult, dropSession, upsertSession } from "@/src/lib/qcm/progression";
 import { formatDuration, gradeAssessment } from "@/src/lib/qcm/scoring";
 import { useProgress } from "@/src/lib/qcm/useProgress";
+import { submitAttemptToServer } from "@/src/lib/access/julie-access";
 import { useEffectiveQuestions } from "@/src/lib/content/use-effective-content";
 import { cx } from "@/src/lib/format";
 import type { AnswerMap, AnswerValue, Assessment } from "@/src/types/qcm/quiz";
@@ -103,7 +104,7 @@ export function AssessmentRunner({ assessment }: { readonly assessment: Assessme
     setAnswers((current) => ({ ...current, [questionId]: value }));
   }
 
-  function submit() {
+  async function submit() {
     const resultId = `${assessment.id}-${Date.now()}`;
     // `gradeAssessment` doit noter sur les questions réellement affichées : si
     // le manager a corrigé une bonne réponse, il faut grader sur cette
@@ -113,6 +114,13 @@ export function AssessmentRunner({ assessment }: { readonly assessment: Assessme
       resultId,
     });
     update((current) => addResult(current, result));
+    // Le score qui compte pour Julie est recalculé par le serveur à partir des réponses.
+    await submitAttemptToServer({
+      kind: "ASSESSMENT",
+      targetId: assessment.id,
+      answers: answers as Record<string, readonly string[]>,
+      durationSeconds: elapsed,
+    });
     router.push(qcmRoutes.result(resultId));
   }
 

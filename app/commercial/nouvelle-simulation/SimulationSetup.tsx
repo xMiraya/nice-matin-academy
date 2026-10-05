@@ -8,6 +8,8 @@ import { Panel } from "@/src/components/Panel";
 import { Badge, DemoBadge } from "@/src/components/StatusBadge";
 import { Button, ButtonLink } from "@/src/components/Button";
 import { CharacterAvatar } from "@/src/components/CharacterAvatar";
+import { JulieAccessPanel } from "@/src/components/access/JulieAccessPanel";
+import { useJulieAccess } from "@/src/lib/access/julie-access";
 import { cx } from "@/src/lib/format";
 import { storeSelectedDifficulty, storeSelectedObjectiveIds } from "@/src/lib/session-storage";
 
@@ -60,6 +62,8 @@ function CardCheckbox({ checked }: { checked: boolean }) {
 }
 
 export function SimulationSetup() {
+  const julie = useJulieAccess();
+  const unlocked = julie.status === "ready" && julie.access.eligible;
   const [difficulty, setDifficulty] = useState<SessionDifficulty>("intermediaire");
   // Sélection multiple : prête à être transmise au Coach IA et enregistrée dans Supabase.
   const [selectedObjectiveIds, setSelectedObjectiveIds] = useState<string[]>([OBJECTIVES[3].id]);
@@ -110,6 +114,9 @@ export function SimulationSetup() {
 
   return (
     <>
+      <div className="mb-6">
+        <JulieAccessPanel state={julie} onRetry={julie.reload} />
+      </div>
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
           <Panel
@@ -316,7 +323,7 @@ export function SimulationSetup() {
               )}
             </div>
 
-            {hasSelection ? (
+            {hasSelection && unlocked ? (
               <ButtonLink
                 href="/commercial/appel"
                 className="mt-5 w-full"
@@ -336,17 +343,19 @@ export function SimulationSetup() {
                   Lancer la simulation
                 </Button>
                 <p className="mt-2 text-xs font-medium text-danger">
-                  Sélectionnez au moins un objectif pédagogique.
+                  {!hasSelection
+                    ? "Sélectionnez au moins un objectif pédagogique."
+                    : "Validez d’abord les prérequis pour débloquer Julie."}
                 </p>
               </>
             )}
 
-            {hasSelection && (!cameraChecked || !micChecked) ? (
+            {hasSelection && unlocked && (!cameraChecked || !micChecked) ? (
               <p className="mt-3 text-xs leading-relaxed text-graphite">
                 Pensez à vérifier votre caméra et votre microphone avant de commencer.
               </p>
             ) : null}
-            {hasSelection && cameraChecked && micChecked ? (
+            {hasSelection && unlocked && cameraChecked && micChecked ? (
               <p className="mt-3 flex items-center gap-1.5 text-xs font-medium text-positive">
                 <Check size={14} aria-hidden />
                 Matériel vérifié.
