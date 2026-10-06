@@ -150,6 +150,13 @@ export interface CoachReport {
   pedagogicalPriority: CoachPedagogicalPriority;
   confidenceLevel: CoachConfidenceLevel;
   limitations: string[];
+  /**
+   * Statut d'évaluabilité, décidé côté serveur. Absent des anciens comptes
+   * rendus : leur statut est alors déduit du dialogue conservé.
+   */
+  evaluationStatus?: "evaluable" | "not_evaluable";
+  /** Raison structurée, présente uniquement si la simulation n'est pas évaluable. */
+  nonEvaluableReason?: "no_commercial_speech" | "transcript_unavailable" | "insufficient_usable_data";
   /** Absent des comptes rendus créés avant la mémoire pédagogique. */
   progressionAnalysis?: CoachProgressionAnalysis;
   /** Absente des comptes rendus créés avant la mémoire pédagogique. */

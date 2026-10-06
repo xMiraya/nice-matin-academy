@@ -17,6 +17,8 @@ import { ButtonLink } from "@/src/components/Button";
 import { CoachMascot } from "@/src/components/coach/CoachMascot";
 import type { CoachEvidence } from "@/src/types/coach";
 import { useIsHydrated, useReport } from "@/src/lib/reports/use-reports";
+import { NotEvaluatedReport } from "@/src/components/coach/NotEvaluatedReport";
+import { isEvaluatedReport } from "@/src/lib/coach/evaluability";
 import { CoachTranscriptPanel } from "@/src/components/coach/CoachTranscriptPanel";
 import { CallTimeline, CallTimelineLegend } from "@/src/components/coach/CallTimeline";
 import {
@@ -85,6 +87,8 @@ export function CoachAdviceScreen({ reportId }: { reportId: string }) {
       </>
     );
   }
+
+  if (!isEvaluatedReport(report)) return <NotEvaluatedReport report={report} variant="commercial" />;
 
   const priority = report.pedagogicalPriority;
   const priorityCompetency = report.competencies.find((item) => item.id === priority.competencyId);

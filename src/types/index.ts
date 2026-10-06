@@ -178,7 +178,10 @@ export interface CommercialDashboard {
 export interface TeamMember {
   profile: UserProfile;
   averageScore: number;
+  /** Simulations évaluées. */
   sessionsCount: number;
+  /** Tentatives totales, simulations non évaluées comprises. */
+  attemptsCount?: number;
   /** Progression en points sur trente jours. */
   progress: number;
   lastSessionDate: string | null;
@@ -201,7 +204,10 @@ export interface ManagerDashboard {
   profile: UserProfile;
   organisation: string;
   repsCount: number;
+  /** Simulations évaluées : seules celles-ci alimentent les statistiques. */
   sessionsCount: number;
+  /** Tentatives totales, simulations non évaluées comprises. */
+  attemptsCount?: number;
   participationRate: number;
   teamAverageScore: number;
   averageProgress: number;

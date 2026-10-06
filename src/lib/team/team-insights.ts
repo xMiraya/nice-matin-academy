@@ -8,6 +8,7 @@ import type {
 import type { CoachReport } from "@/src/types/coach";
 import { COMPETENCIES, getCompetencyLabel } from "@/src/data/competencies";
 import { computeReportInsights, toSessionSummary } from "@/src/lib/reports/report-insights";
+import { evaluatedReports } from "@/src/lib/coach/evaluability";
 
 /**
  * Agrégats d'équipe calculés à partir des comptes rendus réels.
@@ -27,7 +28,7 @@ export function reportsOf(reports: CoachReport[], profile: UserProfile): CoachRe
 
 /** Écart entre première et dernière simulation des trente derniers jours. */
 function progressOver30Days(reports: CoachReport[], now: number): number {
-  const recent = reports
+  const recent = evaluatedReports(reports)
     .filter((report) => now - Date.parse(report.generatedAt) <= 30 * DAY)
     .sort((a, b) => Date.parse(a.generatedAt) - Date.parse(b.generatedAt));
   if (recent.length < 2) return 0;
@@ -39,13 +40,16 @@ export function buildTeamMember(
   reports: CoachReport[],
   now = Date.now(),
 ): TeamMember {
-  const own = reportsOf(reports, profile);
+  const attempts = reportsOf(reports, profile);
+  // Statistiques : uniquement les simulations évaluées.
+  const own = evaluatedReports(attempts);
   const insights = computeReportInsights(own, "/manager/simulations");
   const last = [...own].sort((a, b) => Date.parse(b.generatedAt) - Date.parse(a.generatedAt))[0];
   return {
     profile,
     averageScore: insights.averageScore ?? 0,
     sessionsCount: own.length,
+    attemptsCount: attempts.length,
     progress: progressOver30Days(own, now),
     lastSessionDate: last ? last.session.date.slice(0, 10) : null,
     competencyScores: insights.hasReports ? insights.competencyAverages : [],
@@ -99,7 +103,9 @@ export function buildManagerDashboard(
 ): ManagerDashboard {
   const members = team.map((profile) => buildTeamMember(profile, reports, now));
   const teamIds = new Set(team.map((profile) => profile.id));
-  const teamReports = reports.filter((report) => teamIds.has(report.commercial.id));
+  const teamAttempts = reports.filter((report) => teamIds.has(report.commercial.id));
+  // Statistiques d'équipe : uniquement les simulations évaluées.
+  const teamReports = evaluatedReports(teamAttempts);
   const withData = members.filter((member) => member.sessionsCount > 0);
 
   const weeks = new Map<string, { label: string; scores: number[] }>();
@@ -178,6 +184,7 @@ export function buildManagerDashboard(
     organisation: "Nice-Matin",
     repsCount: members.length,
     sessionsCount: teamReports.length,
+    attemptsCount: teamAttempts.length,
     participationRate: members.length === 0 ? 0 : Math.round((active30 / members.length) * 100),
     teamAverageScore,
     averageProgress: mean(withProgress.map((member) => member.progress)),
@@ -187,7 +194,8 @@ export function buildManagerDashboard(
     scoreDistribution,
     members,
     alerts,
-    recentSessions: [...teamReports]
+    // Les tentatives non évaluées restent visibles, sans note.
+    recentSessions: [...teamAttempts]
       .sort((a, b) => Date.parse(b.generatedAt) - Date.parse(a.generatedAt))
       .map((report) => toSessionSummary(report, "/manager/simulations")),
   };

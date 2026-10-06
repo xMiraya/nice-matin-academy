@@ -18,6 +18,7 @@ import { ScoreBar } from "@/src/components/ScoreGauge";
 import { useManagerDashboard } from "@/src/lib/team/use-manager-dashboard";
 import { reportsOf, teamCompetencyAverages } from "@/src/lib/team/team-insights";
 import { computeReportInsights } from "@/src/lib/reports/report-insights";
+import { evaluatedReports } from "@/src/lib/coach/evaluability";
 import { useReports } from "@/src/lib/reports/use-reports";
 
 const LEVEL_LABELS = {
@@ -93,7 +94,7 @@ export function MemberScreen({ slug }: { slug: string }) {
   const strong = sorted.slice(0, 3);
   const fragile = [...sorted].reverse().slice(0, 3);
 
-  const latest = [...reports].sort((a, b) => Date.parse(b.generatedAt) - Date.parse(a.generatedAt))[0];
+  const latest = [...evaluatedReports(reports)].sort((a, b) => Date.parse(b.generatedAt) - Date.parse(a.generatedAt))[0];
   const nextFocus: CoachPriority = {
     title: latest.pedagogicalPriority.label,
     diagnostic: latest.pedagogicalPriority.reason,

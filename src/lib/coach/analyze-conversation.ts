@@ -25,6 +25,11 @@ import {
 import { COACH_SYSTEM_PROMPT, buildCoachUserPayload } from "@/src/lib/coach/prompt";
 import { CoachModelOutputSchema, type CoachModelOutput } from "@/src/lib/coach/schema";
 import type { PreviousReportSummary } from "@/src/lib/coach/history";
+import {
+  NON_EVALUABLE_MESSAGES,
+  NON_EVALUABLE_REASON_LABELS,
+  type NonEvaluableReason,
+} from "@/src/lib/coach/evaluability";
 
 /**
  * Appel du Coach GPT via l'API Responses, en sortie structurée stricte.
@@ -217,9 +222,77 @@ export function buildCoachReport(input: BuildReportInput): CoachReport {
       ...input.extraLimitations,
       ...input.output.limitations.map((limitation) => truncate(limitation, MAX_SHORT_TEXT)),
     ].filter((limitation) => limitation.length > 0),
+    evaluationStatus: "evaluable",
     progressionAnalysis: normaliseProgression(input.output.progressionAnalysis, input.historyCount ?? 0),
     nextMission: normaliseMission(input.output.nextMission, priorityId),
     transcriptAvailable: input.transcriptAvailable,
+    transcript: toTranscriptLines(input.transcript),
+    perceptionAvailable: input.perceptionAvailable,
+  };
+}
+
+export interface BuildNonEvaluableReportInput {
+  reportId: string;
+  conversationId: string;
+  reason: NonEvaluableReason;
+  commercial: { id: string; name: string };
+  sessionDate: string;
+  durationSeconds: number;
+  difficulty?: SessionDifficulty;
+  selectedObjectiveIds: string[];
+  selectedObjectiveLabels: string[];
+  transcript: TavusTranscriptEntry[];
+  perceptionAvailable: boolean;
+}
+
+/**
+ * Compte rendu technique d'une simulation non évaluable, produit sans appel au
+ * Coach. Il conserve la trace de la tentative (date, durée, dialogue, raison)
+ * mais ne porte aucune appréciation : les champs pédagogiques sont vides ou
+ * neutres, et les écrans ne les affichent pas.
+ */
+export function buildNonEvaluableReport(input: BuildNonEvaluableReportInput): CoachReport {
+  const message = NON_EVALUABLE_MESSAGES[input.reason];
+  return {
+    reportId: input.reportId,
+    conversationId: input.conversationId,
+    generatedAt: new Date().toISOString(),
+    model: "aucun",
+    commercial: { id: input.commercial.id, name: input.commercial.name },
+    prospect: { id: "julie-dupont", name: "Julie Dupont" },
+    session: {
+      date: input.sessionDate,
+      durationSeconds: input.durationSeconds,
+      ...(input.difficulty ? { difficulty: input.difficulty } : {}),
+      selectedObjectiveIds: input.selectedObjectiveIds,
+      selectedObjectiveLabels: input.selectedObjectiveLabels,
+      outcome: "inconclusive",
+      outcomeLabel: "Simulation non évaluée",
+    },
+    evaluationStatus: "not_evaluable",
+    nonEvaluableReason: input.reason,
+    overallScore: 0,
+    scoreInterpretation: "Simulation non évaluée",
+    competencies: COACH_COMPETENCY_SCALE.map((entry) => ({
+      id: entry.id,
+      label: entry.label,
+      score: 0,
+      weight: entry.weight,
+      observation: "Non évaluée.",
+      evidence: [],
+    })),
+    psychologicalState: { confidence: 0, interest: 0, understanding: 0, perceivedValue: 0, feltPressure: 0 },
+    strengths: [],
+    improvements: [],
+    nextActions: [],
+    keyMoments: [],
+    missedOpportunities: [],
+    commercialSummary: message,
+    managerSummary: `${NON_EVALUABLE_REASON_LABELS[input.reason]}. Cette simulation est conservée pour traçabilité et exclue des statistiques.`,
+    pedagogicalPriority: { competencyId: "premier-contact", label: "Non évaluée", reason: "" },
+    confidenceLevel: "low",
+    limitations: [NON_EVALUABLE_REASON_LABELS[input.reason]],
+    transcriptAvailable: input.transcript.length > 0,
     transcript: toTranscriptLines(input.transcript),
     perceptionAvailable: input.perceptionAvailable,
   };

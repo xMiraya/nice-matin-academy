@@ -8,6 +8,8 @@ import { EmptyState } from "@/src/components/EmptyState";
 import { MetricCard } from "@/src/components/MetricCard";
 import { ButtonLink } from "@/src/components/Button";
 import { useIsHydrated, useReport } from "@/src/lib/reports/use-reports";
+import { NotEvaluatedReport } from "@/src/components/coach/NotEvaluatedReport";
+import { isEvaluatedReport } from "@/src/lib/coach/evaluability";
 import { CoachMascot } from "@/src/components/coach/CoachMascot";
 import { CoachTranscriptPanel } from "@/src/components/coach/CoachTranscriptPanel";
 import { ReportCommentThread } from "@/src/components/coach/ReportCommentThread";
@@ -62,6 +64,8 @@ export function CoachReportScreen({ reportId }: { reportId: string }) {
       </>
     );
   }
+
+  if (!isEvaluatedReport(report)) return <NotEvaluatedReport report={report} variant="commercial" />;
 
   return (
     <>

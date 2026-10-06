@@ -7,7 +7,7 @@ import { getDb } from "@/src/server/db";
 import { getCurrentUser } from "@/src/server/auth";
 import { logIntegration, safeErrorFields } from "@/src/server/log";
 import {
-  MAX_HISTORY_REPORTS,
+  HISTORY_FETCH_LIMIT,
   buildHistorySummaries,
   type PreviousReportSummary,
 } from "@/src/lib/coach/history";
@@ -15,7 +15,9 @@ import { isConversationOwner } from "@/src/server/access/conversations";
 import {
   analyzeConversation,
   buildCoachReport,
+  buildNonEvaluableReport,
 } from "@/src/lib/coach/analyze-conversation";
+import { evaluateTranscriptEligibility } from "@/src/lib/coach/evaluability";
 
 /**
  * POST /api/coach/analyze — déclenche l'analyse d'une simulation par le Coach IA.
@@ -155,11 +157,44 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!conversation.transcriptReady || conversation.transcript.length === 0) {
+    if (!conversation.transcriptReady) {
       return pending(
         "waiting_for_transcript",
         "Le transcript est en cours de préparation par Tavus.",
       );
+    }
+
+    // 3 bis. Évaluabilité : décidée ici, par le serveur, sur le transcript nettoyé.
+    // Une simulation sans matière à évaluer (ex. aucune parole du commercial) est
+    // enregistrée pour traçabilité, sans appel OpenAI et sans note.
+    const eligibility = evaluateTranscriptEligibility(conversation.transcript);
+    if (!eligibility.evaluable) {
+      const technical = buildNonEvaluableReport({
+        reportId: crypto.randomUUID(),
+        conversationId,
+        reason: eligibility.reason,
+        commercial,
+        sessionDate: conversation.createdAt,
+        durationSeconds: conversation.durationSeconds,
+        difficulty,
+        selectedObjectiveIds,
+        selectedObjectiveLabels,
+        transcript: conversation.transcript,
+        perceptionAvailable: Boolean(conversation.perception),
+      });
+      await db.query(
+        `INSERT INTO reports (report_id,user_id,conversation_id,generated_at,data)
+         VALUES ($1,$2,$3,$4,$5) ON CONFLICT (conversation_id) DO NOTHING`,
+        [technical.reportId, user.profile.id, conversationId, technical.generatedAt, JSON.stringify(technical)],
+      );
+      logIntegration({
+        step: "coach.analyze",
+        event: "simulation non évaluable, aucun appel OpenAI",
+        code: eligibility.reason,
+        userId: user.profile.id,
+        conversationId,
+      });
+      return NextResponse.json<CoachAnalysisResponse>({ status: "ready", report: technical }, { status: 200 });
     }
 
     // 4. Mémoire pédagogique : résumé compact des rapports précédents, sans transcript.
@@ -169,7 +204,7 @@ export async function POST(request: Request) {
       const previous = await db.query<{ data: unknown }>(
         `SELECT data FROM reports
          WHERE user_id = $1 AND conversation_id <> $2
-         ORDER BY generated_at DESC LIMIT ${MAX_HISTORY_REPORTS}`,
+         ORDER BY generated_at DESC LIMIT ${HISTORY_FETCH_LIMIT}`,
         [user.profile.id, conversationId],
       );
       history = buildHistorySummaries(previous.rows.map((row) => row.data));

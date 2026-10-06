@@ -23,6 +23,8 @@ import {
 } from "@/src/components/coach/CoachShared";
 import { useManagerDashboard } from "@/src/lib/team/use-manager-dashboard";
 import { teamCompetencyAverages } from "@/src/lib/team/team-insights";
+import { NotEvaluatedReport } from "@/src/components/coach/NotEvaluatedReport";
+import { isEvaluatedReport } from "@/src/lib/coach/evaluability";
 import { ReportCommentThread } from "@/src/components/coach/ReportCommentThread";
 import { formatDate, formatDuration } from "@/src/lib/format";
 
@@ -58,6 +60,8 @@ export function ManagerReportScreen({ reportId }: { reportId: string }) {
       </>
     );
   }
+
+  if (!isEvaluatedReport(report)) return <NotEvaluatedReport report={report} variant="manager" />;
 
   // Repère visuel : moyenne d'équipe par compétence, calculée sur les analyses réelles.
   const teamReference = dashboard ? teamCompetencyAverages(dashboard.members) : [];

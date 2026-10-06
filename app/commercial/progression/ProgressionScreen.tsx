@@ -19,6 +19,7 @@ import {
   weeklyStreak,
 } from "@/src/lib/reports/report-insights";
 import { cx, formatDelta } from "@/src/lib/format";
+import { evaluatedReports } from "@/src/lib/coach/evaluability";
 
 /** Progression du commercial connecté, calculée sur ses comptes rendus. */
 export function ProgressionScreen() {
@@ -58,7 +59,7 @@ export function ProgressionScreen() {
   }));
   const byDelta = [...withDelta].sort((a, b) => b.delta - a.delta);
 
-  const latest = [...reports].sort((a, b) => Date.parse(b.generatedAt) - Date.parse(a.generatedAt))[0];
+  const latest = [...evaluatedReports(reports)].sort((a, b) => Date.parse(b.generatedAt) - Date.parse(a.generatedAt))[0];
   const nextFocus: CoachPriority = {
     title: latest.pedagogicalPriority.label,
     diagnostic: latest.pedagogicalPriority.reason,

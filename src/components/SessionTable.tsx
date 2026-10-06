@@ -33,7 +33,11 @@ function initialsOf(name: string): string {
 
 function ScoreCell({ session }: { session: SessionSummary }) {
   if (session.score === null) {
-    return <span className="text-sm text-muted">—</span>;
+    return (
+      <span className="inline-flex rounded-full bg-mist px-2.5 py-1 text-xs font-semibold text-graphite">
+        Non évaluée
+      </span>
+    );
   }
   return (
     <span

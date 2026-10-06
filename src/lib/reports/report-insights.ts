@@ -1,6 +1,7 @@
 import type { CoachReport } from "@/src/types/coach";
 import type { CompetencyScore, SessionSummary } from "@/src/types";
 import { COACH_COMPETENCY_SCALE } from "@/src/lib/coach/competency-scale";
+import { evaluatedReports, isEvaluatedReport } from "@/src/lib/coach/evaluability";
 
 /**
  * Agrégats calculés à partir des comptes rendus réels du Coach.
@@ -10,8 +11,12 @@ import { COACH_COMPETENCY_SCALE } from "@/src/lib/coach/competency-scale";
  * fictifs explicitement marqués « Démonstration ».
  */
 export interface ReportInsights {
+  /** Vrai s'il existe au moins une simulation évaluée : seules celles-ci alimentent les statistiques. */
   hasReports: boolean;
+  /** Nombre de simulations évaluées. */
   count: number;
+  /** Nombre total de tentatives, y compris les simulations non évaluées. */
+  attemptsCount: number;
   latestScore: number | null;
   averageScore: number | null;
   /** Écart entre le premier et le dernier compte rendu, en points. */
@@ -26,6 +31,7 @@ export interface ReportInsights {
 const EMPTY_INSIGHTS: ReportInsights = {
   hasReports: false,
   count: 0,
+  attemptsCount: 0,
   latestScore: null,
   averageScore: null,
   progression: null,
@@ -36,12 +42,24 @@ const EMPTY_INSIGHTS: ReportInsights = {
   sessions: [],
 };
 
-/** Les rapports arrivent du plus récent au plus ancien. */
+/**
+ * Les rapports arrivent du plus récent au plus ancien.
+ *
+ * Scores, moyennes, progression et historique ne portent que sur les
+ * simulations évaluées. La liste `sessions` reprend toutes les tentatives, une
+ * simulation non évaluée y figurant sans note.
+ */
 export function computeReportInsights(
-  reports: CoachReport[],
+  allReports: CoachReport[],
   sessionHrefPrefix: string,
 ): ReportInsights {
-  if (reports.length === 0) return EMPTY_INSIGHTS;
+  if (allReports.length === 0) return EMPTY_INSIGHTS;
+
+  const sessions = allReports.map((report) => toSessionSummary(report, sessionHrefPrefix));
+  const reports = evaluatedReports(allReports);
+  if (reports.length === 0) {
+    return { ...EMPTY_INSIGHTS, attemptsCount: allReports.length, sessions };
+  }
 
   const chronological = [...reports].sort(
     (a, b) => Date.parse(a.generatedAt) - Date.parse(b.generatedAt),
@@ -76,6 +94,7 @@ export function computeReportInsights(
   return {
     hasReports: true,
     count: reports.length,
+    attemptsCount: allReports.length,
     latestScore,
     averageScore,
     progression,
@@ -88,7 +107,7 @@ export function computeReportInsights(
       label: formatShortLabel(report.session.date),
       score: report.overallScore,
     })),
-    sessions: reports.map((report) => toSessionSummary(report, sessionHrefPrefix)),
+    sessions,
   };
 }
 
@@ -105,7 +124,8 @@ export function toSessionSummary(report: CoachReport, hrefPrefix: string): Sessi
     objectiveLabel: report.pedagogicalPriority.label,
     difficulty: report.session.difficulty ?? "intermediaire",
     durationSeconds: report.session.durationSeconds,
-    score: report.overallScore,
+    // Une simulation non évaluée n'affiche aucune note.
+    score: isEvaluatedReport(report) ? report.overallScore : null,
     status: "terminee",
     repName: report.commercial.name,
   };
@@ -130,7 +150,7 @@ function weekIndex(timestamp: number): number {
  * semaine en cours (ou la précédente, pour ne pas casser la série un lundi).
  */
 export function weeklyStreak(reports: CoachReport[], now = Date.now()): number {
-  const weeks = new Set(reports.map((report) => weekIndex(Date.parse(report.generatedAt))));
+  const weeks = new Set(evaluatedReports(reports).map((report) => weekIndex(Date.parse(report.generatedAt))));
   let cursor = weekIndex(now);
   if (!weeks.has(cursor)) cursor -= 1;
   let streak = 0;
@@ -143,7 +163,9 @@ export function weeklyStreak(reports: CoachReport[], now = Date.now()): number {
 
 /** Variation de chaque compétence entre l'avant-dernier et le dernier compte rendu (sur 100). */
 export function competencyDeltas(reports: CoachReport[]): Record<string, number> {
-  const ordered = [...reports].sort((a, b) => Date.parse(a.generatedAt) - Date.parse(b.generatedAt));
+  const ordered = [...evaluatedReports(reports)].sort(
+    (a, b) => Date.parse(a.generatedAt) - Date.parse(b.generatedAt),
+  );
   if (ordered.length < 2) return {};
   const previous = ordered.at(-2);
   const latest = ordered.at(-1);

@@ -1,5 +1,6 @@
 import type { SessionDifficulty } from "@/src/types";
 import { COACH_COMPETENCY_SCALE } from "@/src/lib/coach/competency-scale";
+import { reportEvaluability } from "@/src/lib/coach/evaluability";
 
 /**
  * Mémoire pédagogique : résumé compact des simulations précédentes d'un commercial.
@@ -14,6 +15,8 @@ import { COACH_COMPETENCY_SCALE } from "@/src/lib/coach/competency-scale";
  */
 
 export const MAX_HISTORY_REPORTS = 3;
+/** Rapports lus en base : on en lit davantage pour retrouver trois simulations évaluées. */
+export const HISTORY_FETCH_LIMIT = 12;
 const MAX_TEXT = 200;
 
 const DIFFICULTIES: SessionDifficulty[] = ["facile", "intermediaire", "difficile"];
@@ -50,6 +53,10 @@ const finite = (value: unknown): number | null =>
 /** Résumé d'un rapport, ou null s'il n'apporte aucune information exploitable. */
 export function summariseReport(raw: unknown): PreviousReportSummary | null {
   if (!isObject(raw)) return null;
+
+  // Une simulation non évaluable (aucune parole du commercial, etc.) ne devient
+  // jamais une référence pédagogique.
+  if (!reportEvaluability(raw).evaluable) return null;
 
   const session = isObject(raw.session) ? raw.session : {};
   const date = text(session.date) ?? text(raw.generatedAt);

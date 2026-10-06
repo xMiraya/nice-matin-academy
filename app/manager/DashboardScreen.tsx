@@ -203,7 +203,11 @@ export function ManagerDashboardScreen() {
             label="Simulations réalisées"
             value={data.sessionsCount}
             icon={<CalendarCheck size={17} aria-hidden />}
-            hint="Depuis le lancement du dispositif."
+            hint={
+              (data.attemptsCount ?? data.sessionsCount) > data.sessionsCount
+                ? `Évaluées, sur ${data.attemptsCount} tentatives.`
+                : "Depuis le lancement du dispositif."
+            }
           />
           <MetricCard
             label="Progression moyenne"

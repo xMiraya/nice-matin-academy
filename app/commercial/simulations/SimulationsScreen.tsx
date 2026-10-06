@@ -51,7 +51,7 @@ export function SimulationsScreen() {
             </span>
           </span>
           <span className="text-sm font-semibold tabular-nums text-brand-sky">
-            {latest.score} / 100
+            {latest.score === null ? "Non évaluée" : `${latest.score} / 100`}
           </span>
           <span className="ml-auto inline-flex items-center gap-1.5 text-sm font-semibold text-white">
             Ouvrir le compte rendu
@@ -61,10 +61,18 @@ export function SimulationsScreen() {
       ) : null}
 
       <div className="space-y-5 pb-2">
-        {insights.hasReports ? (
+        {insights.sessions.length > 0 ? (
           <Panel
             title="Analyses du Coach IA"
-            description={`Moyenne de vos analyses : ${insights.averageScore} / 100.`}
+            description={
+              insights.hasReports
+                ? `Moyenne de vos analyses : ${insights.averageScore} / 100.${
+                    insights.attemptsCount > insights.count
+                      ? " Les simulations non évaluées ne sont pas comptées."
+                      : ""
+                  }`
+                : "Aucune de vos simulations n'a pu être évaluée pour le moment."
+            }
           >
             <SessionTable sessions={insights.sessions} />
           </Panel>

@@ -24,7 +24,15 @@ export function ManagerSimulationsScreen() {
       </SectionTitle>
 
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
-        <MetricCard label="Simulations réalisées" value={data.sessionsCount} />
+        <MetricCard
+          label="Simulations réalisées"
+          value={data.sessionsCount}
+          hint={
+            (data.attemptsCount ?? data.sessionsCount) > data.sessionsCount
+              ? `Évaluées, sur ${data.attemptsCount} tentatives.`
+              : undefined
+          }
+        />
         <MetricCard label="Commerciaux actifs" value={data.members.filter((m) => m.sessionsCount > 0).length} hint={`Sur ${data.repsCount} comptes.`} />
         <MetricCard
           label="Score moyen"

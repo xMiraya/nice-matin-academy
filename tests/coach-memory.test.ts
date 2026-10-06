@@ -68,7 +68,7 @@ const fullReport = (day: number, overrides: Record<string, unknown> = {}) => ({
   competencies: COACH_COMPETENCY_SCALE.map((entry) => ({ id: entry.id, score: 5, observation: "x", evidence: [] })),
   pedagogicalPriority: { competencyId: "conclusion", label: "Conclusion", reason: "Conclusion absente." },
   nextActions: [{ title: "Proposer une suite", instruction: "Conclure par une date." }],
-  transcript: [{ speaker: "commercial", timestamp: "00:01", text: "TEXTE-SECRET-DU-TRANSCRIPT" }],
+  transcript: [{ speaker: "commercial", timestamp: "00:01", text: "TEXTE-SECRET-DU-TRANSCRIPT prononcé par le commercial" }],
   ...overrides,
 });
 
