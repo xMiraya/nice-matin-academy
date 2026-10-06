@@ -8,6 +8,7 @@ import Daily, {
   type DailyEventObjectCameraError,
   type DailyEventObjectNetworkQualityEvent,
   type DailyEventObjectNonFatalError,
+  type DailyEventObjectRemoteParticipantsAudioLevel,
   type DailyEventObjectTrack,
   type DailyParticipant,
 } from "@daily-co/daily-js";
@@ -16,11 +17,10 @@ import { CharacterAvatar } from "@/src/components/CharacterAvatar";
 import { cx } from "@/src/lib/format";
 import {
   createLatencyRecorder,
-  readTavusEventName,
+  readTavusEnvelope,
   type LatencyRecorder,
-  type TurnLatencySample,
-  IS_LATENCY_INSTRUMENTATION_ENABLED,
 } from "@/src/lib/tavus/latency-metrics";
+import { isLatencyDebugEnabled } from "@/src/lib/tavus/latency-store";
 import { logAudio } from "@/src/lib/media/audio-log";
 import { deriveMicRuntime, type MicRuntime } from "@/src/lib/media/mic-runtime";
 
@@ -122,8 +122,6 @@ function TavusVideoStageComponent({
   const [networkThreshold, setNetworkThreshold] = useState<"good" | "low" | "very-low" | null>(
     null,
   );
-  // Affiché uniquement hors production : dernier tour mesuré.
-  const [lastLatency, setLastLatency] = useState<TurnLatencySample | null>(null);
 
   const [joined, setJoined] = useState(false);
 
@@ -157,11 +155,9 @@ function TavusVideoStageComponent({
     let settled = false;
     let settleTimer: number | undefined;
     let lastMicRuntime: MicRuntime | null = null;
-    // En production, l'enregistreur est un objet inerte : aucun horodatage,
-    // aucun log, aucune allocation par événement.
-    const latency: LatencyRecorder = createLatencyRecorder((sample) => {
-      if (!disposed) setLastLatency(sample);
-    });
+    // Sans `?latencyDebug=1`, l'enregistreur est un objet inerte : aucun
+    // horodatage, aucun log, aucun observateur Daily, aucun stockage.
+    const latency: LatencyRecorder = createLatencyRecorder({ enabled: isLatencyDebugEnabled() });
 
     /**
      * État réel du micro : lu sur la piste audio locale publiée dans Daily, jamais
@@ -266,6 +262,10 @@ function TavusVideoStageComponent({
         .on("joined-meeting", () => {
           if (disposed) return;
           latency.recordLifecycle("joined-meeting");
+          // Mesure du premier audio distant (T4) : uniquement en mode diagnostic.
+          if (latency.enabled) {
+            void call?.startRemoteParticipantsAudioLevelObserver(100).catch(() => undefined);
+          }
           joinedMeeting = true;
           setJoined(true);
           logAudio("daily : salle rejointe");
@@ -308,13 +308,16 @@ function TavusVideoStageComponent({
         // jamais consulté ni journalisé.
         .on("app-message", (event?: DailyEventObjectAppMessage) => {
           if (disposed || !event) return;
-          const parsed = readTavusEventName(event.data);
-          if (parsed) latency.recordTavusEvent(parsed.eventType, parsed.role);
+          if (!latency.enabled) return;
+          // Enveloppe technique uniquement (type, rôle, horodatage, seq, tour).
+          const envelope = readTavusEnvelope(event.data);
+          if (envelope) latency.recordTavusEvent(envelope);
         })
         // Indicateur réseau discret, sans test bloquant de trente secondes.
         .on("network-quality-change", (event?: DailyEventObjectNetworkQualityEvent) => {
           if (disposed || !event) return;
           setNetworkThreshold(event.threshold);
+          if (latency.enabled) latency.recordNetwork(event.threshold);
         })
         .on("left-meeting", () => {
           if (disposed) return;
@@ -324,6 +327,13 @@ function TavusVideoStageComponent({
         .on("error", () =>
           fail("La connexion à la salle vidéo a été perdue. Vous pouvez relancer un appel."),
         );
+
+      if (latency.enabled) {
+        call.on("remote-participants-audio-level", (event?: DailyEventObjectRemoteParticipantsAudioLevel) => {
+          if (disposed || !event) return;
+          latency.recordRemoteAudioLevel(Math.max(0, ...Object.values(event.participantsAudioLevel ?? {})));
+        });
+      }
 
       setCallObject(call);
 
@@ -478,13 +488,6 @@ function TavusVideoStageComponent({
             <Wifi size={14} className="text-warning" aria-hidden />
           )}
           {networkThreshold === "very-low" ? "Réseau très instable" : "Réseau instable"}
-        </div>
-      ) : null}
-
-      {/* Mesure de latence — développement uniquement, jamais en production. */}
-      {IS_LATENCY_INSTRUMENTATION_ENABLED && lastLatency ? (
-        <div className="absolute left-3 bottom-3 rounded-sm bg-black/60 px-2.5 py-1.5 font-mono text-[11px] text-white/70 sm:left-4 sm:bottom-4">
-          tour {lastLatency.turn} · réponse {lastLatency.totalMs} ms
         </div>
       ) : null}
 

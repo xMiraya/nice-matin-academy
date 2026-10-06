@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, Loader2, Mic, MicOff, PhoneOff, Video, VideoOff } from "lucide-react";
 import { Button, ButtonLink } from "@/src/components/Button";
+import { LatencyDebugPanel } from "@/src/components/diagnostics/LatencyDebugPanel";
 import { MicrophoneCheckPanel } from "@/src/components/media/MicrophoneCheckPanel";
 import { createConversationIfMicReady } from "@/src/lib/media/call-gate";
 import { logAudio } from "@/src/lib/media/audio-log";
@@ -536,6 +537,9 @@ export function CallRoom() {
             {isEnding ? "Clôture en cours…" : "Terminer l'appel"}
           </Button>
         </div>
+
+        {/* Mode test uniquement (?latencyDebug=1) : invisible sinon. */}
+        <LatencyDebugPanel tone="dark" className="mx-auto mb-6 w-full max-w-5xl" />
       </main>
     </div>
   );
