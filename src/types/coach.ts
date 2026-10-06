@@ -80,6 +80,32 @@ export interface CoachPedagogicalPriority {
   reason: string;
 }
 
+export type PreviousPriorityApplied = "yes" | "partially" | "no" | "not_evaluable";
+
+export interface CoachProgressPoint {
+  competencyId: CompetencyId;
+  direction: "improved" | "stable" | "declined";
+  explanation: string;
+}
+
+/** Lecture de la progression par rapport aux simulations précédentes (jamais utilisée pour noter). */
+export interface CoachProgressionAnalysis {
+  hasHistory: boolean;
+  summary: string;
+  previousPriorityApplied: PreviousPriorityApplied;
+  previousPriorityComment: string;
+  /** Trois évolutions pertinentes au maximum. */
+  progressPoints: CoachProgressPoint[];
+}
+
+/** Mission unique proposée pour la prochaine simulation. */
+export interface CoachNextMission {
+  title: string;
+  instruction: string;
+  competencyId: CompetencyId;
+  successCriteria: string;
+}
+
 export interface CoachSessionInfo {
   /** Date ISO du début de la conversation. */
   date: string;
@@ -124,6 +150,10 @@ export interface CoachReport {
   pedagogicalPriority: CoachPedagogicalPriority;
   confidenceLevel: CoachConfidenceLevel;
   limitations: string[];
+  /** Absent des comptes rendus créés avant la mémoire pédagogique. */
+  progressionAnalysis?: CoachProgressionAnalysis;
+  /** Absente des comptes rendus créés avant la mémoire pédagogique. */
+  nextMission?: CoachNextMission;
   transcriptAvailable: boolean;
   /**
    * Dialogue de l'échange, conservé pour que le commercial puisse relire son

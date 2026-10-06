@@ -5,7 +5,12 @@ import { getTavusConversation, isValidConversationId } from "@/src/lib/tavus/get
 import { OBJECTIVES } from "@/src/data/competencies";
 import { getDb } from "@/src/server/db";
 import { getCurrentUser } from "@/src/server/auth";
-import { logIntegration } from "@/src/server/log";
+import { logIntegration, safeErrorFields } from "@/src/server/log";
+import {
+  MAX_HISTORY_REPORTS,
+  buildHistorySummaries,
+  type PreviousReportSummary,
+} from "@/src/lib/coach/history";
 import { isConversationOwner } from "@/src/server/access/conversations";
 import {
   analyzeConversation,
@@ -157,7 +162,22 @@ export async function POST(request: Request) {
       );
     }
 
-    // 4. Appel du Coach sur des données déjà filtrées.
+    // 4. Mémoire pédagogique : résumé compact des rapports précédents, sans transcript.
+    // Jamais bloquant : en cas de lecture impossible, le Coach analyse sans historique.
+    let history: PreviousReportSummary[] = [];
+    try {
+      const previous = await db.query<{ data: unknown }>(
+        `SELECT data FROM reports
+         WHERE user_id = $1 AND conversation_id <> $2
+         ORDER BY generated_at DESC LIMIT ${MAX_HISTORY_REPORTS}`,
+        [user.profile.id, conversationId],
+      );
+      history = buildHistorySummaries(previous.rows.map((row) => row.data));
+    } catch (error) {
+      logIntegration({ step: "coach.history", event: "historique illisible", ...safeErrorFields(error) });
+    }
+
+    // 5. Appel du Coach sur des données déjà filtrées.
     const analysis = await analyzeConversation({
       transcript: conversation.transcript,
       perception: conversation.perception,
@@ -169,6 +189,7 @@ export async function POST(request: Request) {
       // les métadonnées du compte rendu, sans jamais atteindre le Coach.
       difficulty,
       isFullInterview: selectedObjectiveIds.length >= OBJECTIVES.length,
+      history,
     });
 
     if (analysis.kind === "not_configured") {
@@ -181,7 +202,7 @@ export async function POST(request: Request) {
       return failure("L'analyse n'a pas pu être produite.", 502);
     }
 
-    // 5. Assemblage : la note globale est recalculée ici, jamais reprise du modèle.
+    // 6. Assemblage : la note globale est recalculée ici, jamais reprise du modèle.
     const extraLimitations: string[] = [];
     if (conversation.perception?.redacted) {
       extraLimitations.push(
@@ -208,6 +229,7 @@ export async function POST(request: Request) {
       transcript: conversation.transcript,
       perceptionAvailable: Boolean(conversation.perception),
       extraLimitations,
+      historyCount: history.length,
     });
 
     await db.query(

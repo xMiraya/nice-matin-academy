@@ -9,11 +9,14 @@ import type {
   CoachKeyMoment,
   CoachMissedOpportunity,
   CoachNextAction,
+  CoachNextMission,
+  CoachProgressionAnalysis,
   CoachReport,
   TavusPerceptionAnalysis,
   TavusTranscriptEntry,
 } from "@/src/types/coach";
 import {
+  COACH_COMPETENCY_IDS,
   COACH_COMPETENCY_SCALE,
   clampInteger,
   computeOverallScore,
@@ -21,6 +24,7 @@ import {
 } from "@/src/lib/coach/competency-scale";
 import { COACH_SYSTEM_PROMPT, buildCoachUserPayload } from "@/src/lib/coach/prompt";
 import { CoachModelOutputSchema, type CoachModelOutput } from "@/src/lib/coach/schema";
+import type { PreviousReportSummary } from "@/src/lib/coach/history";
 
 /**
  * Appel du Coach GPT via l'API Responses, en sortie structurée stricte.
@@ -61,6 +65,8 @@ export interface AnalyzeConversationInput {
   difficulty?: SessionDifficulty;
   /** Vrai lorsque tous les objectifs proposés ont été sélectionnés. */
   isFullInterview?: boolean;
+  /** Résumés compacts des simulations précédentes, pour lire la progression uniquement. */
+  history?: PreviousReportSummary[];
 }
 
 /**
@@ -151,6 +157,8 @@ export interface BuildReportInput {
   transcript: TavusTranscriptEntry[];
   perceptionAvailable: boolean;
   extraLimitations: string[];
+  /** Nombre de rapports précédents réellement transmis au Coach (0 : première simulation). */
+  historyCount?: number;
 }
 
 /**
@@ -209,6 +217,8 @@ export function buildCoachReport(input: BuildReportInput): CoachReport {
       ...input.extraLimitations,
       ...input.output.limitations.map((limitation) => truncate(limitation, MAX_SHORT_TEXT)),
     ].filter((limitation) => limitation.length > 0),
+    progressionAnalysis: normaliseProgression(input.output.progressionAnalysis, input.historyCount ?? 0),
+    nextMission: normaliseMission(input.output.nextMission, priorityId),
     transcriptAvailable: input.transcriptAvailable,
     transcript: toTranscriptLines(input.transcript),
     perceptionAvailable: input.perceptionAvailable,
@@ -304,6 +314,59 @@ function normaliseMissedOpportunities(
     title: truncate(item.title, 90),
     explanation: truncate(item.explanation, MAX_SHORT_TEXT),
   }));
+}
+
+const FIRST_SIMULATION_SUMMARY =
+  "Première simulation analysée : elle constitue le point de départ de votre progression.";
+
+/**
+ * La présence d'un historique est décidée par le serveur, jamais par le modèle :
+ * sans rapport précédent transmis, aucune comparaison n'est conservée.
+ */
+function normaliseProgression(
+  raw: CoachModelOutput["progressionAnalysis"],
+  historyCount: number,
+): CoachProgressionAnalysis {
+  if (historyCount <= 0) {
+    return {
+      hasHistory: false,
+      summary: FIRST_SIMULATION_SUMMARY,
+      previousPriorityApplied: "not_evaluable",
+      previousPriorityComment: "",
+      progressPoints: [],
+    };
+  }
+
+  const known = new Set<string>(COACH_COMPETENCY_IDS);
+  return {
+    hasHistory: true,
+    summary: truncate(raw.summary, MAX_SHORT_TEXT),
+    previousPriorityApplied: raw.previousPriorityApplied,
+    previousPriorityComment: truncate(raw.previousPriorityComment, MAX_SHORT_TEXT),
+    progressPoints: raw.progressPoints
+      .filter((point) => known.has(point.competencyId))
+      .slice(0, 3)
+      .map((point) => ({
+        competencyId: point.competencyId as CompetencyId,
+        direction: point.direction,
+        explanation: truncate(point.explanation, MAX_SHORT_TEXT),
+      })),
+  };
+}
+
+/** Mission unique, rattachée à la compétence prioritaire si le modèle en désigne une inconnue. */
+function normaliseMission(
+  raw: CoachModelOutput["nextMission"],
+  priorityId: CompetencyId,
+): CoachNextMission {
+  const known = COACH_COMPETENCY_SCALE.find((entry) => entry.id === raw.competencyId);
+  return {
+    title: truncate(raw.title, 90) || "Mission non précisée",
+    instruction:
+      truncate(raw.instruction, MAX_SHORT_TEXT) || "À définir avec votre responsable lors du prochain point.",
+    competencyId: known ? known.id : priorityId,
+    successCriteria: truncate(raw.successCriteria, MAX_SHORT_TEXT),
+  };
 }
 
 function normalisePriorityId(

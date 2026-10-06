@@ -18,6 +18,8 @@ import {
   CoachKeyMomentsPanel,
   CoachLimitationsPanel,
   CoachMissedOpportunitiesPanel,
+  CoachNextMissionCard,
+  CoachProgressionPanel,
   CoachPsychologicalPanel,
   CoachRadarPanel,
   CoachScorePanel,
@@ -176,6 +178,10 @@ export function CoachReportScreen({ reportId }: { reportId: string }) {
             ))}
           </div>
         </Panel>
+
+        <CoachProgressionPanel report={report} />
+
+        <CoachNextMissionCard report={report} />
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <CoachHighlightsPanel

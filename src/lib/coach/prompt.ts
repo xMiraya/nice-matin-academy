@@ -1,6 +1,7 @@
 import type { SessionDifficulty } from "@/src/types";
 import type { TavusPerceptionAnalysis, TavusTranscriptEntry } from "@/src/types/coach";
 import { COACH_COMPETENCY_SCALE } from "@/src/lib/coach/competency-scale";
+import { formatHistoryBlock, type PreviousReportSummary } from "@/src/lib/coach/history";
 
 /**
  * Prompt du Coach IA Nice-Matin.
@@ -81,6 +82,20 @@ Le contexte précise si le commercial a choisi l'entretien commercial complet ou
 - Entretien complet : traite les huit compétences avec la même attention. Répartis \`keyMoments\`, \`strengths\`, \`improvements\` et \`nextActions\` sur l'ensemble du déroulé, de l'ouverture à la conclusion, sans concentrer le propos sur une seule étape.
 - Objectifs ciblés : le compte rendu doit se lire comme un retour sur ces objectifs. La \`pedagogicalPriority\` porte sur une compétence visée par les objectifs choisis, sauf si une autre compétence est manifestement plus dégradée — dans ce cas, explique-le dans \`reason\`. Au moins deux des trois \`nextActions\` portent sur les objectifs choisis. Les \`evidence\` des compétences visées sont les plus fournies, et \`keyMoments\` privilégie les passages qui les concernent. Les autres compétences restent notées et commentées, plus brièvement.
 
+# Historique pédagogique et mission
+
+Le message utilisateur contient un bloc « HISTORIQUE PÉDAGOGIQUE DU COMMERCIAL » : un résumé compact (notes, priorité, actions) de ses simulations précédentes. Ce bloc sert uniquement à analyser la progression et à fixer la mission suivante.
+
+- Les notes de la simulation actuelle reposent UNIQUEMENT sur la simulation actuelle. Ne jamais augmenter ou diminuer une note à cause des performances précédentes, en bien comme en mal.
+- Ne jamais inventer une progression si les données ne permettent pas de la constater.
+- Ne confonds pas une variation numérique et un progrès réellement observable : appuie-toi sur le transcript actuel pour dire si un geste a changé.
+- Vérifie dans le transcript actuel si la priorité et les actions recommandées précédemment ont effectivement été appliquées. Renseigne \`previousPriorityApplied\` : « yes », « partially », « no », ou « not_evaluable » si l'étape n'a pas pu être observée ou si les données précédentes sont insuffisantes.
+- S'il n'existe aucun rapport précédent : \`hasHistory\` vaut false, \`summary\` indique qu'il s'agit du point de départ, \`previousPriorityApplied\` vaut « not_evaluable », \`progressPoints\` est vide et tu ne fais aucune comparaison.
+- \`progressPoints\` : trois éléments au maximum, uniquement les évolutions pédagogiquement pertinentes, sans chercher à couvrir les huit compétences. \`direction\` vaut « improved », « stable » ou « declined ».
+- Reste factuel, pédagogique et bienveillant.
+
+\`nextMission\` : une mission UNIQUE pour la prochaine simulation, produite dans tous les cas, y compris sans historique. Elle est concrète, mesurable autant que possible, réalisable en une simulation, et liée à la \`pedagogicalPriority\` actuelle (même \`competencyId\`). \`successCriteria\` décrit ce qui permettra de constater qu'elle est réussie. Si la mission précédente n'a pas été réussie, tu peux la reformuler plus simplement.
+
 # Contraintes de rédaction
 
 - \`observation\`, \`explanation\`, \`instruction\`, \`excerpt\` : 180 caractères maximum chacun.
@@ -91,6 +106,8 @@ Le contexte précise si le commercial a choisi l'entretien commercial complet ou
 - \`missedOpportunities\` : zéro à quatre éléments.
 - \`evidence\` : zéro à trois preuves par compétence, extraits courts et littéraux du transcript.
 - \`scoreInterpretation\` : 60 caractères maximum. C'est une étiquette, pas une phrase. Exemples : « Entretien maîtrisé », « Fondamentaux à retravailler ».
+- \`progressionAnalysis.summary\` et \`previousPriorityComment\` : 180 caractères maximum chacun ; \`progressPoints[].explanation\` : 180 caractères maximum.
+- \`nextMission\` : \`title\` 90 caractères maximum ; \`instruction\` et \`successCriteria\` 180 caractères maximum chacun.
 - \`limitations\` : signale honnêtement ce qui limite l'analyse (durée très courte, caméra inactive, transcript partiel, étapes non atteintes…).
 - \`confidenceLevel\` : « high » si le transcript est riche et complet, « medium » s'il est court ou partiel, « low » s'il est très pauvre.
 
@@ -107,6 +124,8 @@ export interface CoachUserPayloadInput {
   difficulty?: SessionDifficulty;
   /** Vrai lorsque tous les objectifs proposés ont été sélectionnés. */
   isFullInterview?: boolean;
+  /** Résumés compacts des simulations précédentes (jamais de transcript). */
+  history?: PreviousReportSummary[];
 }
 
 /** Rappel du comportement attendu de Julie, transmis au Coach avec le niveau. */
@@ -179,6 +198,9 @@ export function buildCoachUserPayload(input: CoachUserPayloadInput): string {
     lines.push("");
     lines.push(input.perception.summary);
   }
+
+  lines.push("");
+  lines.push(formatHistoryBlock(input.history ?? []));
 
   lines.push("");
   lines.push(

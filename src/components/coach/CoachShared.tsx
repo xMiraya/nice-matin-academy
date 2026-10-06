@@ -8,6 +8,10 @@ import {
   Info,
   MessageSquareQuote,
   Milestone,
+  Minus,
+  Rocket,
+  TrendingDown,
+  TrendingUp,
 } from "lucide-react";
 import type {
   CoachConfidenceLevel,
@@ -19,6 +23,7 @@ import type {
   CoachOutcome,
   CoachPsychologicalState,
   CoachReport,
+  PreviousPriorityApplied,
 } from "@/src/types/coach";
 import type { CompetencyScore } from "@/src/types";
 import { Panel } from "@/src/components/Panel";
@@ -26,6 +31,7 @@ import { Badge } from "@/src/components/StatusBadge";
 import { ScoreBar, ScoreGauge } from "@/src/components/ScoreGauge";
 import { CompetencyRadar } from "@/src/components/charts/CompetencyRadar";
 import { cx, formatTimer, scoreColor } from "@/src/lib/format";
+import { COACH_COMPETENCY_SCALE } from "@/src/lib/coach/competency-scale";
 
 /* ------------------------------------------------------------------ */
 /* Conversions et libellés                                             */
@@ -541,5 +547,131 @@ export function CoachCompetencyBars({ report }: { report: CoachReport }) {
           />
         ))}
     </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Mémoire pédagogique : progression et mission                        */
+/* ------------------------------------------------------------------ */
+
+const PRIORITY_APPLIED_META: Record<
+  PreviousPriorityApplied,
+  { label: string; tone: "positif" | "vigilance" | "critique" | "neutre" }
+> = {
+  yes: { label: "Priorité précédente appliquée", tone: "positif" },
+  partially: { label: "Priorité précédente partiellement appliquée", tone: "vigilance" },
+  no: { label: "Priorité précédente non appliquée", tone: "critique" },
+  not_evaluable: { label: "Priorité précédente non évaluable", tone: "neutre" },
+};
+
+const DIRECTION_META = {
+  improved: { label: "En progrès", icon: TrendingUp, text: "text-positive" },
+  stable: { label: "Stable", icon: Minus, text: "text-graphite" },
+  declined: { label: "En recul", icon: TrendingDown, text: "text-warning" },
+} as const;
+
+const competencyName = (id: string) =>
+  COACH_COMPETENCY_SCALE.find((entry) => entry.id === id)?.label ?? id;
+
+/**
+ * Progression par rapport aux simulations précédentes. N'affiche rien pour un
+ * compte rendu créé avant la mémoire pédagogique.
+ */
+export function CoachProgressionPanel({
+  report,
+  title = "Ma progression",
+  className,
+}: {
+  report: CoachReport;
+  title?: string;
+  className?: string;
+}) {
+  const progression = report.progressionAnalysis;
+  if (!progression) return null;
+
+  if (!progression.hasHistory) {
+    return (
+      <Panel title={title} className={className}>
+        <p className="text-sm leading-relaxed text-graphite">
+          Cette simulation est le point de départ de votre progression. Les prochaines seront
+          comparées à celle-ci.
+        </p>
+      </Panel>
+    );
+  }
+
+  const applied = PRIORITY_APPLIED_META[progression.previousPriorityApplied];
+
+  return (
+    <Panel
+      title={title}
+      description="Lecture de l'évolution depuis vos simulations précédentes."
+      className={className}
+      action={<Badge tone={applied.tone}>{applied.label}</Badge>}
+    >
+      <p className="text-sm leading-relaxed text-graphite">{progression.summary}</p>
+      {progression.previousPriorityComment ? (
+        <p className="mt-2 text-sm leading-relaxed text-graphite">{progression.previousPriorityComment}</p>
+      ) : null}
+
+      {progression.progressPoints.length > 0 ? (
+        <ul className="mt-4 space-y-3 border-t border-line pt-4">
+          {progression.progressPoints.map((point, index) => {
+            const meta = DIRECTION_META[point.direction];
+            const Icon = meta.icon;
+            return (
+              <li key={`${point.competencyId}-${index}`} className="flex gap-3">
+                <Icon size={16} className={cx("mt-0.5 shrink-0", meta.text)} aria-hidden />
+                <span className="min-w-0 text-sm leading-relaxed text-graphite">
+                  <span className="font-semibold text-ink">{competencyName(point.competencyId)}</span>
+                  <span className={cx("ml-2 text-xs font-semibold", meta.text)}>{meta.label}</span>
+                  <span className="block">{point.explanation}</span>
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      ) : null}
+    </Panel>
+  );
+}
+
+/** Mission unique pour la prochaine simulation. N'affiche rien sans mission. */
+export function CoachNextMissionCard({
+  report,
+  title = "Ma prochaine mission",
+  className,
+}: {
+  report: CoachReport;
+  title?: string;
+  className?: string;
+}) {
+  const mission = report.nextMission;
+  if (!mission) return null;
+
+  return (
+    <section
+      aria-label={title}
+      className={cx("rounded-lg border-2 border-brand bg-brand-soft p-6", className)}
+    >
+      <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-brand">
+        <Rocket size={15} aria-hidden />
+        {title}
+      </p>
+      <h2 className="mt-2 text-xl font-semibold tracking-tight text-ink">{mission.title}</h2>
+      <p className="mt-1 text-xs font-medium text-graphite">
+        Compétence travaillée : {competencyName(mission.competencyId)}
+      </p>
+      <p className="mt-3 text-[15px] leading-relaxed text-ink">{mission.instruction}</p>
+      {mission.successCriteria ? (
+        <p className="mt-4 flex gap-2 rounded-md bg-white/70 p-3.5 text-sm leading-relaxed text-graphite">
+          <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-positive" aria-hidden />
+          <span>
+            <span className="font-semibold text-ink">Critère de réussite : </span>
+            {mission.successCriteria}
+          </span>
+        </p>
+      ) : null}
+    </section>
   );
 }

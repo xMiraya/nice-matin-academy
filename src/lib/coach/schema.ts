@@ -58,6 +58,27 @@ export const CoachPsychologicalStateSchema = z.object({
   feltPressure: z.number(),
 });
 
+export const CoachProgressionAnalysisSchema = z.object({
+  hasHistory: z.boolean(),
+  summary: z.string(),
+  previousPriorityApplied: z.enum(["yes", "partially", "no", "not_evaluable"]),
+  previousPriorityComment: z.string(),
+  progressPoints: z.array(
+    z.object({
+      competencyId: competencyIdEnum,
+      direction: z.enum(["improved", "stable", "declined"]),
+      explanation: z.string(),
+    }),
+  ),
+});
+
+export const CoachNextMissionSchema = z.object({
+  title: z.string(),
+  instruction: z.string(),
+  competencyId: competencyIdEnum,
+  successCriteria: z.string(),
+});
+
 /** Ce que le modèle doit produire. Le score global n'en fait volontairement pas partie. */
 export const CoachModelOutputSchema = z.object({
   outcome: z.enum(["accepted", "refused", "postponed", "interrupted", "inconclusive"]),
@@ -78,6 +99,8 @@ export const CoachModelOutputSchema = z.object({
   }),
   confidenceLevel: z.enum(["high", "medium", "low"]),
   limitations: z.array(z.string()),
+  progressionAnalysis: CoachProgressionAnalysisSchema,
+  nextMission: CoachNextMissionSchema,
 });
 
 export type CoachModelOutput = z.infer<typeof CoachModelOutputSchema>;

@@ -15,6 +15,8 @@ import {
   CoachKeyMomentsPanel,
   CoachLimitationsPanel,
   CoachMissedOpportunitiesPanel,
+  CoachNextMissionCard,
+  CoachProgressionPanel,
   CoachPsychologicalPanel,
   CoachScorePanel,
   toCompetencyScores,
@@ -147,6 +149,10 @@ export function ManagerReportScreen({ reportId }: { reportId: string }) {
             ))}
           </div>
         </Panel>
+
+        <CoachProgressionPanel report={report} title="Progression du commercial" />
+
+        <CoachNextMissionCard report={report} title="Prochaine mission" />
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <CoachHighlightsPanel
