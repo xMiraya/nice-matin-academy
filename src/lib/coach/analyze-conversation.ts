@@ -1,3 +1,4 @@
+import { logIntegration, safeErrorFields } from "@/src/server/log";
 import OpenAI from "openai";
 import { zodTextFormat } from "openai/helpers/zod";
 import type { CompetencyId, SessionDifficulty, TranscriptLine } from "@/src/types";
@@ -113,14 +114,21 @@ export async function analyzeConversation(
     });
 
     const parsed = response.output_parsed;
-    if (!parsed) return { kind: "invalid_output" };
+    if (!parsed) {
+      logIntegration({ step: "openai.analyze", event: "sortie vide ou illisible", code: "no_parsed_output" });
+      return { kind: "invalid_output" };
+    }
 
     const validated = CoachModelOutputSchema.safeParse(parsed);
-    if (!validated.success) return { kind: "invalid_output" };
+    if (!validated.success) {
+      logIntegration({ step: "openai.analyze", event: "sortie non conforme au schéma", code: "schema_mismatch" });
+      return { kind: "invalid_output" };
+    }
 
     return { kind: "ok", output: validated.data, model };
   } catch (error) {
     const status = (error as { status?: number })?.status;
+    logIntegration({ step: "openai.analyze", event: "échec de l'appel OpenAI", ...safeErrorFields(error) });
     if (status === 401 || status === 403) return { kind: "not_configured" };
     if (status === 429) return { kind: "rate_limited" };
     return { kind: "upstream_error" };

@@ -5,6 +5,7 @@ import { getTavusConversation, isValidConversationId } from "@/src/lib/tavus/get
 import { OBJECTIVES } from "@/src/data/competencies";
 import { getDb } from "@/src/server/db";
 import { getCurrentUser } from "@/src/server/auth";
+import { logIntegration } from "@/src/server/log";
 import { isConversationOwner } from "@/src/server/access/conversations";
 import {
   analyzeConversation,
@@ -51,6 +52,9 @@ function pending(
 }
 
 function failure(error: string, status: number, code?: string): NextResponse<CoachApiError> {
+  if (status >= 500 || status === 401 || status === 402 || status === 429) {
+    logIntegration({ step: "coach.analyze", event: error, httpStatus: status, code: code ?? null });
+  }
   return NextResponse.json<CoachApiError>(code ? { error, code } : { error }, { status });
 }
 

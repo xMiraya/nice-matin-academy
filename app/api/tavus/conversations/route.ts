@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/src/server/auth";
+import { logIntegration, safeErrorFields } from "@/src/server/log";
 import { pgAccessStore } from "@/src/server/access/pg-store";
 import { recordConversation } from "@/src/server/access/conversations";
 import {
@@ -190,6 +191,7 @@ export async function POST(request: Request) {
   // Aucune précision sur la variable manquante : la configuration serveur ne
   // doit pas être déductible depuis le navigateur.
   if (!apiKey || !faceId || !palId) {
+    logIntegration({ step: "tavus.create", event: "configuration incomplète", userId: user.profile.id });
     return failure("TAVUS_CONFIGURATION_ERROR");
   }
 
@@ -217,24 +219,37 @@ export async function POST(request: Request) {
       signal: AbortSignal.timeout(TAVUS_TIMEOUT_MS),
       cache: "no-store",
     });
-  } catch {
+  } catch (error) {
+    logIntegration({ step: "tavus.create", event: "requête non aboutie", ...safeErrorFields(error), userId: user.profile.id });
     return failure("TAVUS_CONVERSATION_CREATION_FAILED");
   }
 
   if (!tavusResponse.ok) {
-    return failure(await classifyTavusFailure(tavusResponse));
+    const code = await classifyTavusFailure(tavusResponse);
+    logIntegration({ step: "tavus.create", event: "refus Tavus", httpStatus: tavusResponse.status, code, userId: user.profile.id });
+    return failure(code);
   }
 
   let payload: TavusConversationApiResponse;
   try {
     payload = (await tavusResponse.json()) as TavusConversationApiResponse;
   } catch {
+    logIntegration({ step: "tavus.create", event: "réponse illisible", httpStatus: tavusResponse.status, userId: user.profile.id });
     return failure("TAVUS_CONVERSATION_CREATION_FAILED");
   }
 
   if (!payload.conversation_id || !payload.conversation_url) {
+    logIntegration({ step: "tavus.create", event: "réponse incomplète", httpStatus: tavusResponse.status, userId: user.profile.id });
     return failure("TAVUS_CONVERSATION_CREATION_FAILED");
   }
+
+  logIntegration({
+    step: "tavus.create",
+    event: "conversation créée",
+    httpStatus: tavusResponse.status,
+    userId: user.profile.id,
+    conversationId: payload.conversation_id,
+  });
 
   // Premier accès et rattachement de la conversation : seulement après le succès Tavus.
   if (user.role === "commercial") {

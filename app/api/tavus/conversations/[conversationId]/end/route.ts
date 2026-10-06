@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/src/server/auth";
+import { logIntegration, safeErrorFields } from "@/src/server/log";
 import { isConversationOwner } from "@/src/server/access/conversations";
 import type { TavusApiErrorResponse } from "@/src/types/tavus";
 
@@ -51,13 +52,21 @@ export async function POST(
         },
       },
     );
-  } catch {
+  } catch (error) {
+    logIntegration({ step: "tavus.end", event: "requête non aboutie", ...safeErrorFields(error), conversationId, userId: user.profile.id });
     return NextResponse.json<TavusApiErrorResponse>(
       { error: "Impossible de joindre le service Tavus pour clore l'appel." },
       { status: 502 },
     );
   }
 
+  logIntegration({
+    step: "tavus.end",
+    event: tavusResponse.ok ? "conversation close" : "refus Tavus",
+    httpStatus: tavusResponse.status,
+    conversationId,
+    userId: user.profile.id,
+  });
   if (!tavusResponse.ok) {
     return NextResponse.json<TavusApiErrorResponse>(
       { error: "La clôture de la conversation Tavus a échoué." },

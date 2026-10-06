@@ -1,3 +1,4 @@
+import { logIntegration, safeErrorFields } from "@/src/server/log";
 import type { TavusPerceptionAnalysis, TavusTranscriptEntry } from "@/src/types/coach";
 
 /**
@@ -82,10 +83,14 @@ export async function getTavusConversation(conversationId: string): Promise<Tavu
         cache: "no-store",
       },
     );
-  } catch {
+  } catch (error) {
+    logIntegration({ step: "tavus.fetch", event: "requête non aboutie", ...safeErrorFields(error), conversationId });
     return { kind: "upstream_error" };
   }
 
+  if (!response.ok) {
+    logIntegration({ step: "tavus.fetch", event: "refus Tavus", httpStatus: response.status, conversationId });
+  }
   if (response.status === 404) return { kind: "not_found" };
   if (response.status === 402) return { kind: "credits_exhausted" };
 
