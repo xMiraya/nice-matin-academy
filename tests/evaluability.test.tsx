@@ -305,6 +305,8 @@ describe("G. affichage d'une simulation non évaluée", () => {
     const html = renderToStaticMarkup(<NotEvaluatedReport report={technical} variant="manager" />);
     expect(html).toContain("Non évaluée");
     expect(html).toContain("exclue des scores");
+    expect(html).toContain("sa progression");
+    expect(html).not.toContain("votre progression");
     expect(html).not.toMatch(/\d+\s*\/\s*100/);
   });
 });

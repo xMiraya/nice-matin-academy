@@ -38,7 +38,11 @@ export function NotEvaluatedReport({
             ? `${NON_EVALUABLE_TITLES} · ${report.commercial.name}`
             : NON_EVALUABLE_TITLES
         }
-        description={NON_EVALUABLE_MESSAGES[reason]}
+        description={
+          isManager
+            ? NON_EVALUABLE_MESSAGES[reason].replace("votre progression", "sa progression")
+            : NON_EVALUABLE_MESSAGES[reason]
+        }
         back={{ href: backHref, label: isManager ? "Simulations" : "Mes simulations" }}
         actions={
           isManager ? undefined : (
