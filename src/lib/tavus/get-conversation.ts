@@ -65,7 +65,7 @@ export async function getTavusConversation(conversationId: string): Promise<Tavu
     return { kind: "not_found" };
   }
 
-  const apiKey = process.env.TAVUS_API_KEY;
+  const apiKey = process.env.TAVUS_API_KEY?.trim();
   const expectedPalId = process.env.TAVUS_PAL_ID;
   if (!apiKey || !expectedPalId) {
     return { kind: "not_configured" };

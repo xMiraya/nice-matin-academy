@@ -183,7 +183,7 @@ export async function POST(request: Request) {
   }
 
   const difficulty = await readDifficulty(request);
-  const apiKey = process.env.TAVUS_API_KEY;
+  const apiKey = process.env.TAVUS_API_KEY?.trim();
   const faceId = process.env.TAVUS_FACE_ID;
   const palId = process.env.TAVUS_PAL_ID;
 

@@ -31,7 +31,7 @@ export async function POST(
     );
   }
 
-  const apiKey = process.env.TAVUS_API_KEY;
+  const apiKey = process.env.TAVUS_API_KEY?.trim();
   if (!apiKey) {
     return NextResponse.json<TavusApiErrorResponse>(
       { error: "La configuration Tavus est incomplète côté serveur." },
