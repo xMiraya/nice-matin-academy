@@ -5,7 +5,10 @@ import Image from "next/image";
 import Daily, {
   type DailyCall,
   type DailyEventObjectAppMessage,
+  type DailyEventObjectCameraError,
   type DailyEventObjectNetworkQualityEvent,
+  type DailyEventObjectNonFatalError,
+  type DailyEventObjectTrack,
   type DailyParticipant,
 } from "@daily-co/daily-js";
 import { Loader2, Maximize2, Minimize2, VideoOff, Wifi, WifiOff } from "lucide-react";
@@ -18,6 +21,13 @@ import {
   type TurnLatencySample,
   IS_LATENCY_INSTRUMENTATION_ENABLED,
 } from "@/src/lib/tavus/latency-metrics";
+import { logAudio } from "@/src/lib/media/audio-log";
+import { deriveMicRuntime, type MicRuntime } from "@/src/lib/media/mic-runtime";
+
+/** Délai laissé au micro pour publier sa piste avant de la déclarer perdue. */
+const MIC_SETTLE_MS = 5_000;
+/** Attente avant de juger le résultat d'une tentative de réactivation. */
+const MIC_RECOVER_WAIT_MS = 2_500;
 
 /**
  * Scène vidéo de l'appel avec Julie.
@@ -35,8 +45,17 @@ export type StageConnectionState = "connecting" | "waiting" | "live" | "ended" |
 interface TavusVideoStageProps {
   /** URL de salle Daily renvoyée par Tavus (`conversation_url`). */
   roomUrl: string;
+  /** Souhait de l'utilisateur : ne dit rien de l'état réel, lu sur la piste Daily. */
   micOn: boolean;
   cameraOn: boolean;
+  /** Périphérique choisi pendant le contrôle avant appel (`null` : micro par défaut). */
+  micDeviceId: string | null;
+  /** Incrémenté par l'interface pour demander une réactivation du micro. */
+  recoverSignal: number;
+  /** État réel du micro, déduit de la piste locale publiée dans Daily. */
+  onMicState: (state: MicRuntime) => void;
+  /** Résultat d'une réactivation demandée. */
+  onRecoverResult: (recovered: boolean) => void;
   /** Déclenché une seule fois, au moment où le commercial a rejoint la salle. */
   onJoined: () => void;
   /**
@@ -85,6 +104,10 @@ function TavusVideoStageComponent({
   roomUrl,
   micOn,
   cameraOn,
+  micDeviceId,
+  recoverSignal,
+  onMicState,
+  onRecoverResult,
   onJoined,
   onJulieReady,
   onLeft,
@@ -102,6 +125,8 @@ function TavusVideoStageComponent({
   // Affiché uniquement hors production : dernier tour mesuré.
   const [lastLatency, setLastLatency] = useState<TurnLatencySample | null>(null);
 
+  const [joined, setJoined] = useState(false);
+
   const stageRef = useRef<HTMLDivElement>(null);
   const remoteVideoRef = useMediaTrack<HTMLVideoElement>(remoteVideo);
   const remoteAudioRef = useMediaTrack<HTMLAudioElement>(remoteAudio);
@@ -109,20 +134,76 @@ function TavusVideoStageComponent({
 
   // Les callbacks sont lus via ref : l'effet de connexion ne doit dépendre que
   // de `roomUrl`, sous peine de quitter puis rejoindre la salle à chaque rendu.
-  const handlersRef = useRef({ onJoined, onJulieReady, onLeft, onError });
+  const handlersRef = useRef({ onJoined, onJulieReady, onLeft, onError, onMicState, onRecoverResult });
   useEffect(() => {
-    handlersRef.current = { onJoined, onJulieReady, onLeft, onError };
-  }, [onJoined, onJulieReady, onLeft, onError]);
+    handlersRef.current = { onJoined, onJulieReady, onLeft, onError, onMicState, onRecoverResult };
+  }, [onJoined, onJulieReady, onLeft, onError, onMicState, onRecoverResult]);
+
+  // Lues par l'évaluation de l'état réel du micro, sans relancer la connexion.
+  const micWantedRef = useRef(micOn);
+  const micDeviceRef = useRef(micDeviceId);
+  const evaluateMicRef = useRef<() => MicRuntime>(() => "pending");
+  useEffect(() => {
+    micWantedRef.current = micOn;
+    micDeviceRef.current = micDeviceId;
+    evaluateMicRef.current();
+  }, [micOn, micDeviceId]);
 
   useEffect(() => {
     let call: DailyCall | null = null;
     let disposed = false;
     let julieAnnounced = false;
+    let joinedMeeting = false;
+    let settled = false;
+    let settleTimer: number | undefined;
+    let lastMicRuntime: MicRuntime | null = null;
     // En production, l'enregistreur est un objet inerte : aucun horodatage,
     // aucun log, aucune allocation par événement.
     const latency: LatencyRecorder = createLatencyRecorder((sample) => {
       if (!disposed) setLastLatency(sample);
     });
+
+    /**
+     * État réel du micro : lu sur la piste audio locale publiée dans Daily, jamais
+     * déduit d'un simple booléen d'interface ni d'une autorisation accordée.
+     */
+    const evaluateMic = (): MicRuntime => {
+      const localAudio = call && !disposed ? call.participants().local?.tracks?.audio : undefined;
+      const runtime = deriveMicRuntime({
+        joined: joinedMeeting,
+        wanted: micWantedRef.current,
+        settled,
+        trackState: localAudio?.state,
+        track: localAudio?.persistentTrack ?? null,
+      });
+      if (runtime !== lastMicRuntime) {
+        lastMicRuntime = runtime;
+        logAudio("micro : état réel", { etat: runtime, piste: localAudio?.state ?? "absente" });
+        handlersRef.current.onMicState(runtime);
+      }
+      return runtime;
+    };
+    evaluateMicRef.current = evaluateMic;
+
+    /** Après la jonction : choisit le périphérique puis active le micro, et vérifie la piste. */
+    const configureMic = async () => {
+      if (!call || disposed) return;
+      const current = call;
+      try {
+        if (micDeviceRef.current) {
+          await current.setInputDevicesAsync({ audioDeviceId: micDeviceRef.current });
+        }
+      } catch {
+        logAudio("micro : périphérique non appliqué");
+      }
+      if (disposed) return;
+      current.setLocalAudio(micWantedRef.current);
+      settleTimer = window.setTimeout(() => {
+        settled = true;
+        evaluateMic();
+      }, MIC_SETTLE_MS);
+      evaluateMic();
+    };
 
     /** Recalcule les pistes affichées à partir de l'état complet des participants. */
     const syncTracks = () => {
@@ -133,6 +214,7 @@ function TavusVideoStageComponent({
 
       const remoteVideoTrack = readTrack(remote, "video");
 
+      evaluateMic();
       setLocalVideo(readTrack(local, "video"));
       setRemoteVideo(remoteVideoTrack);
       setRemoteAudio(readTrack(remote, "audio"));
@@ -164,6 +246,10 @@ function TavusVideoStageComponent({
         call = Daily.createCallObject({
           url: roomUrl,
           subscribeToTracksAutomatically: true,
+          // Le micro n'est activé qu'après `joined-meeting`, avec vérification de
+          // la piste réellement publiée (voir `configureMic`).
+          startAudioOff: true,
+          ...(micDeviceRef.current ? { audioSource: micDeviceRef.current } : {}),
         });
       } catch {
         fail("La salle vidéo n'a pas pu être initialisée. Rechargez la page puis réessayez.");
@@ -180,8 +266,36 @@ function TavusVideoStageComponent({
         .on("joined-meeting", () => {
           if (disposed) return;
           latency.recordLifecycle("joined-meeting");
+          joinedMeeting = true;
+          setJoined(true);
+          logAudio("daily : salle rejointe");
           handlersRef.current.onJoined();
           syncTracks();
+          void configureMic();
+        })
+        .on("track-started", (event?: DailyEventObjectTrack) => {
+          if (disposed || !event?.participant?.local || event.type !== "audio") return;
+          logAudio("micro : piste démarrée");
+          evaluateMic();
+        })
+        .on("track-stopped", (event?: DailyEventObjectTrack) => {
+          if (disposed || !event?.participant?.local || event.type !== "audio") return;
+          logAudio("micro : piste arrêtée");
+          evaluateMic();
+        })
+        .on("camera-error", (event?: DailyEventObjectCameraError) => {
+          if (disposed) return;
+          logAudio("daily : erreur de capture", {
+            cause: event?.error?.type ?? "inconnue",
+            audioOk: event?.errorMsg?.audioOk ?? null,
+            videoOk: event?.errorMsg?.videoOk ?? null,
+          });
+          evaluateMic();
+        })
+        .on("nonfatal-error", (event?: DailyEventObjectNonFatalError) => {
+          if (disposed) return;
+          logAudio("daily : erreur non fatale", { type: event?.type ?? "inconnu" });
+          evaluateMic();
         })
         .on("participant-joined", (event) => {
           if (event && !event.participant.local) latency.recordLifecycle("participant-joined");
@@ -226,6 +340,9 @@ function TavusVideoStageComponent({
 
     return () => {
       disposed = true;
+      if (settleTimer !== undefined) window.clearTimeout(settleTimer);
+      evaluateMicRef.current = () => "pending";
+      setJoined(false);
       const leaving = call;
       call = null;
       setCallObject(null);
@@ -238,14 +355,48 @@ function TavusVideoStageComponent({
     };
   }, [roomUrl]);
 
-  // Les contrôles Nice-Matin pilotent directement les pistes locales Daily.
+  // Les contrôles Nice-Matin pilotent les pistes locales Daily, mais seulement
+  // une fois la salle rejointe : avant `joined-meeting`, un appel à
+  // `setLocalAudio` ne prouve rien.
   useEffect(() => {
-    void callObject?.setLocalAudio(micOn);
-  }, [callObject, micOn]);
+    if (!callObject || !joined) return;
+    callObject.setLocalAudio(micOn);
+    logAudio(micOn ? "micro : activé" : "micro : coupé par l'utilisateur");
+  }, [callObject, joined, micOn]);
 
   useEffect(() => {
-    void callObject?.setLocalVideo(cameraOn);
-  }, [callObject, cameraOn]);
+    if (!callObject || !joined) return;
+    callObject.setLocalVideo(cameraOn);
+  }, [callObject, joined, cameraOn]);
+
+  // Réactivation demandée après une perte du micro.
+  useEffect(() => {
+    if (recoverSignal === 0 || !callObject || !joined) return;
+    let cancelled = false;
+    const recover = async () => {
+      logAudio("micro : réactivation demandée");
+      try {
+        callObject.setLocalAudio(false, { forceDiscardTrack: true });
+        if (micDeviceRef.current) {
+          await callObject.setInputDevicesAsync({ audioDeviceId: micDeviceRef.current });
+        }
+        callObject.setLocalAudio(true);
+      } catch {
+        logAudio("micro : réactivation en erreur");
+      }
+      await new Promise((resolve) => setTimeout(resolve, MIC_RECOVER_WAIT_MS));
+      if (cancelled) return;
+      const recovered = evaluateMicRef.current() === "active";
+      logAudio("micro : résultat de la réactivation", { reussi: recovered });
+      handlersRef.current.onRecoverResult(recovered);
+    };
+    void recover();
+    return () => {
+      cancelled = true;
+    };
+    // Déclenchée uniquement par une nouvelle demande.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [recoverSignal]);
 
   useEffect(() => {
     const onFullscreenChange = () => setIsFullscreen(Boolean(document.fullscreenElement));

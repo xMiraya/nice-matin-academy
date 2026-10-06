@@ -4,6 +4,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, Loader2, Mic, MicOff, PhoneOff, Video, VideoOff } from "lucide-react";
 import { Button, ButtonLink } from "@/src/components/Button";
+import { MicrophoneCheckPanel } from "@/src/components/media/MicrophoneCheckPanel";
+import { createConversationIfMicReady } from "@/src/lib/media/call-gate";
+import { logAudio } from "@/src/lib/media/audio-log";
+import type { MicRuntime } from "@/src/lib/media/mic-runtime";
+import { verifyMicrophone } from "@/src/lib/media/microphone";
+import { useMicrophoneCheck } from "@/src/lib/media/use-microphone-check";
 import { CharacterAvatar } from "@/src/components/CharacterAvatar";
 import { Logo } from "@/src/components/Logo";
 import { OBJECTIVES } from "@/src/data/competencies";
@@ -45,6 +51,16 @@ export function CallRoom() {
   const [isJulieReady, setIsJulieReady] = useState(false);
   const [cameraOn, setCameraOn] = useState(true);
   const [micOn, setMicOn] = useState(true);
+  // État réel du micro, lu sur la piste publiée dans Daily (jamais sur `micOn`).
+  const [micRuntime, setMicRuntime] = useState<MicRuntime>("pending");
+  const [micEverActive, setMicEverActive] = useState(false);
+  const [callMicId, setCallMicId] = useState<string | null>(null);
+  const [recoverSignal, setRecoverSignal] = useState(0);
+  const [isRecovering, setIsRecovering] = useState(false);
+  const [recoveryFailed, setRecoveryFailed] = useState(false);
+  // Contrôle réel du micro et de la caméra avant de créer la conversation facturée.
+  const mic = useMicrophoneCheck({ autoStart: true });
+  const { deviceId: checkedMicId, release: releaseMic, reportFailure: reportMicFailure } = mic;
   const objectiveIds = useSelectedObjectiveIds();
   const difficulty = useSelectedDifficulty();
 
@@ -122,20 +138,42 @@ export function CallRoom() {
     setErrorMessage(null);
     setErrorCode(null);
     setIsJulieReady(false);
+    setMicOn(true);
+    setMicRuntime("pending");
+    setMicEverActive(false);
+    setRecoveryFailed(false);
+    setIsRecovering(false);
 
     try {
-      // Le niveau choisi à la préparation pilote le comportement de Julie :
-      // il est transmis à la création de la conversation.
-      const response = await fetch("/api/tavus/conversations", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ difficulty: readSelectedDifficulty() }),
+      // La conversation Tavus (facturée) n'est créée que si le micro est
+      // réellement utilisable : le contrôle est refait juste avant le lancement.
+      const gated = await createConversationIfMicReady({
+        verify: () => verifyMicrophone(navigator.mediaDevices, checkedMicId),
+        create: async () => {
+          // Le niveau choisi à la préparation pilote le comportement de Julie :
+          // il est transmis à la création de la conversation.
+          const response = await fetch("/api/tavus/conversations", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ difficulty: readSelectedDifficulty() }),
+          });
+          const payload = (await response.json()) as
+            | TavusConversationClientResponse
+            | TavusApiErrorResponse;
+          return { response, payload };
+        },
       });
-      const payload = (await response.json()) as
-        | TavusConversationClientResponse
-        | TavusApiErrorResponse;
 
       if (!isMountedRef.current) return;
+
+      if (!gated.started) {
+        logAudio("lancement bloqué : micro inutilisable", { cause: gated.failure });
+        reportMicFailure(gated.failure);
+        setStatus("idle");
+        return;
+      }
+
+      const { response, payload } = gated.value;
 
       if (!response.ok || !("conversation_id" in payload)) {
         setErrorMessage(
@@ -152,6 +190,10 @@ export function CallRoom() {
       // ou si la page est rafraîchie, l'analyse reste rattachable à cet appel.
       storeLastConversationId(payload.conversation_id);
 
+      // Le test local libère le micro : Daily ouvre ensuite le même périphérique.
+      setCallMicId(checkedMicId);
+      releaseMic();
+
       setConversation(payload);
       setSeconds(0);
       // « connecting » et non « active » : le chronomètre attend l'événement
@@ -166,7 +208,7 @@ export function CallRoom() {
     } finally {
       isStartingRef.current = false;
     }
-  }, []);
+  }, [checkedMicId, releaseMic, reportMicFailure]);
 
   /** Le commercial a rejoint la salle. Julie peut ne pas être encore arrivée. */
   const handleStageJoined = useCallback(() => {
@@ -186,6 +228,29 @@ export function CallRoom() {
     if (!isMountedRef.current) return;
     setIsJulieReady(false);
     setStatus((current) => (current === "error" ? current : "connecting"));
+  }, []);
+
+  const handleMicState = useCallback((state: MicRuntime) => {
+    if (!isMountedRef.current) return;
+    setMicRuntime(state);
+    if (state === "active") {
+      setMicEverActive(true);
+      setIsRecovering(false);
+      setRecoveryFailed(false);
+    }
+  }, []);
+
+  const handleRecoverResult = useCallback((recovered: boolean) => {
+    if (!isMountedRef.current) return;
+    setIsRecovering(false);
+    setRecoveryFailed(!recovered);
+  }, []);
+
+  const requestMicRecovery = useCallback(() => {
+    setMicOn(true);
+    setIsRecovering(true);
+    setRecoveryFailed(false);
+    setRecoverSignal((value) => value + 1);
   }, []);
 
   const handleStageError = useCallback((message: string) => {
@@ -292,6 +357,10 @@ export function CallRoom() {
               roomUrl={conversation.conversation_url}
               micOn={micOn}
               cameraOn={cameraOn}
+              micDeviceId={callMicId}
+              recoverSignal={recoverSignal}
+              onMicState={handleMicState}
+              onRecoverResult={handleRecoverResult}
               onJoined={handleStageJoined}
               onJulieReady={handleJulieReady}
               onLeft={handleStageLeft}
@@ -350,9 +419,10 @@ export function CallRoom() {
                     </span>
                     <p className="mt-5 text-lg font-semibold">Julie Dupont</p>
                     <p className="mt-1 text-sm text-white/50">Cliente virtuelle, prête à démarrer</p>
+                    <MicrophoneCheckPanel check={mic} tone="dark" className="mt-5 w-full max-w-sm" />
                     <Button
                       onClick={startCall}
-                      disabled={status === "starting"}
+                      disabled={status === "starting" || mic.status !== "ready"}
                       className="mt-5"
                     >
                       {status === "starting" ? (
@@ -364,11 +434,48 @@ export function CallRoom() {
                         "Démarrer l'appel avec Julie"
                       )}
                     </Button>
+                    {mic.status !== "ready" ? (
+                      <p className="mt-2 max-w-sm text-xs text-white/50">
+                        Le microphone doit être détecté pour lancer l&apos;appel : aucune conversation
+                        n&apos;est créée tant qu&apos;il n&apos;est pas utilisable.
+                      </p>
+                    ) : null}
                   </>
                 )}
               </div>
             </div>
           )}
+
+          {/* Micro perdu pendant l'appel : alerte visible, sans fin d'appel automatique */}
+          {conversation && micOn && micRuntime === "lost" ? (
+            <div
+              role="alert"
+              className="mt-4 flex flex-wrap items-center gap-3 rounded-md border border-danger/40 bg-danger/10 px-4 py-3"
+            >
+              <MicOff size={17} className="shrink-0 text-danger" aria-hidden />
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-white">
+                  {micEverActive
+                    ? "Votre microphone n'est plus détecté."
+                    : "Votre microphone n'est pas détecté : Julie ne vous entend pas."}
+                </p>
+                {recoveryFailed ? (
+                  <p className="mt-1 text-sm leading-relaxed text-white/70">
+                    La réactivation n&apos;a pas abouti. Vérifiez votre microphone, réessayez, ou
+                    terminez proprement la simulation.
+                  </p>
+                ) : null}
+              </div>
+              <Button onClick={requestMicRecovery} disabled={isRecovering}>
+                {isRecovering ? "Réactivation…" : "Réactiver le microphone"}
+              </Button>
+              {recoveryFailed ? (
+                <Button variant="secondary" onClick={endCall} disabled={isEnding}>
+                  Terminer la simulation
+                </Button>
+              ) : null}
+            </div>
+          ) : null}
         </div>
 
         {/* Clôture Tavus en échec : l'entretien reste exploitable */}
@@ -390,11 +497,25 @@ export function CallRoom() {
             aria-pressed={micOn}
             className={cx(
               "flex items-center gap-2 rounded-sm px-4 py-2.5 text-sm font-medium transition-colors",
-              micOn ? "bg-white/10 text-white hover:bg-white/15" : "bg-white/5 text-white/50",
+              !micOn
+                ? "bg-white/5 text-white/50"
+                : micRuntime === "lost"
+                  ? "bg-danger/20 text-white hover:bg-danger/30"
+                  : "bg-white/10 text-white hover:bg-white/15",
             )}
           >
-            {micOn ? <Mic size={17} aria-hidden /> : <MicOff size={17} aria-hidden />}
-            {micOn ? "Microphone actif" : "Microphone coupé"}
+            {micOn && micRuntime !== "lost" ? <Mic size={17} aria-hidden /> : <MicOff size={17} aria-hidden />}
+            {!conversation
+              ? mic.status === "ready"
+                ? "Microphone détecté"
+                : "Microphone non vérifié"
+              : !micOn
+              ? "Microphone coupé"
+              : micRuntime === "active"
+                ? "Microphone actif"
+                : micRuntime === "lost"
+                  ? "Microphone non détecté"
+                  : "Microphone en attente…"}
           </button>
 
           <button

@@ -1,7 +1,9 @@
 "use client";
 
+import { MicrophoneCheckPanel } from "@/src/components/media/MicrophoneCheckPanel";
+import { useMicrophoneCheck } from "@/src/lib/media/use-microphone-check";
 import { useMemo, useState } from "react";
-import { Check, Clock, Lock, ListChecks, Mic, Play, Video, XCircle } from "lucide-react";
+import { Check, Clock, Lock, ListChecks, Play, XCircle } from "lucide-react";
 import type { SessionDifficulty } from "@/src/types";
 import { FULL_INTERVIEW_OPTION, OBJECTIVES } from "@/src/data/competencies";
 import { Panel } from "@/src/components/Panel";
@@ -74,8 +76,10 @@ export function SimulationSetup({
   const [difficulty, setDifficulty] = useState<SessionDifficulty>("intermediaire");
   // Sélection multiple : prête à être transmise au Coach IA et enregistrée dans Supabase.
   const [selectedObjectiveIds, setSelectedObjectiveIds] = useState<string[]>([OBJECTIVES[3].id]);
-  const [cameraChecked, setCameraChecked] = useState(false);
-  const [micChecked, setMicChecked] = useState(false);
+  // Contrôle réel du matériel, lancé à la demande de l'utilisateur.
+  const mic = useMicrophoneCheck({ autoStart: false });
+  const cameraChecked = mic.camera === "ok";
+  const micChecked = mic.status === "ready";
 
   const selectedDifficulty = DIFFICULTIES.find((d) => d.id === difficulty) ?? DIFFICULTIES[1];
 
@@ -395,7 +399,7 @@ export function SimulationSetup({
         fixe posé à côté de ses cases plutôt qu'au-dessus, ils se terminent
         à la même hauteur et ferment la page proprement.
       */}
-      <Panel className="mt-6" title="Avant de lancer" action={<DemoBadge>Visuel</DemoBadge>}>
+      <Panel className="mt-6" title="Avant de lancer">
         <div className="grid grid-cols-1 gap-x-8 gap-y-6 lg:grid-cols-2">
           <div>
             <p className="nm-label">Conditions de la simulation</p>
@@ -411,39 +415,7 @@ export function SimulationSetup({
 
           <div className="lg:border-l lg:border-line lg:pl-8">
             <p className="nm-label">Test caméra et microphone</p>
-            <div className="mt-3 flex flex-wrap items-start gap-4">
-              <div className="w-full max-w-[220px] overflow-hidden rounded-md border border-line bg-ink/95">
-                <div className="flex aspect-video items-center justify-center px-3 text-center">
-                  <span className="text-xs text-white/60">Aperçu caméra désactivé</span>
-                </div>
-              </div>
-
-              <div className="min-w-[220px] flex-1 space-y-2">
-                <label className="flex cursor-pointer items-center gap-3 rounded-sm border border-line px-3 py-2.5 transition-colors hover:border-line-strong hover:bg-mist">
-                  <input
-                    type="checkbox"
-                    checked={cameraChecked}
-                    onChange={(event) => setCameraChecked(event.target.checked)}
-                    className="h-4 w-4 accent-[#001a64]"
-                  />
-                  <Video size={16} className="text-graphite" aria-hidden />
-                  <span className="text-sm text-ink">Ma caméra fonctionne</span>
-                </label>
-                <label className="flex cursor-pointer items-center gap-3 rounded-sm border border-line px-3 py-2.5 transition-colors hover:border-line-strong hover:bg-mist">
-                  <input
-                    type="checkbox"
-                    checked={micChecked}
-                    onChange={(event) => setMicChecked(event.target.checked)}
-                    className="h-4 w-4 accent-[#001a64]"
-                  />
-                  <Mic size={16} className="text-graphite" aria-hidden />
-                  <span className="text-sm text-ink">Mon microphone fonctionne</span>
-                </label>
-                <p className="text-xs leading-relaxed text-graphite">
-                  Test purement visuel : aucun périphérique n&apos;est réellement sollicité.
-                </p>
-              </div>
-            </div>
+            <MicrophoneCheckPanel check={mic} className="mt-3" />
           </div>
         </div>
       </Panel>
